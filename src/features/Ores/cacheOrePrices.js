@@ -1,11 +1,18 @@
-const fs = require('fs');
-const path = require('path');
-const fetch = require('node-fetch');
+import fs from 'fs';
+import path from 'path';
+import fetch from 'node-fetch';
+import { fileURLToPath } from 'url';
+import oresData from './ores_minerals.json' assert { type: 'json' };
 
-const locationsPath = path.resolve(__dirname, '../public/data/locations.json');
-const outputPath = path.resolve(__dirname, '../public/data/oreCachePrices.json');
-const oresData = require('../src/features/Ores/ores_minerals.json'); // adjust path if needed
+// Emulate __dirname in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Paths
+const locationsPath = path.resolve(__dirname, '../../../public/data/locations.json');
+const outputPath = path.resolve(__dirname, '../../../public/data/cachedOrePrices.json');
+
+// Extract all relevant typeIDs
 const ORE_TYPE_IDS = Array.from(
     new Set(
         oresData.ores.flatMap(ore =>
@@ -14,23 +21,20 @@ const ORE_TYPE_IDS = Array.from(
     )
 );
 
+// Fetch average buy prices for a region
 const fetchPricesForRegion = async (regionID) => {
     const result = {};
-
     const chunkSize = 100;
+
     for (let i = 0; i < ORE_TYPE_IDS.length; i += chunkSize) {
         const chunk = ORE_TYPE_IDS.slice(i, i + chunkSize);
-        const typeString = chunk.join(',');
 
-        const url = `https://esi.evetech.net/latest/markets/${regionID}/orders/?datasource=tranquility&order_type=buy&type_id=${chunk[0]}`;
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
+        for (const typeID of chunk) {
+            const url = `https://esi.evetech.net/latest/markets/${regionID}/orders/?datasource=tranquility&order_type=buy&type_id=${typeID}`;
 
-            for (const typeID of chunk) {
-                // Fetch market orders and calculate average buy price for each typeID
-                const ordersRes = await fetch(`https://esi.evetech.net/latest/markets/${regionID}/orders/?datasource=tranquility&order_type=buy&type_id=${typeID}`);
-                const orders = await ordersRes.json();
+            try {
+                const res = await fetch(url);
+                const orders = await res.json();
 
                 const prices = orders.map(o => o.price);
                 const avgPrice =
@@ -39,16 +43,16 @@ const fetchPricesForRegion = async (regionID) => {
                         : 0;
 
                 result[typeID] = { price: avgPrice };
+            } catch (e) {
+                console.error(`Error fetching typeID ${typeID} in region ${regionID}:`, e);
             }
-        } catch (e) {
-            console.error(`Error fetching prices for region ${regionID}:`, e);
         }
     }
 
     return result;
 };
 
-(async () => {
+const main = async () => {
     const locations = JSON.parse(fs.readFileSync(locationsPath, 'utf-8'));
     const regionIDMap = Object.entries(locations)
         .filter(([_, val]) => val.regionID)
@@ -62,7 +66,7 @@ const fetchPricesForRegion = async (regionID) => {
     const countByTypeID = {};
 
     for (const regionID of Object.keys(regionIDMap)) {
-        console.log(`Fetching prices for region ${regionID} (${regionIDMap[regionID]})...`);
+        console.log(`📦 Fetching prices for region ${regionID} (${regionIDMap[regionID]})...`);
         const regionPrices = await fetchPricesForRegion(regionID);
         pricesByRegion[regionID] = regionPrices;
 
@@ -76,7 +80,6 @@ const fetchPricesForRegion = async (regionID) => {
         }
     }
 
-    // Calculate "all" average
     const avgAll = {};
     for (const typeID of Object.keys(allPrices)) {
         const avg = allPrices[typeID] / countByTypeID[typeID];
@@ -89,5 +92,7 @@ const fetchPricesForRegion = async (regionID) => {
     };
 
     fs.writeFileSync(outputPath, JSON.stringify(final, null, 2));
-    console.log(`✅ Wrote oreCachePrices.json to ${outputPath}`);
-})();
+    console.log(`✅ Wrote cachedOrePrices.json to ${outputPath}`);
+};
+
+main();
