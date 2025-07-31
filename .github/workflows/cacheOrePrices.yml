@@ -1,12 +1,8 @@
 name: Cache Ore Prices
-
 on:
   schedule:
     - cron: '0 * * * *'  # every hour
   workflow_dispatch:
-  push:
-    branches:
-      - gh-pages
 
 jobs:
   fetch-and-commit:
@@ -14,15 +10,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: gh-pages  # Ensure the workflow checks out the gh-pages branch
+          path: .  # 👈 make sure it checks out into root
+
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+
       - run: npm install
       - run: node src/features/Ores/cacheOrePrices.js
+
       - run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add public/data/cachedOrePrices.json
           git commit -m "Update cached ore prices [bot]" || echo "No changes"
-          git push origin gh-pages
+          git push
