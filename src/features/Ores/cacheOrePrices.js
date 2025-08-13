@@ -66,7 +66,6 @@ const main = async () => {
     const countByTypeID = {};
 
     for (const regionID of Object.keys(regionIDMap)) {
-        console.log(`📦 Fetching prices for region ${regionID} (${regionIDMap[regionID]})...`);
         const regionPrices = await fetchPricesForRegion(regionID);
         pricesByRegion[regionID] = regionPrices;
 
@@ -92,7 +91,6 @@ const main = async () => {
     };
 
     fs.writeFileSync(outputPath, JSON.stringify(final, null, 2));
-    console.log(`✅ Wrote cachedOrePrices.json to ${outputPath}`);
 };
 
 main();

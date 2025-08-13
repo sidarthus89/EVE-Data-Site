@@ -1,0 +1,12 @@
+name = "eve-data-api"
+main = "index.js"
+compatibility_date = "2025-08-11"
+
+kv_namespaces = [
+  { binding = "MARKET_ORDERS", id = "7ebca26591cd44779d285f2619a074a2", preview_id = "b1980b4449db416d839e3adff0359989" },
+  { binding = "MARKET_TREE", id = "4a35804d690943da9ee2bfcb863348e7", preview_id = "0904bf8af4164676802c4fbafb031daf" },
+  { binding = "LOCATIONS", id = "90fc3a6dbba54176be2cbc366664786b" }
+]
+
+[vars]
+IS_DEV = "true"

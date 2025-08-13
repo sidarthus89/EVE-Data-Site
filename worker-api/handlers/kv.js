@@ -1,0 +1,47 @@
+const JSON_HEADERS = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+};
+
+function safeParse(json) {
+    try {
+        return JSON.parse(json);
+    } catch {
+        return null;
+    }
+}
+
+function jsonResponse(data, status = 200) {
+    const body = typeof data === 'string' ? data : JSON.stringify(data);
+    return new Response(body, {
+        status,
+        headers: JSON_HEADERS,
+    });
+}
+
+async function handleKVFetch(env, namespace, key, label) {
+    const raw = await env[namespace]?.get(key);
+
+    console.log(`[KV] ${label} raw preview:`, raw?.slice(0, 200));
+
+    if (!raw || raw.trim() === '') {
+        console.warn(`[KV] ${label} missing or empty`);
+        return jsonResponse({ error: `${label} not found or empty in KV` }, 500);
+    }
+
+    const parsed = safeParse(raw);
+    if (!parsed) {
+        console.warn(`[KV] ${label} contains invalid JSON`);
+        return jsonResponse({ error: `Invalid JSON in ${label}`, detail: raw }, 500);
+    }
+
+    return jsonResponse(parsed);
+}
+
+export async function handleMarketTree(request, env) {
+    return handleKVFetch(env, 'MARKET_TREE', 'market:tree', 'market:tree');
+}
+
+export async function handleLocations(request, env) {
+    return handleKVFetch(env, 'LOCATIONS', 'locations:all', 'locations:all');
+}

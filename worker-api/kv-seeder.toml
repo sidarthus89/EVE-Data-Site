@@ -1,0 +1,8 @@
+name = "kv-seeder"
+main = "kv-seeder.js"
+compatibility_date = "2025-08-11"
+
+kv_namespaces = [
+  { binding = "MARKET_TREE", id = "4a35804d690943da9ee2bfcb863348e7" },
+  { binding = "LOCATIONS", id = "90fc3a6dbba54176be2cbc366664786b" }
+]
