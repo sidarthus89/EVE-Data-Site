@@ -206,17 +206,33 @@ export async function fetchOreBuyPrices(typeIDList, regionRef = null) {
 
 // For locations
 export async function fetchLocations() {
-    const res = await fetch(`${WORKER_KV_BASE}locations.json`);
-    if (!res.ok) throw new Error('Failed to fetch locations');
-    return res.json();
+    try {
+        const res = await fetch(`${WORKER_KV_BASE}locations.json`);
+        if (!res.ok) throw new Error('Failed to fetch locations from worker');
+        return res.json();
+    } catch (err) {
+        console.warn('Worker fetch failed, falling back to public:', err);
+        const res = await fetch('/locations.json');
+        if (!res.ok) throw new Error('Failed to fetch locations from public');
+        return res.json();
+    }
 }
+
 
 // For market tree
 export async function fetchMarketTree() {
-    const res = await fetch(`${WORKER_KV_BASE}market.json`);
-    if (!res.ok) throw new Error('Failed to fetch market tree');
-    return res.json();
+    try {
+        const res = await fetch(`${WORKER_KV_BASE}market.json`);
+        if (!res.ok) throw new Error('Failed to fetch market tree from worker');
+        return res.json();
+    } catch (err) {
+        console.warn('Worker fetch failed, falling back to public:', err);
+        const res = await fetch('/market.json');
+        if (!res.ok) throw new Error('Failed to fetch market tree from public');
+        return res.json();
+    }
 }
+
 
 // Custom API URL helper
 export function getAPIUrl(path) {

@@ -36,18 +36,17 @@ export function flattenMarketTree(tree) {
     const pathMap = {};
 
     function traverse(node, path = []) {
-        if (!node) return;
-
+        const currentPath = [...path, node.name];
         if (node.typeID) {
-            items.push(node);
-            pathMap[node.typeID] = [...path, node.name];
+            items.push({ ...node });
+            pathMap[node.typeID] = currentPath;
         }
-
         if (node.children) {
-            node.children.forEach(child => traverse(child, [...path, node.name]));
+            node.children.forEach(child => traverse(child, currentPath));
         }
     }
 
-    traverse(tree);
+    tree.forEach(rootNode => traverse(rootNode));
     return { items, pathMap };
 }
+

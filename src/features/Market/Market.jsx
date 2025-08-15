@@ -15,6 +15,7 @@ import {
 } from '../../api/esiAPI.js';
 import { buildStationRegionMap, flattenMarketTree } from '../../api/dataTransforms.js';
 
+
 function applyOutlierFilter(orders, filterEnabled) {
     if (!filterEnabled || orders.length <= 10) return orders;
     const sorted = [...orders].sort((a, b) => a.price - b.price);
