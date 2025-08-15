@@ -1,3 +1,4 @@
+// src/features/Appraisal/Appraisal.jsx
 import { useEffect, useState } from 'react';
 import RegionSelector from '../RegionSelector/RegionSelector';
 import { fetchRegionOrdersByID } from '../../api/esiAPI';
@@ -35,11 +36,15 @@ export default function AppraisalTool() {
 
 
     useEffect(() => {
-        setLocationsData(locationsDataJson);
+        fetchJSON('market-tree')
+            .then(setMarketTree)
+            .catch(err => console.error('❌ Failed to load market-tree from Worker', err));
     }, []);
 
     useEffect(() => {
-        setMarketTree(marketData);
+        fetchJSON('locations')
+            .then(setLocationsData)
+            .catch(err => console.error('❌ Failed to load locations from Worker', err));
     }, []);
 
     // Parse input against local market.json

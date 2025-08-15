@@ -68,7 +68,7 @@ export async function fetchMarketOrders(typeID, regionRef = null, locationsMap =
 export async function fetchMarketHistory(regionID, typeID) {
     if (!regionID || !typeID) throw new Error('regionID and typeID are required');
     const url = `${WORKER_ESI_BASE}${regionID}/history/?type_id=${typeID}`;
-    return await safeFetchJSON(url);
+    return await fetchJSON(`${regionID}/history/?type_id=${typeID}`);
 }
 
 export async function fetchRegionOrdersByID(typeID, regionID) {
@@ -146,7 +146,7 @@ export async function fetchAggregatedMarketHistory(typeID, locations) {
     }
 
     const fetchTasks = Object.values(locations)
-        .filter(region => region.regionID)
+        .filter(region => region.regionID && region.regionID !== 19000001)
         .map(region => async () => {
             try {
                 return await fetchMarketHistory(region.regionID, typeID);
@@ -155,6 +155,7 @@ export async function fetchAggregatedMarketHistory(typeID, locations) {
                 return [];
             }
         });
+
 
     const results = await runTasksWithLimit(fetchTasks, 5);
     const aggregationMap = {};

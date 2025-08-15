@@ -1,3 +1,5 @@
+
+// worker-api/handlers/price-history.js
 import { fetchMarketHistory } from '../utils/fetchers.js';
 import { getRegionName } from '../utils/locations.js';
 
@@ -11,7 +13,8 @@ export async function handlePriceHistory(url) {
 
     const allHistory = await Promise.all(
         regions.map(async regionId => {
-            const history = await fetchMarketHistory(itemId, regionId);
+            const history = await fetchMarketHistory(itemId, regionId, env);
+
             return history.map(entry => ({
                 date: entry.date,
                 average: entry.average,

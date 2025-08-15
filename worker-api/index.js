@@ -26,6 +26,24 @@ export default {
             ? 'http://localhost:8787/api/'
             : 'https://eve-data-api.sidarthus89.workers.dev/api/';
 
+        if (pathname.match(/^\/markets\/\d+\/history\/$/)) {
+            const regionID = pathname.split('/')[2];
+            const typeID = url.searchParams.get('type_id');
+
+            if (!regionID || !typeID) {
+                return new Response("Missing regionID or typeID", { status: 400 });
+            }
+
+            // Rewrite to match handlePriceHistory expectations
+            url.searchParams.set('itemId', typeID);
+            url.searchParams.delete('type_id');
+            url.searchParams.set('region', regionID);
+
+            return handlePriceHistory(url, env);
+
+
+        }
+
         // 🔁 Proxy raw ESI routes
         if (pathname.startsWith('/markets/')) {
             return proxyToESI(url);

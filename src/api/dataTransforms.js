@@ -17,3 +17,16 @@ export function buildStationRegionMap(locationsData) {
 
     return map;
 }
+
+export function buildRegionList(locationsData) {
+    const list = [];
+
+    Object.entries(locationsData).forEach(([regionName, regionBlock]) => {
+        const regionID = regionBlock?.regionID;
+        if (regionID && regionName) {
+            list.push({ regionID, regionName });
+        }
+    });
+
+    return list;
+}

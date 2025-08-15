@@ -18,3 +18,19 @@ export function getRegionName(regionID) {
     }
     return "Unknown Region";
 }
+
+export function getAllRegions() {
+    const regionMap = {};
+
+    for (const loc of Object.values(locations)) {
+        const { regionID, regionName } = loc;
+        if (regionID && regionName) {
+            regionMap[regionID] = regionName;
+        }
+    }
+
+    return Object.entries(regionMap)
+        .map(([regionID, name]) => ({ regionID, name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+}

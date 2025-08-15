@@ -1,3 +1,5 @@
+// handlers/kv.js
+
 const JSON_HEADERS = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -43,5 +45,30 @@ export async function handleMarketTree(request, env) {
 }
 
 export async function handleLocations(request, env) {
-    return handleKVFetch(env, 'LOCATIONS', 'locations:all', 'locations:all');
+    try {
+        const raw = await env.LOCATIONS.get("locations:all");
+        if (!raw) throw new Error("KV 'locations:all' is empty");
+
+        const parsed = JSON.parse(raw);
+        const regionLookup = {};
+
+        for (const regionName in parsed) {
+            const regionBlock = parsed[regionName];
+            const regionID = regionBlock?.regionID;
+
+            if (regionID && regionName) {
+                regionLookup[regionID] = regionName;
+            }
+        }
+
+        return new Response(JSON.stringify({ regionLookup }), {
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
+        });
+    } catch (err) {
+        console.error("❌ handleLocations failed:", err);
+        return new Response(`Internal error: ${err.message}`, { status: 500 });
+    }
 }

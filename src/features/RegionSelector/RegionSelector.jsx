@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { fetchJSON } from '../../api/esiAPI';
 
 const popularRegions = [
@@ -16,12 +16,12 @@ export default function RegionSelector({ selectedRegion, onRegionChange }) {
         async function loadRegions() {
             try {
                 const data = await fetchJSON('locations');
-                const regionLookup = data.regionLookup || {};
-
-                const regionList = Object.entries(regionLookup).map(([regionID, name]) => ({
-                    regionID,
-                    name,
-                }));
+                const regionList = Object.entries(data || {})
+                    .map(([regionName, regionBlock]) => ({
+                        regionID: regionBlock.regionID,
+                        regionName,
+                    }))
+                    .filter(r => r.regionID);
 
                 setRegions(regionList);
 
@@ -37,16 +37,21 @@ export default function RegionSelector({ selectedRegion, onRegionChange }) {
         loadRegions();
     }, [selectedRegion, onRegionChange]);
 
-    const selectedRegionID =
-        selectedRegion === 'all' || selectedRegion == null
-            ? 'all'
-            : selectedRegion.regionID || selectedRegion;
+    const selectedRegionID = useMemo(() => {
+        if (!selectedRegion || selectedRegion === 'all') return 'all';
+        return typeof selectedRegion === 'object'
+            ? selectedRegion.regionID
+            : selectedRegion;
+    }, [selectedRegion]);
 
-    const popularRegionOptions = regions.filter(r =>
-        popularRegions.includes(r.name)
+    const popularRegionOptions = useMemo(
+        () => regions.filter(r => popularRegions.includes(r.regionName)),
+        [regions]
     );
-    const otherRegionOptions = regions.filter(
-        r => !popularRegions.includes(r.name)
+
+    const otherRegionOptions = useMemo(
+        () => regions.filter(r => !popularRegions.includes(r.regionName)),
+        [regions]
     );
 
     const handleChange = (e) => {
@@ -55,7 +60,10 @@ export default function RegionSelector({ selectedRegion, onRegionChange }) {
             onRegionChange?.({ regionName: 'All Regions', regionID: 'all' });
         } else {
             const region = regions.find(r => r.regionID === regionID);
-            onRegionChange?.({ regionName: region?.name || regionID, regionID });
+            onRegionChange?.({
+                regionName: region?.regionName || `Region ${regionID}`,
+                regionID,
+            });
         }
     };
 
@@ -71,7 +79,7 @@ export default function RegionSelector({ selectedRegion, onRegionChange }) {
                 <optgroup label="Popular Regions">
                     {popularRegionOptions.map(region => (
                         <option key={region.regionID} value={region.regionID}>
-                            {region.name}
+                            {region.regionName}
                         </option>
                     ))}
                 </optgroup>
@@ -81,7 +89,7 @@ export default function RegionSelector({ selectedRegion, onRegionChange }) {
                 <optgroup label="All Other Regions">
                     {otherRegionOptions.map(region => (
                         <option key={region.regionID} value={region.regionID}>
-                            {region.name}
+                            {region.regionName}
                         </option>
                     ))}
                 </optgroup>

@@ -85,6 +85,11 @@ export default function MarketDistribution({
                 <BarChart
                     data={data}
                     margin={{ top: 20, right: 50, left: 50, bottom: 40 }}
+                    onClick={(e) => {
+                        if (e && e.activeLabel && onRegionClick) {
+                            onRegionClick(e.activeLabel);
+                        }
+                    }}
                 >
                     <XAxis
                         dataKey="region"
