@@ -30,3 +30,24 @@ export function buildRegionList(locationsData) {
 
     return list;
 }
+
+export function flattenMarketTree(tree) {
+    const items = [];
+    const pathMap = {};
+
+    function traverse(node, path = []) {
+        if (!node) return;
+
+        if (node.typeID) {
+            items.push(node);
+            pathMap[node.typeID] = [...path, node.name];
+        }
+
+        if (node.children) {
+            node.children.forEach(child => traverse(child, [...path, node.name]));
+        }
+    }
+
+    traverse(tree);
+    return { items, pathMap };
+}

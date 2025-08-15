@@ -1,31 +1,11 @@
-//src/features/TradeRoute/TradeRoute.jsx
-
-import React, { useState, useEffect, useRef } from 'react';
+// src/features/TradeRoute/TradeRoute.jsx
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './TradeRoute.css';
-import { WORKER_KV_BASE } from '../../api/esiAPI';
+import { WORKER_KV_BASE, fetchMarketData } from '../../api/esiAPI';
 
 const popularRegions = ['The Forge', 'Domain', 'Tenerifis', 'Sinq Laison', 'Essence'];
 
-// Custom hooks
-function useStationInfoMap() {
-    const [stationInfoMap, setStationInfoMap] = useState({});
-
-    useEffect(() => {
-        fetch(`${WORKER_KV_BASE}locations`)
-            .then(res => res.json())
-            .then(data => {
-                setStationInfoMap(data.stationLookup || {});
-            })
-            .catch(err => {
-                console.warn('Failed to load station info map:', err);
-                setStationInfoMap({});
-            });
-    }, []);
-
-    return stationInfoMap;
-}
-
-
+// Custom hook for column resizing
 function useColumnResize() {
     const [columnWidths, setColumnWidths] = useState({});
     const [isResizing, setIsResizing] = useState(false);
@@ -42,8 +22,7 @@ function useColumnResize() {
         const handleMouseMove = (e) => {
             if (!isResizing || !resizingColumn) return;
             const diff = e.clientX - startX.current;
-            const newWidth = Math.max(80, startWidth.current + diff);
-            setColumnWidths(prev => ({ ...prev, [resizingColumn]: newWidth }));
+            setColumnWidths(prev => ({ ...prev, [resizingColumn]: Math.max(80, startWidth.current + diff) }));
         };
 
         const handleMouseUp = () => {
@@ -61,39 +40,54 @@ function useColumnResize() {
     return { columnWidths, handleMouseDown, isResizing };
 }
 
+// Extract regions from locations data
+function getAllRegions(locations) {
+    if (!locations?.stationLookup) return [];
+    const regionMap = {};
+    Object.values(locations.stationLookup).forEach(loc => {
+        if (loc.regionID && loc.regionName) regionMap[loc.regionID] = loc.regionName;
+    });
+    return Object.entries(regionMap)
+        .map(([regionID, name]) => ({ regionID, name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export default function TradeRoute() {
     const [locations, setLocations] = useState({});
     const [startRegion, setStartRegion] = useState({ regionName: 'All Regions', regionID: 'all' });
     const [endRegion, setEndRegion] = useState({ regionName: 'All Regions', regionID: 'all' });
     const [tradeMode, setTradeMode] = useState('buyToSell');
-    const [profitAbove, setProfitAbove] = useState('');   // now truly starts empty
+    const [profitAbove, setProfitAbove] = useState('');
     const [roi, setROI] = useState('');
     const [budget, setBudget] = useState('');
     const [capacity, setCapacity] = useState('');
-    const [maxJumps, setMaxJumps] = useState('');         // re-added maxJumps field
-    const [salesTax, setSalesTax] = useState('');         // truly empty at start
+    const [maxJumps, setMaxJumps] = useState('');
+    const [salesTax, setSalesTax] = useState('');
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [results, setResults] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: 'netProfit', direction: 'desc' });
     const [copyFeedback, setCopyFeedback] = useState({});
     const { columnWidths, handleMouseDown, isResizing } = useColumnResize();
-    const stationInfoMap = useStationInfoMap();
 
+    // Load locations from Worker KV
     useEffect(() => {
-        fetch(`${WORKER_KV_BASE}locations`)
-            .then(res => res.json())
-            .then(data => {
+        const loadLocations = async () => {
+            try {
+                const res = await fetch(`${WORKER_KV_BASE}locations`);
+                if (!res.ok) throw new Error(`Failed to fetch locations: ${res.status}`);
+                const data = await res.json();
                 setLocations(data || {});
-            })
-            .catch(err => {
+            } catch (err) {
                 console.warn('Failed to load locations:', err);
                 setLocations({});
-            });
+            }
+        };
+        loadLocations();
     }, []);
 
-
-    const columns = [
+    // Columns definition
+    const columns = useMemo(() => [
         { key: 'itemName', label: 'Item', sortable: true, cssClass: 'trade-col-item-name', defaultWidth: '200px' },
         { key: 'from', label: 'From', sortable: true, cssClass: 'trade-col-station', defaultWidth: '250px', hasCopy: true },
         { key: 'quantity', label: 'Quantity', sortable: true, cssClass: 'trade-col-quantity', defaultWidth: '80px', isNumber: true },
@@ -106,14 +100,12 @@ export default function TradeRoute() {
         { key: 'profitPerItem', label: 'Profit Per Item', sortable: true, cssClass: 'trade-col-profit', defaultWidth: '120px', isNumber: true },
         { key: 'roi', label: 'ROI', sortable: true, cssClass: 'trade-col-roi', defaultWidth: '80px', isNumber: true, isROI: true },
         { key: 'totalVolume', label: 'Total Volume (m³)', sortable: true, cssClass: 'trade-col-volume', defaultWidth: '100px', isNumber: true },
-    ];
+    ], []);
 
     const getColumnWidth = (columnKey) =>
-        columnWidths[columnKey] ||
-        columns.find(c => c.key === columnKey)?.defaultWidth ||
-        '100px';
+        columnWidths[columnKey] || columns.find(c => c.key === columnKey)?.defaultWidth || '100px';
 
-
+    // Copy to clipboard with feedback
     const copyToClipboard = async (text, rowIndex, columnKey) => {
         try {
             await navigator.clipboard.writeText(text);
@@ -131,32 +123,22 @@ export default function TradeRoute() {
         }
     };
 
+    // Region options for select
+    const regionOptions = useMemo(() => getAllRegions(locations), [locations]);
     const renderRegionOptions = () => {
-        const regionLookup = locations.regionLookup || {};
-        const allRegionIDs = Object.keys(regionLookup).sort();
-
-        const popularRegionIDs = allRegionIDs.filter(id =>
-            popularRegions.includes(regionLookup[id])
-        );
-        const otherRegionIDs = allRegionIDs.filter(id =>
-            !popularRegions.includes(regionLookup[id])
-        );
-
+        const popular = regionOptions.filter(r => popularRegions.includes(r.name));
+        const others = regionOptions.filter(r => !popularRegions.includes(r.name));
         return (
             <>
-                <option key="all" value="all">All Regions</option>
-                {popularRegionIDs.length > 0 && (
+                <option value="all">All Regions</option>
+                {popular.length > 0 && (
                     <optgroup label="Popular Regions">
-                        {popularRegionIDs.map(id => (
-                            <option key={id} value={id}>{regionLookup[id]}</option>
-                        ))}
+                        {popular.map(r => <option key={r.regionID} value={r.regionID}>{r.name}</option>)}
                     </optgroup>
                 )}
-                {otherRegionIDs.length > 0 && (
+                {others.length > 0 && (
                     <optgroup label="All Other Regions">
-                        {otherRegionIDs.map(id => (
-                            <option key={id} value={id}>{regionLookup[id]}</option>
-                        ))}
+                        {others.map(r => <option key={r.regionID} value={r.regionID}>{r.name}</option>)}
                     </optgroup>
                 )}
             </>
@@ -165,29 +147,20 @@ export default function TradeRoute() {
 
     const handleRegionChange = (setter) => (e) => {
         const regionID = e.target.value;
-        if (regionID === 'all') {
-            setter({ regionName: 'All Regions', regionID: 'all' });
-            return;
-        }
-        const regionName = locations.regionLookup?.[regionID] || regionID;
+        if (regionID === 'all') return setter({ regionName: 'All Regions', regionID: 'all' });
+        const regionName = locations.stationLookup?.[regionID]?.regionName || regionID;
         setter({ regionName, regionID });
     };
 
+    // Fetch market trade routes
     const handleSearch = async () => {
-        if (
-            !startRegion.regionID ||
-            startRegion.regionID === 'all' ||
-            !endRegion.regionID ||
-            endRegion.regionID === 'all'
-        ) {
+        if (!startRegion.regionID || startRegion.regionID === 'all' || !endRegion.regionID || endRegion.regionID === 'all') {
             alert('Please select valid regions for both start and end locations.');
             return;
         }
-
         setLoading(true);
         setProgress(0);
         setResults([]);
-
         try {
             const data = await fetchMarketData({
                 startRegionID: startRegion.regionID,
@@ -201,7 +174,6 @@ export default function TradeRoute() {
                 maxJumps: maxJumps ? parseInt(maxJumps) : Infinity,
                 updateProgress: setProgress,
             });
-
             setResults(data);
         } catch (err) {
             alert('Error fetching market data: ' + err.message);
@@ -212,42 +184,23 @@ export default function TradeRoute() {
         }
     };
 
+    // Sorting
     const sortData = (key) => {
         let direction = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
+        if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
         setSortConfig({ key, direction });
     };
 
-    const sortedResults = [...results].sort((a, b) => {
-        const aVal = a[sortConfig.key];
-        const bVal = b[sortConfig.key];
-        if (typeof aVal === 'string') {
-            return sortConfig.direction === 'asc'
-                ? aVal.localeCompare(bVal)
-                : bVal.localeCompare(aVal);
-        }
-        return sortConfig.direction === 'asc'
-            ? (aVal < bVal ? -1 : 1)
-            : (aVal > bVal ? -1 : 1);
-    });
+    const sortedResults = useMemo(() => [...results].sort((a, b) => {
+        const aVal = a[sortConfig.key], bVal = b[sortConfig.key];
+        if (typeof aVal === 'string') return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        return sortConfig.direction === 'asc' ? (aVal < bVal ? -1 : 1) : (aVal > bVal ? -1 : 1);
+    }), [results, sortConfig]);
 
     const formatCellValue = (value, column) => {
-        if (column.key === 'quantity') return value.toLocaleString();
-        if (column.key === 'jumps') return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
-        if (column.isNumber && typeof value === 'number') {
-            return value.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
-        if (column.isROI) {
-            return `${value.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })}%`;
-        }
+        if (column.key === 'quantity' || column.key === 'jumps') return value.toLocaleString();
+        if (column.isNumber && typeof value === 'number') return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (column.isROI) return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
         return value;
     };
 
@@ -263,20 +216,15 @@ export default function TradeRoute() {
     const renderCellContent = (value, column, rowIndex) => {
         if (column.hasCopy) {
             const feedbackKey = `${rowIndex}-${column.key}`;
-            const showFeedback = copyFeedback[feedbackKey];
-
             return (
                 <div className="cell-with-copy">
                     <span className="cell-text">{formatCellValue(value, column)}</span>
                     <button
-                        className={`copy-btn ${showFeedback ? 'copied' : ''}`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(value, rowIndex, column.key);
-                        }}
+                        className={`copy-btn ${copyFeedback[feedbackKey] ? 'copied' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); copyToClipboard(value, rowIndex, column.key); }}
                         title="Copy to clipboard"
                     >
-                        {showFeedback ? '✓' : '📋'}
+                        {copyFeedback[feedbackKey] ? '✓' : '📋'}
                     </button>
                 </div>
             );
@@ -284,114 +232,63 @@ export default function TradeRoute() {
         return formatCellValue(value, column);
     };
 
-    const inputFields = [
-        {
-            label: 'Starting Region',
-            value: startRegion.regionName,
-            onChange: handleRegionChange(setStartRegion),
-            type: 'select',
-            options: renderRegionOptions()
-        },
-        {
-            label: 'Ending Region',
-            value: endRegion.regionName,
-            onChange: handleRegionChange(setEndRegion),
-            type: 'select',
-            options: renderRegionOptions()
-        },
-        {
-            label: 'Trade Mode',
-            value: tradeMode,
-            onChange: (e) => setTradeMode(e.target.value),
-            type: 'select',
-            options: [
-                <option key="sellToBuy" value="sellToBuy">Sell in Start / Buy in End</option>,
-                <option key="buyToSell" value="buyToSell">Buy in Start / Sell in End</option>
-            ]
-        },
-        {
-            label: 'Profit Above (ISK)',
-            value: profitAbove,
-            onChange: (e) => setProfitAbove(e.target.value),
-            type: 'number',
-            placeholder: 'Default: 500000'
-        },
-        {
-            label: 'ROI (%) Minimum',
-            value: roi,
-            onChange: (e) => setROI(e.target.value),
-            type: 'number',
-            placeholder: 'Default: 4%'
-        },
-        {
-            label: 'Budget (ISK)',
-            value: budget,
-            onChange: (e) => setBudget(e.target.value),
-            type: 'number',
-            placeholder: 'Default: No Limit'
-        },
-        {
-            label: 'Capacity (m³)',
-            value: capacity,
-            onChange: (e) => setCapacity(e.target.value),
-            type: 'number',
-            placeholder: 'Default: No Limit'
-        },
-        {
-            label: 'Max Jumps',
-            value: maxJumps,
-            onChange: (e) => setMaxJumps(e.target.value),
-            type: 'number',
-            placeholder: 'Default: No Limit'
-        },
-        {
-            label: 'Sales Tax Skill Level',
-            value: salesTax,
-            onChange: (e) => setSalesTax(e.target.value),
-            type: 'select',
-            options: [
-                <option key="" value="" disabled hidden>
-                    Default: No Skill (7.5%)
-                </option>,
-                <option key="6.675" value="6.675">Lvl I: 6.675%</option>,
-                <option key="5.85" value="5.85">Lvl II: 5.85%</option>,
-                <option key="5.025" value="5.025">Lvl III: 5.025%</option>,
-                <option key="4.25" value="4.25">Lvl IV: 4.25%</option>,
-                <option key="3.375" value="3.375">Lvl V: 3.375%</option>
-            ]
-        }
-    ];
-
     return (
         <div className="trade-route-container">
             <h1>Trade Route Finder</h1>
 
             <div className="input-panel">
-                {inputFields.map((field, index) => (
-                    <div key={index} className="input-group">
-                        <label>{field.label}</label>
-                        {field.type === 'select' ? (
-                            <select
-                                className="region-selector"
-                                value={field.value}
-                                onChange={field.onChange}
-                            >
-                                {field.options}
-                            </select>
-                        ) : (
-                            <input
-                                type={field.type}
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder={field.placeholder}
-                            />
-                        )}
-                    </div>
-                ))}
+                <div className="input-group">
+                    <label>Starting Region</label>
+                    <select className="region-selector" value={startRegion.regionID} onChange={handleRegionChange(setStartRegion)}>
+                        {renderRegionOptions()}
+                    </select>
+                </div>
+                <div className="input-group">
+                    <label>Ending Region</label>
+                    <select className="region-selector" value={endRegion.regionID} onChange={handleRegionChange(setEndRegion)}>
+                        {renderRegionOptions()}
+                    </select>
+                </div>
+                <div className="input-group">
+                    <label>Trade Mode</label>
+                    <select value={tradeMode} onChange={(e) => setTradeMode(e.target.value)}>
+                        <option value="sellToBuy">Sell in Start / Buy in End</option>
+                        <option value="buyToSell">Buy in Start / Sell in End</option>
+                    </select>
+                </div>
+                <div className="input-group">
+                    <label>Profit Above (ISK)</label>
+                    <input type="number" value={profitAbove} onChange={e => setProfitAbove(e.target.value)} placeholder="Default: 500000" />
+                </div>
+                <div className="input-group">
+                    <label>ROI (%) Minimum</label>
+                    <input type="number" value={roi} onChange={e => setROI(e.target.value)} placeholder="Default: 4%" />
+                </div>
+                <div className="input-group">
+                    <label>Budget (ISK)</label>
+                    <input type="number" value={budget} onChange={e => setBudget(e.target.value)} placeholder="Default: No Limit" />
+                </div>
+                <div className="input-group">
+                    <label>Capacity (m³)</label>
+                    <input type="number" value={capacity} onChange={e => setCapacity(e.target.value)} placeholder="Default: No Limit" />
+                </div>
+                <div className="input-group">
+                    <label>Max Jumps</label>
+                    <input type="number" value={maxJumps} onChange={e => setMaxJumps(e.target.value)} placeholder="Default: No Limit" />
+                </div>
+                <div className="input-group">
+                    <label>Sales Tax Skill Level</label>
+                    <select value={salesTax} onChange={e => setSalesTax(e.target.value)}>
+                        <option value="" disabled hidden>Default: No Skill (7.5%)</option>
+                        <option value="6.675">Lvl I: 6.675%</option>
+                        <option value="5.85">Lvl II: 5.85%</option>
+                        <option value="5.025">Lvl III: 5.025%</option>
+                        <option value="4.25">Lvl IV: 4.25%</option>
+                        <option value="3.375">Lvl V: 3.375%</option>
+                    </select>
+                </div>
 
-                <button onClick={handleSearch} disabled={loading}>
-                    {loading ? 'Loading...' : 'Search'}
-                </button>
+                <button onClick={handleSearch} disabled={loading}>{loading ? 'Loading...' : 'Search'}</button>
 
                 {loading && (
                     <div className="progress-bar">
@@ -406,47 +303,26 @@ export default function TradeRoute() {
                     <span className="trade-results-count">{sortedResults.length} results</span>
                 </div>
 
-                <div
-                    className="trade-market-table"
-                    style={{ cursor: isResizing ? 'col-resize' : 'default' }}
-                >
+                <div className="trade-market-table" style={{ cursor: isResizing ? 'col-resize' : 'default' }}>
                     <div className="trade-thead">
                         <div className="trade-thead-row">
-                            {columns.map((column) => (
-                                <div
-                                    key={column.key}
-                                    className={`trade-column-header ${column.cssClass}`}
-                                    style={{ width: getColumnWidth(column.key), position: 'relative' }}
-                                    onClick={() => column.sortable && sortData(column.key)}
-                                >
-                                    <span>{column.label}</span>
-                                    {sortConfig.key === column.key && (
-                                        <span className="sort-indicator">
-                                            {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                                        </span>
-                                    )}
-                                    <div
-                                        className="column-resizer"
-                                        onMouseDown={(e) => handleMouseDown(e, column.key)}
-                                    />
+                            {columns.map(col => (
+                                <div key={col.key} className={`trade-column-header ${col.cssClass}`} style={{ width: getColumnWidth(col.key), position: 'relative' }} onClick={() => col.sortable && sortData(col.key)}>
+                                    <span>{col.label}</span>
+                                    {sortConfig.key === col.key && <span className="sort-indicator">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>}
+                                    <div className="column-resizer" onMouseDown={e => handleMouseDown(e, col.key)} />
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     <div className="trade-tbody">
-                        {sortedResults.length === 0 && (
-                            <div className="trade-empty-row">No results to display</div>
-                        )}
+                        {sortedResults.length === 0 && <div className="trade-empty-row">No results to display</div>}
                         {sortedResults.map((row, idx) => (
                             <div key={`${row.itemId}-${idx}`} className="trade-table-row">
-                                {columns.map(column => (
-                                    <div
-                                        key={column.key}
-                                        className={getCellClasses(column)}
-                                        style={{ width: getColumnWidth(column.key) }}
-                                    >
-                                        {renderCellContent(row[column.key], column, idx)}
+                                {columns.map(col => (
+                                    <div key={col.key} className={getCellClasses(col)} style={{ width: getColumnWidth(col.key) }}>
+                                        {renderCellContent(row[col.key], col, idx)}
                                     </div>
                                 ))}
                             </div>

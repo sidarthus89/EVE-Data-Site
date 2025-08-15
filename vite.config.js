@@ -26,6 +26,11 @@ export default defineConfig(({ mode }) => {
           secure: false
         }
       }
+    },
+    resolve: {
+      alias: {
+        '@worker': '/worker-api',
+      },
     }
   };
 });

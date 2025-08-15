@@ -1,14 +1,15 @@
 // src/api/esiAPI.js
 
-const IS_DEV = import.meta.env.IS_DEV;
+const IS_DEV = import.meta.env.DEV;
+
 
 export const WORKER_ESI_BASE = IS_DEV
     ? 'http://127.0.0.1:8787/markets/'
     : 'https://eve-data-api.sidarthus89.workers.dev/markets/';
 
 export const WORKER_KV_BASE = IS_DEV
-    ? 'http://127.0.0.1:8787/api/'
-    : 'https://eve-data-api.sidarthus89.workers.dev/api/';
+    ? '/api/'  // Dev: fetches from public folder
+    : 'https://eve-data-api.sidarthus89.workers.dev/api/'; // Prod: fetches from Worker
 
 const GLOBAL_MARKET_TYPES = new Set([44992]);
 const allRegionsCache = {};
@@ -27,16 +28,10 @@ function getEffectiveRegionID(typeID, regionRef, locationsMap) {
     return locationsMap?.[regionRef]?.regionID ?? null;
 }
 
-export async function fetchJSON(path) {
-    const url = getAPIUrl(path);
-    const res = await fetch(url);
-
-    if (!res.ok) {
-        const text = await res.text(); // read raw body to avoid JSON.parse crash
-        throw new Error(`Fetch failed: ${res.status} — ${text}`);
-    }
-
-    return await res.json();
+export async function fetchJSON(endpoint) {
+    const res = await fetch(`${WORKER_KV_BASE}${endpoint}`);
+    if (!res.ok) throw new Error(`Failed to fetch ${endpoint}: ${res.status}`);
+    return res.json();
 }
 
 export async function fetchMarketOrders(typeID, regionRef = null, locationsMap = {}) {
@@ -67,7 +62,6 @@ export async function fetchMarketOrders(typeID, regionRef = null, locationsMap =
 
 export async function fetchMarketHistory(regionID, typeID) {
     if (!regionID || !typeID) throw new Error('regionID and typeID are required');
-    const url = `${WORKER_ESI_BASE}${regionID}/history/?type_id=${typeID}`;
     return await fetchJSON(`${regionID}/history/?type_id=${typeID}`);
 }
 
@@ -93,6 +87,7 @@ export async function fetchRegionOrdersByID(typeID, regionID) {
     return orders;
 }
 
+// Run tasks with concurrency limit
 async function runTasksWithLimit(tasks, concurrency = 5) {
     const results = [];
     let index = 0;
@@ -120,16 +115,16 @@ export async function fetchOrdersForAllRegions(typeID, locations) {
     const fetchTasks = Object.entries(locations)
         .filter(([_, region]) => region.regionID)
         .map(([regionKey, region]) => () =>
-            fetchRegionOrdersByID(typeID, region.regionID).then(orders =>
-                orders.map(order => ({
+            fetchRegionOrdersByID(typeID, region.regionID)
+                .then(orders => orders.map(order => ({
                     ...order,
                     source_region_id: region.regionID,
                     source_region_key: regionKey
-                }))
-            ).catch(e => {
-                console.warn(`Failed fetching orders for region ${regionKey}:`, e);
-                return [];
-            })
+                })))
+                .catch(e => {
+                    console.warn(`Failed fetching orders for region ${regionKey}:`, e);
+                    return [];
+                })
         );
 
     const allResults = await runTasksWithLimit(fetchTasks, 6);
@@ -140,10 +135,7 @@ export async function fetchOrdersForAllRegions(typeID, locations) {
 }
 
 export async function fetchAggregatedMarketHistory(typeID, locations) {
-    if (!typeID || !locations || Object.keys(locations).length === 0) {
-        console.warn('Missing typeID or locations for aggregated market history');
-        return [];
-    }
+    if (!typeID || !locations || Object.keys(locations).length === 0) return [];
 
     const fetchTasks = Object.values(locations)
         .filter(region => region.regionID && region.regionID !== 19000001)
@@ -156,21 +148,14 @@ export async function fetchAggregatedMarketHistory(typeID, locations) {
             }
         });
 
-
     const results = await runTasksWithLimit(fetchTasks, 5);
     const aggregationMap = {};
 
     results.forEach(regionData => {
         regionData.forEach(day => {
             if (!aggregationMap[day.date]) {
-                aggregationMap[day.date] = {
-                    date: day.date,
-                    totalVolume: 0,
-                    weightedPriceSum: 0,
-                    totalOrders: 0
-                };
+                aggregationMap[day.date] = { date: day.date, totalVolume: 0, weightedPriceSum: 0, totalOrders: 0 };
             }
-
             aggregationMap[day.date].totalVolume += day.volume;
             aggregationMap[day.date].weightedPriceSum += day.average * day.volume;
             aggregationMap[day.date].totalOrders += day.order_count;
@@ -193,9 +178,7 @@ export async function fetchMineralPricesFromTypeIDs(typeIDList, regionRef = null
         try {
             const orders = await fetchRegionOrdersByID(typeID, getRegionID(regionRef));
             const buyOrders = orders.filter(o => o.is_buy_order && o.price > 0);
-            prices[typeID] = buyOrders.length
-                ? Math.max(...buyOrders.map(o => o.price))
-                : 0;
+            prices[typeID] = buyOrders.length ? Math.max(...buyOrders.map(o => o.price)) : 0;
         } catch (e) {
             console.error(`Mineral ${typeID} failed:`, e);
             prices[typeID] = 0;
@@ -221,9 +204,84 @@ export async function fetchOreBuyPrices(typeIDList, regionRef = null) {
     return prices;
 }
 
-export function getAPIUrl(path) {
-    const base = import.meta.env.IS_DEV
-        ? '/api'
-        : 'https://eve-data-api.sidarthus89.workers.dev/api';
-    return `${base}/${path}`;
+// For locations
+export async function fetchLocations() {
+    const res = await fetch(`${WORKER_KV_BASE}locations.json`);
+    if (!res.ok) throw new Error('Failed to fetch locations');
+    return res.json();
 }
+
+// For market tree
+export async function fetchMarketTree() {
+    const res = await fetch(`${WORKER_KV_BASE}market.json`);
+    if (!res.ok) throw new Error('Failed to fetch market tree');
+    return res.json();
+}
+
+// Custom API URL helper
+export function getAPIUrl(path) {
+    const base = IS_DEV
+        ? 'http://127.0.0.1:8787/api'
+        : 'https://eve-data-api.sidarthus89.workers.dev/api';
+    return `${base}/${path.replace(/^\/+/, '')}`;
+}
+
+
+/**
+ * Fetch trade route data from the Worker
+ * @param {Object} params
+ * @param {string} params.startRegionID
+ * @param {string} params.endRegionID
+ * @param {'buyToSell'|'sellToBuy'} params.tradeMode
+ * @param {number} [params.profitAbove=500000]
+ * @param {number} [params.roi=0]
+ * @param {number} [params.budget=Infinity]
+ * @param {number} [params.capacity=Infinity]
+ * @param {number} [params.salesTax=7.5]
+ * @param {number} [params.maxJumps=Infinity]
+ * @param {function} [params.updateProgress] optional progress callback
+ */
+export async function fetchMarketData(params) {
+    const {
+        startRegionID,
+        endRegionID,
+        tradeMode,
+        profitAbove = 500_000,
+        roi = 0,
+        budget = Infinity,
+        capacity = Infinity,
+        salesTax = 7.5,
+        maxJumps = Infinity,
+        updateProgress
+    } = params;
+
+    const url = new URL(`${WORKER_KV_BASE}trade-route`);
+
+    url.searchParams.set('startRegionID', startRegionID);
+    url.searchParams.set('endRegionID', endRegionID);
+    url.searchParams.set('tradeMode', tradeMode);
+    url.searchParams.set('profitAbove', profitAbove);
+    url.searchParams.set('roi', roi);
+    url.searchParams.set('budget', budget);
+    url.searchParams.set('capacity', capacity);
+    url.searchParams.set('salesTax', salesTax);
+    url.searchParams.set('maxJumps', maxJumps);
+
+    try {
+        const res = await fetch(url.toString(), { method: 'GET' });
+
+        if (!res.ok) {
+            throw new Error(`Trade route fetch failed: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        if (updateProgress) updateProgress(100);
+
+        return data;
+    } catch (err) {
+        console.error('fetchMarketData error:', err);
+        throw err;
+    }
+}
+
