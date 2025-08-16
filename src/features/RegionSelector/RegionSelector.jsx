@@ -30,11 +30,7 @@ export default function RegionSelector({ selectedRegion, onRegionChange }) {
                     setError('No regions found. Please check your data source.');
                 } else {
                     setError(null);
-                }
-                setRegions(regionList);
-
-                if (!selectedRegion) {
-                    onRegionChange?.({ regionName: 'All Regions', regionID: 'all' });
+                    setRegions(regionList);
                 }
             } catch (err) {
                 console.error('❌ Failed to load regions:', err);
@@ -44,7 +40,23 @@ export default function RegionSelector({ selectedRegion, onRegionChange }) {
         }
 
         loadRegions();
-    }, [selectedRegion, onRegionChange]);
+    }, []); // ← only run once on mount
+
+    useEffect(() => {
+        if (!selectedRegion && regions.length > 0) {
+            onRegionChange?.({ regionName: 'All Regions', regionID: 'all' });
+        }
+    }, [selectedRegion, regions]);
+
+    // Group regions into popular and others
+    const { popularRegionsList, otherRegionsList } = useMemo(() => {
+        const popular = regions.filter(r => popularRegions.includes(r.regionName));
+        const others = regions.filter(r => !popularRegions.includes(r.regionName));
+        return {
+            popularRegionsList: popular,
+            otherRegionsList: others
+        };
+    }, [regions]);
 
     // Render fallback UI if error or empty
     if (error) {
@@ -53,7 +65,8 @@ export default function RegionSelector({ selectedRegion, onRegionChange }) {
     if (regions.length === 0) {
         return <div style={{ padding: '1rem' }}>Loading regions...</div>;
     }
-    // Render dropdown UI
+
+    // Render dropdown UI with grouped options
     return (
         <div style={{ padding: '1rem' }}>
             <label htmlFor="region-select" style={{ marginRight: 8 }}>Region:</label>
@@ -71,9 +84,26 @@ export default function RegionSelector({ selectedRegion, onRegionChange }) {
                 }}
             >
                 <option value="all">All Regions</option>
-                {regions.map(region => (
-                    <option key={region.regionID} value={region.regionID}>{region.regionName}</option>
-                ))}
+
+                {popularRegionsList.length > 0 && (
+                    <optgroup label="Popular Regions">
+                        {popularRegionsList.map(region => (
+                            <option key={region.regionID} value={region.regionID}>
+                                {region.regionName}
+                            </option>
+                        ))}
+                    </optgroup>
+                )}
+
+                {otherRegionsList.length > 0 && (
+                    <optgroup label="All Other Regions">
+                        {otherRegionsList.map(region => (
+                            <option key={region.regionID} value={region.regionID}>
+                                {region.regionName}
+                            </option>
+                        ))}
+                    </optgroup>
+                )}
             </select>
         </div>
     );

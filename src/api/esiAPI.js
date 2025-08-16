@@ -28,8 +28,9 @@ function getEffectiveRegionID(typeID, regionRef, locationsMap) {
     return locationsMap?.[regionRef]?.regionID ?? null;
 }
 
-export async function fetchJSON(endpoint) {
-    const res = await fetch(`${WORKER_KV_BASE}${endpoint}`);
+export async function fetchJSON(endpoint, isFullUrl = false) {
+    const url = isFullUrl ? endpoint : `${WORKER_KV_BASE}${endpoint}`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`Failed to fetch ${endpoint}: ${res.status}`);
     return res.json();
 }
@@ -62,7 +63,8 @@ export async function fetchMarketOrders(typeID, regionRef = null, locationsMap =
 
 export async function fetchMarketHistory(regionID, typeID) {
     if (!regionID || !typeID) throw new Error('regionID and typeID are required');
-    return await fetchJSON(`${regionID}/history/?type_id=${typeID}`);
+    const url = `${WORKER_ESI_BASE}${regionID}/history/?type_id=${typeID}`;
+    return await fetchJSON(url, true); // pass full URL
 }
 
 export async function fetchRegionOrdersByID(typeID, regionID) {
@@ -135,15 +137,19 @@ export async function fetchOrdersForAllRegions(typeID, locations) {
 }
 
 export async function fetchAggregatedMarketHistory(typeID, locations) {
-    if (!typeID || !locations || Object.keys(locations).length === 0) return [];
+    if (!typeID || !locations || Object.keys(locations).length === 0) {
+        return { data: [], failedRegions: [] };
+    }
 
+    const failedRegions = [];
     const fetchTasks = Object.values(locations)
         .filter(region => region.regionID && region.regionID !== 19000001)
         .map(region => async () => {
             try {
                 return await fetchMarketHistory(region.regionID, typeID);
             } catch (e) {
-                console.warn(`Failed to fetch market history for region ${region.regionID}`, e);
+                console.warn(`❌ Failed to fetch market history for region ${region.regionID}`, e);
+                failedRegions.push(region.regionID);
                 return [];
             }
         });
@@ -154,7 +160,12 @@ export async function fetchAggregatedMarketHistory(typeID, locations) {
     results.forEach(regionData => {
         regionData.forEach(day => {
             if (!aggregationMap[day.date]) {
-                aggregationMap[day.date] = { date: day.date, totalVolume: 0, weightedPriceSum: 0, totalOrders: 0 };
+                aggregationMap[day.date] = {
+                    date: day.date,
+                    totalVolume: 0,
+                    weightedPriceSum: 0,
+                    totalOrders: 0
+                };
             }
             aggregationMap[day.date].totalVolume += day.volume;
             aggregationMap[day.date].weightedPriceSum += day.average * day.volume;
@@ -162,14 +173,19 @@ export async function fetchAggregatedMarketHistory(typeID, locations) {
         });
     });
 
-    return Object.values(aggregationMap)
+    const aggregated = Object.values(aggregationMap)
         .map(day => ({
             date: day.date,
             average: day.totalVolume > 0 ? day.weightedPriceSum / day.totalVolume : 0,
-            volume: day.totalVolume,
+            totalVolume: day.totalVolume,
             order_count: day.totalOrders
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+        data: aggregated,
+        failedRegions
+    };
 }
 
 export async function fetchMineralPricesFromTypeIDs(typeIDList, regionRef = null) {

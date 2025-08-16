@@ -44,9 +44,15 @@ export default function Market() {
 
     // Regions list
     const regions = useMemo(() => {
-        if (!locationsData?.regionLookup) return [];
-        return Object.entries(locationsData.regionLookup)
-            .map(([regionID, name]) => ({ regionID, regionName: name }))
+        if (!locationsData) return [];
+
+        // Extract regions from the top level of locationsData, same as RegionSelector
+        return Object.entries(locationsData)
+            .map(([regionName, regionBlock]) => ({
+                regionID: regionBlock.regionID,
+                regionName,
+            }))
+            .filter(r => r.regionID)
             .sort((a, b) => a.regionName.localeCompare(b.regionName));
     }, [locationsData]);
 
@@ -276,9 +282,10 @@ export default function Market() {
 
                             {activeTab === 'distribution' && (
                                 <MarketDistribution
-                                    selectedItem={selectedItem}
                                     orders={allOrdersWithRegion}
-                                    onRegionSelect={handleRegionFromDistribution}
+                                    regions={regions}
+                                    selectedRegion={selectedRegion}
+                                    onRegionClick={handleRegionFromDistribution}
                                 />
                             )}
                         </>

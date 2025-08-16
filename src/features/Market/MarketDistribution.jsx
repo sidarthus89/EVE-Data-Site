@@ -1,7 +1,7 @@
 // src/features/Market/MarketDistribution.jsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
-    BarChart,
+    ComposedChart,
     Bar,
     Line,
     XAxis,
@@ -17,7 +17,10 @@ export default function MarketDistribution({
     onRegionClick,
     selectedRegion
 }) {
-    if (selectedRegion !== 'all' && selectedRegion !== 'All Regions') {
+    // Debug: Log the selectedRegion value
+    console.log('MarketDistribution selectedRegion:', selectedRegion);
+
+    if (selectedRegion !== 'all' && selectedRegion !== 'All Regions' && selectedRegion?.regionID !== 'all') {
         return null;
     }
 
@@ -49,9 +52,11 @@ export default function MarketDistribution({
     }, [orders]);
 
     const data = useMemo(() => {
+        if (!regions || regions.length === 0) return [];
+
         const map = {};
-        regions.forEach(region => {
-            map[region] = { region, buyerVolume: 0, sellerVolume: 0 };
+        regions.forEach(({ regionName }) => {
+            map[regionName] = { region: regionName, buyerVolume: 0, sellerVolume: 0 };
         });
 
         filteredOrders.forEach(order => {
@@ -68,8 +73,15 @@ export default function MarketDistribution({
         return Object.values(map);
     }, [filteredOrders, regions]);
 
+    useEffect(() => {
+        console.log('📊 MarketDistribution data:', data);
+        console.log('📊 Orders count:', orders?.length || 0);
+        console.log('📊 Filtered orders count:', filteredOrders.length);
+        console.log('📊 Regions count:', regions?.length || 0);
+    }, [data, orders, filteredOrders, regions]);
+
     const legendPayload = [
-        { value: 'Seller Volume (Supply)', type: 'square', color: '#2ca02c', id: 'sellerVolume' },
+        { value: 'Seller Volume (Supply)', type: 'rect', color: '#2ca02c', id: 'sellerVolume' },
         { value: 'Buyer Volume (Demand)', type: 'line', color: '#ff7f0e', id: 'buyerVolume' }
     ];
 
@@ -79,10 +91,19 @@ export default function MarketDistribution({
         }
     };
 
+    // Show loading state if no data
+    if (!data || data.length === 0) {
+        return (
+            <div style={{ width: '100%', height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p>No market data available for distribution chart</p>
+            </div>
+        );
+    }
+
     return (
         <div style={{ width: '100%', height: 400 }}>
             <ResponsiveContainer width="100%" height={400}>
-                <BarChart
+                <ComposedChart
                     data={data}
                     margin={{ top: 20, right: 50, left: 50, bottom: 40 }}
                     onClick={(e) => {
@@ -96,6 +117,7 @@ export default function MarketDistribution({
                         angle={-30}
                         textAnchor="end"
                         interval={0}
+                        height={80}
                     />
                     <YAxis
                         yAxisId="left"
@@ -111,6 +133,7 @@ export default function MarketDistribution({
                     />
                     <Tooltip />
                     <Legend payload={legendPayload} verticalAlign="top" />
+
                     {/* Seller volume as green bars */}
                     <Bar
                         yAxisId="left"
@@ -120,6 +143,7 @@ export default function MarketDistribution({
                         barSize={20}
                         onClick={handleBarClick}
                     />
+
                     {/* Buyer volume as orange line */}
                     <Line
                         yAxisId="right"
@@ -131,7 +155,7 @@ export default function MarketDistribution({
                         dot={{ r: 3 }}
                         activeDot={{ r: 5 }}
                     />
-                </BarChart>
+                </ComposedChart>
             </ResponsiveContainer>
         </div>
     );

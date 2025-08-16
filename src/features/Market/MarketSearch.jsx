@@ -6,8 +6,13 @@ import './MarketSearch.css';
 
 function getMatchingItems(term, tree) {
     const results = [];
+    const visited = new Set();
 
     function recurse(node) {
+        if (node === null || typeof node !== 'object') return;
+        if (visited.has(node)) return;
+        visited.add(node);
+
         if (Array.isArray(node.items)) {
             const matchedItems = node.items.filter((item) =>
                 item.typeName?.toLowerCase().includes(term.toLowerCase())
@@ -21,7 +26,12 @@ function getMatchingItems(term, tree) {
         }
     }
 
-    recurse(tree);
+    if (Array.isArray(tree)) {
+        tree.forEach(recurse);
+    } else {
+        recurse(tree);
+    }
+
     return results;
 }
 
@@ -144,13 +154,17 @@ export default function MarketSearch({
     );
 }
 
-function findPathToItem(typeID, tree, path = []) {
+function findPathToItem(typeID, tree, path = [], visited = new Set()) {
+    if (tree === null || typeof tree !== 'object') return null;
+    if (visited.has(tree)) return null;
+    visited.add(tree);
+
     for (const [key, node] of Object.entries(tree)) {
         if (typeof node !== 'object' || node === null) continue;
 
         const newPath = [...path, key];
 
-        // If this node contains items and one matches
+        // Check for matching item in this node
         if (Array.isArray(node.items)) {
             const found = node.items.find(item => String(item.typeID) === String(typeID));
             if (found) return newPath;
@@ -161,9 +175,10 @@ function findPathToItem(typeID, tree, path = []) {
             if (['_info', 'items'].includes(subKey)) continue;
             if (typeof subValue !== 'object' || subValue === null) continue;
 
-            const subPath = findPathToItem(typeID, subValue, [...newPath, subKey]);
+            const subPath = findPathToItem(typeID, subValue, [...newPath, subKey], visited);
             if (subPath) return subPath;
         }
     }
+
     return null;
 }

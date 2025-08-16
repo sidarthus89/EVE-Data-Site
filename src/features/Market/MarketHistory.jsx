@@ -12,11 +12,11 @@ import {
 } from 'recharts';
 import { fetchAggregatedMarketHistory } from '../../api/esiAPI';
 
-export default function MarketHistory({ itemId, locationsData }) {
+export default function MarketHistory({ selectedItem, regions }) {
     const [historyData, setHistoryData] = useState([]);
 
     useEffect(() => {
-        if (!itemId || !locationsData) {
+        if (!selectedItem || !regions || regions.length === 0) {
             setHistoryData([]);
             return;
         }
@@ -25,8 +25,13 @@ export default function MarketHistory({ itemId, locationsData }) {
 
         async function loadAggregateHistory() {
             try {
-                const aggregated = await fetchAggregatedMarketHistory(itemId, locationsData);
-                if (!cancelled) setHistoryData(aggregated);
+                const { data, failedRegions } = await fetchAggregatedMarketHistory(selectedItem.typeID, regions);
+                if (!cancelled) {
+                    setHistoryData(data);
+                    if (failedRegions.length > 0) {
+                        console.warn(`⚠️ Market history unavailable for regions: ${failedRegions.join(', ')}`);
+                    }
+                }
             } catch (error) {
                 console.error('Failed to load aggregated market history', error);
                 if (!cancelled) setHistoryData([]);
@@ -38,11 +43,12 @@ export default function MarketHistory({ itemId, locationsData }) {
         return () => {
             cancelled = true;
         };
-    }, [itemId, locationsData]);
+    }, [selectedItem, regions]);
 
     if (!historyData.length) {
         return <p>No market history data available.</p>;
     }
+
 
     return (
         <div style={{ width: '100%', height: 400 }}>

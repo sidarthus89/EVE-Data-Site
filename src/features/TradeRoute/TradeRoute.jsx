@@ -1,9 +1,8 @@
 // src/features/TradeRoute/TradeRoute.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './TradeRoute.css';
+import RegionSelector from '../RegionSelector/RegionSelector';
 import { WORKER_KV_BASE, fetchRegionOrdersByID, fetchOrdersForAllRegions, fetchJSON, fetchTradeRouteData } from '../../api/esiAPI';
-
-const popularRegions = ['The Forge', 'Domain', 'Tenerifis', 'Sinq Laison', 'Essence'];
 
 // Custom hook for column resizing
 function useColumnResize() {
@@ -40,15 +39,6 @@ function useColumnResize() {
     return { columnWidths, handleMouseDown, isResizing };
 }
 
-// Extract regions from locations data (same logic as Market page)
-function getAllRegions(locations) {
-    if (!locations || typeof locations !== 'object') return [];
-    return Object.entries(locations)
-        .filter(([regionName, regionBlock]) => regionBlock && regionBlock.regionID)
-        .map(([regionName, regionBlock]) => ({ regionID: regionBlock.regionID, name: regionName }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-}
-
 // Get top traded items (you can customize this list)
 const getTopTradedItems = async () => {
     try {
@@ -73,9 +63,7 @@ const getTopTradedItems = async () => {
     }
 };
 
-
 export default function TradeRoute() {
-    const [locations, setLocations] = useState({});
     const [startRegion, setStartRegion] = useState({ regionName: 'All Regions', regionID: 'all' });
     const [endRegion, setEndRegion] = useState({ regionName: 'All Regions', regionID: 'all' });
     const [tradeMode, setTradeMode] = useState('buyToSell');
@@ -92,22 +80,6 @@ export default function TradeRoute() {
     const [copyFeedback, setCopyFeedback] = useState({});
     const [searchWarning, setSearchWarning] = useState('');
     const { columnWidths, handleMouseDown, isResizing } = useColumnResize();
-
-    // Load locations from Worker KV
-    useEffect(() => {
-        const loadLocations = async () => {
-            try {
-                const res = await fetch(`${WORKER_KV_BASE}locations`);
-                if (!res.ok) throw new Error(`Failed to fetch locations: ${res.status}`);
-                const data = await res.json();
-                setLocations(data || {});
-            } catch (err) {
-                console.warn('Failed to load locations:', err);
-                setLocations({});
-            }
-        };
-        loadLocations();
-    }, []);
 
     // Update search warning when regions change
     useEffect(() => {
@@ -158,47 +130,6 @@ export default function TradeRoute() {
         } catch (err) {
             console.error('Failed to copy text: ', err);
         }
-    };
-
-    // Region options for select
-    const regionOptions = useMemo(() => getAllRegions(locations), [locations]);
-    const renderRegionOptions = () => {
-        const popular = regionOptions.filter(r => popularRegions.includes(r.name));
-        const others = regionOptions.filter(r => !popularRegions.includes(r.name));
-        return (
-            <>
-                <option value="all">All Regions</option>
-                {popular.length > 0 && (
-                    <optgroup label="Popular Regions">
-                        {popular.map(r => <option key={r.regionID} value={r.regionID}>{r.name}</option>)}
-                    </optgroup>
-                )}
-                {others.length > 0 && (
-                    <optgroup label="All Other Regions">
-                        {others.map(r => <option key={r.regionID} value={r.regionID}>{r.name}</option>)}
-                    </optgroup>
-                )}
-            </>
-        );
-    };
-
-    const handleRegionChange = (setter) => (e) => {
-        const regionID = e.target.value;
-        console.log('Region changed to:', regionID);
-
-        if (regionID === 'all') {
-            setter({ regionName: 'All Regions', regionID: 'all' });
-            return;
-        }
-
-        // Find region name from regionOptions
-        const region = regionOptions.find(r => String(r.regionID) === String(regionID));
-        console.log('Found region:', region);
-
-        setter({
-            regionName: region ? region.name : regionID,
-            regionID: regionID
-        });
     };
 
     // Validate search parameters
@@ -388,17 +319,24 @@ export default function TradeRoute() {
             </div>
 
             <div className="input-panel">
-                <div className="input-group">
+                <div className="input-group" style={{ gridColumn: 'span 1' }}>
                     <label>Starting Region</label>
-                    <select className="region-selector" value={startRegion.regionID} onChange={handleRegionChange(setStartRegion)}>
-                        {renderRegionOptions()}
-                    </select>
+                    <div style={{ padding: 0 }}>
+                        <RegionSelector
+                            selectedRegion={startRegion}
+                            onRegionChange={setStartRegion}
+                        />
+                    </div>
                 </div>
-                <div className="input-group">
+
+                <div className="input-group" style={{ gridColumn: 'span 1' }}>
                     <label>Ending Region</label>
-                    <select className="region-selector" value={endRegion.regionID} onChange={handleRegionChange(setEndRegion)}>
-                        {renderRegionOptions()}
-                    </select>
+                    <div style={{ padding: 0 }}>
+                        <RegionSelector
+                            selectedRegion={endRegion}
+                            onRegionChange={setEndRegion}
+                        />
+                    </div>
                 </div>
 
                 {searchWarning && (
