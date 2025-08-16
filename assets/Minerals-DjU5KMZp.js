@@ -1,0 +1,1 @@
+import{j as e}from"./index-CB4xd9rp.js";function n(){return e.jsxs("section",{className:"minerals",children:[e.jsx("h1",{children:"Minerals"}),e.jsx("p",{children:"In development"})]})}export{n as default};
