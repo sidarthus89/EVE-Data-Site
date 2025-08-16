@@ -11,7 +11,9 @@ import {
     fetchOrdersForAllRegions,
     fetchMarketOrders,
     getRegionID,
-    fetchJSON
+    fetchJSON,
+    fetchMarketTree,
+    fetchLocations
 } from '../../api/esiAPI.js';
 import { buildStationRegionMap, flattenMarketTree } from '../../api/dataTransforms.js';
 
@@ -49,11 +51,33 @@ export default function Market() {
     }, [locationsData]);
 
     // Load market tree
+    const [marketTreeError, setMarketTreeError] = useState(null);
     useEffect(() => {
         fetchMarketTree()
-            .then(setMarketTree)
-            .catch(err => console.error('❌ Failed to load market-tree', err));
+            .then(tree => {
+                console.log('Fetched market tree:', tree);
+                // Convert object to array of { name, ...node }
+                let treeArray = tree;
+                if (tree && !Array.isArray(tree) && typeof tree === 'object') {
+                    treeArray = Object.entries(tree).map(([name, node]) => {
+                        return { ...node, name };
+                    });
+                }
+                if (!Array.isArray(treeArray) || treeArray.length === 0) {
+                    setMarketTreeError('Market tree data is empty or invalid.');
+                    setMarketTree(null);
+                } else {
+                    setMarketTreeError(null);
+                    setMarketTree(treeArray);
+                }
+            })
+            .catch(err => {
+                setMarketTreeError('Failed to load market tree.');
+                setMarketTree(null);
+                console.error('❌ Failed to load market tree:', err);
+            });
     }, []);
+    const flattenedMarketTree = marketTree ? flattenMarketTree(marketTree) : { items: [], pathMap: {} };
 
     useEffect(() => {
         fetchLocations()
@@ -191,6 +215,9 @@ export default function Market() {
 
     return (
         <div className="market">
+            {marketTreeError && (
+                <div style={{ color: 'red', padding: '1rem' }}>{marketTreeError}</div>
+            )}
             <div className="market-body">
                 <div className="left-panel">
                     <MarketSidebar
@@ -203,7 +230,7 @@ export default function Market() {
                     />
                 </div>
                 <div className="right-panel">
-                    {selectedItem && (
+                    {selectedItem && !marketTreeError && (
                         <>
                             <ItemViewer
                                 selectedItem={selectedItem}

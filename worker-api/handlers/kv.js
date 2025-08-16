@@ -49,19 +49,8 @@ export async function handleLocations(request, env) {
         const raw = await env.LOCATIONS.get("locations:all");
         if (!raw) throw new Error("KV 'locations:all' is empty");
 
-        const parsed = JSON.parse(raw);
-        const regionLookup = {};
-
-        for (const regionName in parsed) {
-            const regionBlock = parsed[regionName];
-            const regionID = regionBlock?.regionID;
-
-            if (regionID && regionName) {
-                regionLookup[regionID] = regionName;
-            }
-        }
-
-        return new Response(JSON.stringify({ regionLookup }), {
+        // Return the full locations object
+        return new Response(raw, {
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'

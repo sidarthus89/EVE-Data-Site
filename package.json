@@ -15,7 +15,9 @@
     "preview": "vite preview",
     "worker:dev": "cd worker-api && wrangler dev",
     "worker:deploy": "cd worker-api && wrangler deploy",
-    "worker:kv": "wrangler kv:key list --namespace-id b1980b4449db416d839e3adff0359989"
+    "worker:kv": "wrangler kv:key list --namespace-id b1980b4449db416d839e3adff0359989",
+    "worker:seed": "curl -X POST http://127.0.0.1:8787/kv-seeder",
+    "seed:worker": "node scripts/seed-worker-kv.cjs"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",

@@ -1,5 +1,14 @@
 // worker-api/handlers/trade-route.js
-import { fetchMarketOrders } from './utils/fetchESI.js'; // Adjust to your actual helper path
+
+import { fetchMarketOrdersFromBackend } from '../utils/fetchers.js';
+
+// Fetch and filter orders for a specific typeID and regionID
+async function fetchMarketOrders(typeID, regionID) {
+    const allOrders = await fetchMarketOrdersFromBackend(regionID);
+    const buyOrders = allOrders.filter(o => o.type_id == typeID && o.is_buy_order);
+    const sellOrders = allOrders.filter(o => o.type_id == typeID && !o.is_buy_order);
+    return { buyOrders, sellOrders };
+}
 
 export async function handleTradeRoute(request, env) {
     try {

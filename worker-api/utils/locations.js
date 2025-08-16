@@ -1,15 +1,36 @@
 // worker-api\utils\locations.js
-import locations from '../worker-api/data/locations.json';
 
-
-return new Response(JSON.stringify(data), {
-    status: 200,
-    headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*', // allow all origins
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+// Utility to fetch locations.json at runtime (for dev/local worker only)
+export async function getLocationsJSONResponse() {
+    // In production, fetch from KV or other storage as needed
+    // In dev, fetch from public/data/locations.json
+    let data = {};
+    try {
+        const res = await fetch('http://127.0.0.1:5173/data/locations.json');
+        if (res.ok) {
+            data = await res.json();
+        } else {
+            throw new Error('Failed to fetch locations.json');
+        }
+    } catch (err) {
+        return new Response(JSON.stringify({ error: 'Could not load locations.json', details: err.message }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            }
+        });
     }
-});
+    return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        }
+    });
+}
 
 
 /**

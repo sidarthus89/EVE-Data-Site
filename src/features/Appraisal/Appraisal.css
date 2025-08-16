@@ -1,3 +1,86 @@
+/* --- MarketTables Flex Table Styles for Appraisal --- */
+.market-table {
+    border: 1px solid #333;
+    background: #2a2a2a;
+    color: #eee;
+    font-size: 14px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-top: 1.5rem;
+    width: 100%;
+    min-width: 700px;
+    box-sizing: border-box;
+}
+
+.thead {
+    background-color: #1a1a1a;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.thead-row,
+.table-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 700px;
+    box-sizing: border-box;
+}
+
+.column-header,
+.table-cell {
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 8px;
+    box-sizing: border-box;
+    flex: 1 1 0;
+    min-width: 120px;
+    max-width: 300px;
+}
+
+.column-header {
+    background: #1a1a1a;
+    font-weight: bold;
+    user-select: none;
+    padding: 4px 8px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    border-right: 1px solid #2a2a2a;
+}
+
+.table-row {
+    display: flex;
+    align-items: center;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.table-row:hover {
+    background-color: #0e1f24;
+}
+
+.table-cell {
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 2px 8px !important;
+    display: flex;
+    align-items: center;
+    height: 100% !important;
+    box-sizing: border-box;
+    flex: 1 1 0;
+    min-width: 120px;
+    max-width: 300px;
+}
+
 .appraisal-tool {
     max-width: auto;
     margin: 2rem auto;

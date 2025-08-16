@@ -18,7 +18,7 @@ function MarketTreeNode({
     const nodeKey = currentPath.join('/');
     const isOpen = expandedNodes.has(nodeKey);
     const hasSubgroups = Object.keys(node).some(
-        (key) => !['_info', 'items'].includes(key)
+        (key) => !['_info', 'items', 'name'].includes(key)
     );
     const hasItems = Array.isArray(node.items) && node.items.length > 0;
 
@@ -85,7 +85,7 @@ function MarketTreeNode({
                     {hasSubgroups && (
                         <ul>
                             {Object.entries(node).map(([childKey, childValue]) => {
-                                if (childKey === '_info' || childKey === 'items') return null;
+                                if (childKey === '_info' || childKey === 'items' || childKey === 'name') return null;
                                 return (
                                     <MarketTreeNode
                                         key={[...currentPath, childKey].join('/')}
@@ -186,11 +186,11 @@ export default function MarketTree({ marketTree, onItemSelect, breadcrumbPath })
 
     return (
         <ul className="menuList menuListtop">
-            {Object.entries(marketTree).map(([key, node]) => (
+            {marketTree.map((node, idx) => (
                 <MarketTreeNode
-                    key={key}
+                    key={node.name || idx}
                     node={node}
-                    nodeName={key}
+                    nodeName={node.name}
                     path={[]}
                     onItemSelect={onItemSelect}
                     expandedNodes={expandedNodes}

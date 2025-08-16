@@ -1,7 +1,7 @@
 // src/features/TradeRoute/TradeRoute.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './TradeRoute.css';
-import { WORKER_KV_BASE, fetchMarketData } from '../../api/esiAPI';
+import { WORKER_KV_BASE, fetchRegionOrdersByID, fetchOrdersForAllRegions, fetchJSON, fetchTradeRouteData } from '../../api/esiAPI';
 
 const popularRegions = ['The Forge', 'Domain', 'Tenerifis', 'Sinq Laison', 'Essence'];
 
@@ -40,17 +40,39 @@ function useColumnResize() {
     return { columnWidths, handleMouseDown, isResizing };
 }
 
-// Extract regions from locations data
+// Extract regions from locations data (same logic as Market page)
 function getAllRegions(locations) {
-    if (!locations?.stationLookup) return [];
-    const regionMap = {};
-    Object.values(locations.stationLookup).forEach(loc => {
-        if (loc.regionID && loc.regionName) regionMap[loc.regionID] = loc.regionName;
-    });
-    return Object.entries(regionMap)
-        .map(([regionID, name]) => ({ regionID, name }))
+    if (!locations || typeof locations !== 'object') return [];
+    return Object.entries(locations)
+        .filter(([regionName, regionBlock]) => regionBlock && regionBlock.regionID)
+        .map(([regionName, regionBlock]) => ({ regionID: regionBlock.regionID, name: regionName }))
         .sort((a, b) => a.name.localeCompare(b.name));
 }
+
+// Get top traded items (you can customize this list)
+const getTopTradedItems = async () => {
+    try {
+        const marketTree = await fetchJSON('market-tree');
+        // Extract some popular items from market categories
+        const topItems = [
+            // PLEX
+            { typeID: 44992, name: 'PLEX', volume: 0.01 },
+            // Some popular ships and modules (you'll need to add more based on your market data)
+            { typeID: 670, name: 'Capsule', volume: 500 },
+            { typeID: 11196, name: 'Cormorant', volume: 15800 },
+            // Add more items from your market tree data
+        ];
+        return topItems;
+    } catch (err) {
+        console.error('Failed to load market tree:', err);
+        // Fallback to a basic list
+        return [
+            { typeID: 44992, name: 'PLEX', volume: 0.01 },
+            { typeID: 670, name: 'Capsule', volume: 500 },
+        ];
+    }
+};
+
 
 export default function TradeRoute() {
     const [locations, setLocations] = useState({});
@@ -68,6 +90,7 @@ export default function TradeRoute() {
     const [results, setResults] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: 'netProfit', direction: 'desc' });
     const [copyFeedback, setCopyFeedback] = useState({});
+    const [searchWarning, setSearchWarning] = useState('');
     const { columnWidths, handleMouseDown, isResizing } = useColumnResize();
 
     // Load locations from Worker KV
@@ -85,6 +108,20 @@ export default function TradeRoute() {
         };
         loadLocations();
     }, []);
+
+    // Update search warning when regions change
+    useEffect(() => {
+        const bothAllRegions = startRegion.regionID === 'all' && endRegion.regionID === 'all';
+        const oneAllRegions = startRegion.regionID === 'all' || endRegion.regionID === 'all';
+
+        if (bothAllRegions) {
+            setSearchWarning('⚠️ Searching all regions to all regions will be very data and time intensive. Consider selecting specific regions for better performance.');
+        } else if (oneAllRegions) {
+            setSearchWarning('⚠️ Searching with "All Regions" will be data and time intensive but will find the best opportunities across all regions.');
+        } else {
+            setSearchWarning('');
+        }
+    }, [startRegion.regionID, endRegion.regionID]);
 
     // Columns definition
     const columns = useMemo(() => [
@@ -147,37 +184,127 @@ export default function TradeRoute() {
 
     const handleRegionChange = (setter) => (e) => {
         const regionID = e.target.value;
-        if (regionID === 'all') return setter({ regionName: 'All Regions', regionID: 'all' });
-        const regionName = locations.stationLookup?.[regionID]?.regionName || regionID;
-        setter({ regionName, regionID });
+        console.log('Region changed to:', regionID);
+
+        if (regionID === 'all') {
+            setter({ regionName: 'All Regions', regionID: 'all' });
+            return;
+        }
+
+        // Find region name from regionOptions
+        const region = regionOptions.find(r => String(r.regionID) === String(regionID));
+        console.log('Found region:', region);
+
+        setter({
+            regionName: region ? region.name : regionID,
+            regionID: regionID
+        });
+    };
+
+    // Validate search parameters
+    const validateSearchParams = () => {
+        // Basic validation - both regions must be selected
+        if (!startRegion.regionID || !endRegion.regionID) {
+            return 'Please select valid regions for both start and end locations.';
+        }
+
+        // Check for same region selection (unless using 'all')
+        if (startRegion.regionID !== 'all' &&
+            endRegion.regionID !== 'all' &&
+            startRegion.regionID === endRegion.regionID) {
+            return 'Start and end regions cannot be the same. Please select different regions or use "All Regions" for one of them.';
+        }
+
+        // Validate numeric inputs
+        if (profitAbove && (isNaN(parseFloat(profitAbove)) || parseFloat(profitAbove) < 0)) {
+            return 'Profit Above must be a valid positive number.';
+        }
+
+        if (roi && (isNaN(parseFloat(roi)) || parseFloat(roi) < 0)) {
+            return 'ROI must be a valid positive number.';
+        }
+
+        if (budget && (isNaN(parseFloat(budget)) || parseFloat(budget) <= 0)) {
+            return 'Budget must be a valid positive number.';
+        }
+
+        if (capacity && (isNaN(parseFloat(capacity)) || parseFloat(capacity) <= 0)) {
+            return 'Capacity must be a valid positive number.';
+        }
+
+        if (maxJumps && (isNaN(parseInt(maxJumps)) || parseInt(maxJumps) <= 0)) {
+            return 'Max Jumps must be a valid positive integer.';
+        }
+
+        if (salesTax && (isNaN(parseFloat(salesTax)) || parseFloat(salesTax) < 0 || parseFloat(salesTax) > 100)) {
+            return 'Sales Tax must be a valid number between 0 and 100.';
+        }
+
+        return null;
     };
 
     // Fetch market trade routes
     const handleSearch = async () => {
-        if (!startRegion.regionID || startRegion.regionID === 'all' || !endRegion.regionID || endRegion.regionID === 'all') {
-            alert('Please select valid regions for both start and end locations.');
+        // Validate inputs
+        const validationError = validateSearchParams();
+        if (validationError) {
+            alert(validationError);
             return;
         }
+
+        // Show confirmation for intensive searches
+        const bothAllRegions = startRegion.regionID === 'all' && endRegion.regionID === 'all';
+        const oneAllRegions = startRegion.regionID === 'all' || endRegion.regionID === 'all';
+
+        if (bothAllRegions) {
+            const confirmed = window.confirm(
+                'Searching all regions to all regions will be very intensive and may take several minutes. ' +
+                'This will check every possible route combination. Are you sure you want to continue?'
+            );
+            if (!confirmed) return;
+        } else if (oneAllRegions) {
+            const confirmed = window.confirm(
+                'Searching with "All Regions" will be intensive and may take some time. ' +
+                'Consider setting stricter filters (higher profit threshold, lower max jumps) to speed up the search. ' +
+                'Continue?'
+            );
+            if (!confirmed) return;
+        }
+
         setLoading(true);
         setProgress(0);
         setResults([]);
+
         try {
-            const data = await fetchMarketData({
+            const searchParams = {
                 startRegionID: startRegion.regionID,
                 endRegionID: endRegion.regionID,
                 tradeMode,
                 profitAbove: profitAbove ? parseFloat(profitAbove) : 500000,
-                roi: roi ? parseFloat(roi) : 0,
+                roi: roi ? parseFloat(roi) : 4,
                 budget: budget ? parseFloat(budget) : Infinity,
                 capacity: capacity ? parseFloat(capacity) : Infinity,
                 salesTax: salesTax ? parseFloat(salesTax) : 7.5,
                 maxJumps: maxJumps ? parseInt(maxJumps) : Infinity,
-                updateProgress: setProgress,
-            });
+            };
+
+            console.log('Starting trade route search with params:', searchParams);
+
+            const data = await fetchTradeRouteData({ ...searchParams, updateProgress: setProgress });
+
+            console.log(`Search completed. Found ${data.length} trade routes.`);
             setResults(data);
+
+            // Show completion message for intensive searches
+            if (bothAllRegions || oneAllRegions) {
+                const message = `Search completed! Found ${data.length} trade routes across ${bothAllRegions ? 'all regions' : 'multiple regions'}.`;
+                setTimeout(() => alert(message), 500);
+            }
+
         } catch (err) {
-            alert('Error fetching market data: ' + err.message);
-            console.error(err);
+            const errorMessage = err.message || 'Unknown error occurred';
+            console.error('Trade route search error:', err);
+            alert('Error calculating trade routes: ' + errorMessage);
         } finally {
             setLoading(false);
             setProgress(100);
@@ -192,15 +319,27 @@ export default function TradeRoute() {
     };
 
     const sortedResults = useMemo(() => [...results].sort((a, b) => {
-        const aVal = a[sortConfig.key], bVal = b[sortConfig.key];
-        if (typeof aVal === 'string') return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        const aVal = typeof a[sortConfig.key] === 'string' ? parseFloat(a[sortConfig.key]) || a[sortConfig.key] : a[sortConfig.key];
+        const bVal = typeof b[sortConfig.key] === 'string' ? parseFloat(b[sortConfig.key]) || b[sortConfig.key] : b[sortConfig.key];
+
+        if (typeof aVal === 'string') {
+            return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
         return sortConfig.direction === 'asc' ? (aVal < bVal ? -1 : 1) : (aVal > bVal ? -1 : 1);
     }), [results, sortConfig]);
 
     const formatCellValue = (value, column) => {
-        if (column.key === 'quantity' || column.key === 'jumps') return value.toLocaleString();
-        if (column.isNumber && typeof value === 'number') return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        if (column.isROI) return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+        if (column.key === 'quantity' || column.key === 'jumps') {
+            return parseFloat(value).toLocaleString();
+        }
+        if (column.isNumber && typeof value !== 'undefined') {
+            const numValue = typeof value === 'string' ? parseFloat(value) : value;
+            return numValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        if (column.isROI && typeof value !== 'undefined') {
+            const numValue = typeof value === 'string' ? parseFloat(value) : value;
+            return `${numValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+        }
         return value;
     };
 
@@ -235,6 +374,18 @@ export default function TradeRoute() {
     return (
         <div className="trade-route-container">
             <h1>Trade Route Finder</h1>
+            <div className="info-banner" style={{
+                padding: '10px',
+                backgroundColor: '#e3f2fd',
+                border: '1px solid #2196f3',
+                borderRadius: '4px',
+                marginBottom: '20px',
+                fontSize: '14px'
+            }}>
+                <strong>Note:</strong> This is a client-side trade route calculator using real EVE market data.
+                It searches through popular items and calculates profitable trade routes between regions.
+                Jump distances are currently estimated - for production use, integrate with a proper routing service.
+            </div>
 
             <div className="input-panel">
                 <div className="input-group">
@@ -249,37 +400,80 @@ export default function TradeRoute() {
                         {renderRegionOptions()}
                     </select>
                 </div>
+
+                {searchWarning && (
+                    <div className="search-warning" style={{
+                        gridColumn: '1 / -1',
+                        padding: '10px',
+                        backgroundColor: '#fff3cd',
+                        border: '1px solid #ffeaa7',
+                        borderRadius: '4px',
+                        color: '#856404',
+                        fontSize: '14px',
+                        lineHeight: '1.4'
+                    }}>
+                        {searchWarning}
+                    </div>
+                )}
+
                 <div className="input-group">
                     <label>Trade Mode</label>
                     <select value={tradeMode} onChange={(e) => setTradeMode(e.target.value)}>
-                        <option value="sellToBuy">Sell in Start / Buy in End</option>
                         <option value="buyToSell">Buy in Start / Sell in End</option>
+                        <option value="sellToBuy">Sell in Start / Buy in End</option>
                     </select>
                 </div>
                 <div className="input-group">
                     <label>Profit Above (ISK)</label>
-                    <input type="number" value={profitAbove} onChange={e => setProfitAbove(e.target.value)} placeholder="Default: 500000" />
+                    <input
+                        type="number"
+                        value={profitAbove}
+                        onChange={e => setProfitAbove(e.target.value)}
+                        placeholder="Default: 500,000"
+                    />
                 </div>
                 <div className="input-group">
                     <label>ROI (%) Minimum</label>
-                    <input type="number" value={roi} onChange={e => setROI(e.target.value)} placeholder="Default: 4%" />
+                    <input
+                        type="number"
+                        step="0.1"
+                        value={roi}
+                        onChange={e => setROI(e.target.value)}
+                        placeholder="Default: 4%"
+                    />
                 </div>
                 <div className="input-group">
                     <label>Budget (ISK)</label>
-                    <input type="number" value={budget} onChange={e => setBudget(e.target.value)} placeholder="Default: No Limit" />
+                    <input
+                        type="number"
+                        value={budget}
+                        onChange={e => setBudget(e.target.value)}
+                        placeholder="Default: No Limit"
+                    />
                 </div>
                 <div className="input-group">
                     <label>Capacity (m³)</label>
-                    <input type="number" value={capacity} onChange={e => setCapacity(e.target.value)} placeholder="Default: No Limit" />
+                    <input
+                        type="number"
+                        value={capacity}
+                        onChange={e => setCapacity(e.target.value)}
+                        placeholder="Default: No Limit"
+                    />
                 </div>
                 <div className="input-group">
                     <label>Max Jumps</label>
-                    <input type="number" value={maxJumps} onChange={e => setMaxJumps(e.target.value)} placeholder="Default: No Limit" />
+                    <input
+                        type="number"
+                        value={maxJumps}
+                        onChange={e => setMaxJumps(e.target.value)}
+                        placeholder="Default: No Limit"
+                    />
                 </div>
                 <div className="input-group">
                     <label>Sales Tax Skill Level</label>
                     <select value={salesTax} onChange={e => setSalesTax(e.target.value)}>
                         <option value="" disabled hidden>Default: No Skill (7.5%)</option>
+                        <option value="7.5">No Skill: 7.5%</option>
                         <option value="6.675">Lvl I: 6.675%</option>
                         <option value="5.85">Lvl II: 5.85%</option>
                         <option value="5.025">Lvl III: 5.025%</option>
@@ -288,18 +482,45 @@ export default function TradeRoute() {
                     </select>
                 </div>
 
-                <button onClick={handleSearch} disabled={loading}>{loading ? 'Loading...' : 'Search'}</button>
+                <button
+                    onClick={handleSearch}
+                    disabled={loading}
+                    style={{
+                        gridColumn: '1 / -1',
+                        padding: '12px 24px',
+                        fontSize: '16px',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    {loading ? `Searching... ${progress}%` : 'Search Trade Routes'}
+                </button>
 
                 {loading && (
-                    <div className="progress-bar">
-                        <div className="progress-fill" style={{ width: `${progress}%` }} />
+                    <div className="progress-bar" style={{ gridColumn: '1 / -1', position: 'relative', backgroundColor: '#f0f0f0', height: '20px', borderRadius: '10px', overflow: 'hidden' }}>
+                        <div className="progress-fill" style={{
+                            width: `${progress}%`,
+                            height: '100%',
+                            backgroundColor: '#4caf50',
+                            transition: 'width 0.3s ease'
+                        }} />
+                        <span className="progress-text" style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            color: '#333'
+                        }}>{progress}%</span>
                     </div>
                 )}
             </div>
 
             <div className="trade-results-panel">
                 <div className="trade-table-header">
-                    <h2 className="trade-table-title">Trade Routes</h2>
+                    <h2 className="trade-table-title">
+                        Trade Routes: {startRegion.regionName} → {endRegion.regionName}
+                    </h2>
                     <span className="trade-results-count">{sortedResults.length} results</span>
                 </div>
 
@@ -307,9 +528,18 @@ export default function TradeRoute() {
                     <div className="trade-thead">
                         <div className="trade-thead-row">
                             {columns.map(col => (
-                                <div key={col.key} className={`trade-column-header ${col.cssClass}`} style={{ width: getColumnWidth(col.key), position: 'relative' }} onClick={() => col.sortable && sortData(col.key)}>
+                                <div
+                                    key={col.key}
+                                    className={`trade-column-header ${col.cssClass}`}
+                                    style={{ width: getColumnWidth(col.key), position: 'relative' }}
+                                    onClick={() => col.sortable && sortData(col.key)}
+                                >
                                     <span>{col.label}</span>
-                                    {sortConfig.key === col.key && <span className="sort-indicator">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>}
+                                    {sortConfig.key === col.key && (
+                                        <span className="sort-indicator">
+                                            {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                                        </span>
+                                    )}
                                     <div className="column-resizer" onMouseDown={e => handleMouseDown(e, col.key)} />
                                 </div>
                             ))}
@@ -317,11 +547,24 @@ export default function TradeRoute() {
                     </div>
 
                     <div className="trade-tbody">
-                        {sortedResults.length === 0 && <div className="trade-empty-row">No results to display</div>}
+                        {sortedResults.length === 0 && !loading && (
+                            <div className="trade-empty-row">
+                                {results.length === 0 ? 'No profitable trade routes found. Try adjusting your search criteria (lower profit threshold, higher ROI, different regions).' : 'No results match your current sort.'}
+                            </div>
+                        )}
+                        {loading && (
+                            <div className="trade-empty-row">
+                                Calculating trade routes... Fetching market data and analyzing opportunities.
+                            </div>
+                        )}
                         {sortedResults.map((row, idx) => (
                             <div key={`${row.itemId}-${idx}`} className="trade-table-row">
                                 {columns.map(col => (
-                                    <div key={col.key} className={getCellClasses(col)} style={{ width: getColumnWidth(col.key) }}>
+                                    <div
+                                        key={col.key}
+                                        className={getCellClasses(col)}
+                                        style={{ width: getColumnWidth(col.key) }}
+                                    >
                                         {renderCellContent(row[col.key], col, idx)}
                                     </div>
                                 ))}

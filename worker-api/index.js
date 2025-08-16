@@ -7,9 +7,6 @@ import { handleTradeRoute } from './handlers/trade-route.js';
 import { handleMarketTree, handleLocations } from './handlers/kv.js';
 import * as debugHandler from './handlers/debug.js';
 
-import marketData from './data/market.json';
-import locationsData from './data/locations.json';
-
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*', // adjust to your domain if needed
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',

@@ -1,11 +1,16 @@
 // src/features/Appraisal/Appraisal.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import {
+    useReactTable,
+    getCoreRowModel,
+    getSortedRowModel,
+    flexRender
+} from '@tanstack/react-table';
 import RegionSelector from '../RegionSelector/RegionSelector';
-import { fetchRegionOrdersByID } from '../../api/esiAPI';
+import { fetchRegionOrdersByID, fetchMarketTree, fetchLocations } from '../../api/esiAPI';
 
 function flattenMarketData(marketData) {
     const itemMap = new Map();
-
     function walk(node) {
         if (node.items) {
             for (const item of node.items) {
@@ -20,7 +25,6 @@ function flattenMarketData(marketData) {
             }
         }
     }
-
     walk(marketData);
     return itemMap;
 }
@@ -30,20 +34,30 @@ export default function AppraisalTool() {
     const [parsedItems, setParsedItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [selectedRegion, setSelectedRegion] = useState('all');
+    const [selectedRegion, setSelectedRegion] = useState({ regionName: 'All Regions', regionID: 'all' });
     const [locations, setLocations] = useState({});
+    const [marketTree, setMarketTree] = useState(null);
     const [marketItemMap, setMarketItemMap] = useState(new Map());
 
-
     useEffect(() => {
-        fetchJSON('market-tree')
-            .then(setMarketTree)
+        fetchMarketTree()
+            .then(tree => {
+                setMarketTree(tree);
+                // Flatten and set item map
+                if (tree) {
+                    let treeArray = tree;
+                    if (!Array.isArray(tree) && typeof tree === 'object') {
+                        treeArray = Object.entries(tree).map(([name, node]) => ({ ...node, name }));
+                    }
+                    setMarketItemMap(flattenMarketData(treeArray));
+                }
+            })
             .catch(err => console.error('❌ Failed to load market-tree from Worker', err));
     }, []);
 
     useEffect(() => {
-        fetchJSON('locations')
-            .then(setLocationsData)
+        fetchLocations()
+            .then(setLocations)
             .catch(err => console.error('❌ Failed to load locations from Worker', err));
     }, []);
 
@@ -90,7 +104,7 @@ export default function AppraisalTool() {
             }
 
             // Handle "All Regions"
-            if (selectedRegion === 'all') {
+            if (selectedRegion.regionID === 'all') {
                 // Get all region keys & regionIDs from locations.json
                 const allRegions = Object.entries(locations).map(([regionName, data]) => ({
                     regionName,
@@ -134,7 +148,8 @@ export default function AppraisalTool() {
                 setParsedItems(allRegionData);
             } else {
                 // Single region selected — same as before
-                const regionID = locations?.[selectedRegion]?.regionID;
+                const regionBlock = locations?.[selectedRegion.regionName];
+                const regionID = regionBlock?.regionID;
                 if (!regionID) {
                     setError('❌ Invalid region selected');
                     setLoading(false);
@@ -177,20 +192,63 @@ export default function AppraisalTool() {
         setLoading(false);
     };
 
+    // Sell orders columns (what you can buy items for - lowest prices)
+    const sellColumns = useMemo(() => {
+        const cols = [
+            { accessorKey: 'name', header: 'Item', cell: info => info.getValue() },
+            { accessorKey: 'quantity', header: 'Qty', cell: info => info.getValue().toLocaleString() },
+        ];
+        if (selectedRegion.regionID === 'all') {
+            cols.push({ accessorKey: 'regionName', header: 'Region', cell: info => info.getValue() });
+        }
+        cols.push(
+            { accessorKey: 'sellPrice', header: 'Price (each)', cell: info => info.getValue()?.toLocaleString(undefined, { maximumFractionDigits: 2 }) },
+            { accessorKey: 'totalSell', header: 'Total Value', cell: info => (info.row.original.sellPrice * info.row.original.quantity).toLocaleString(undefined, { maximumFractionDigits: 2 }) }
+        );
+        return cols;
+    }, [selectedRegion]);
+
+    // Buy orders columns (what you can sell items for - highest prices)
+    const buyColumns = useMemo(() => {
+        const cols = [
+            { accessorKey: 'name', header: 'Item', cell: info => info.getValue() },
+            { accessorKey: 'quantity', header: 'Qty', cell: info => info.getValue().toLocaleString() },
+        ];
+        if (selectedRegion.regionID === 'all') {
+            cols.push({ accessorKey: 'regionName', header: 'Region', cell: info => info.getValue() });
+        }
+        cols.push(
+            { accessorKey: 'buyPrice', header: 'Price (each)', cell: info => info.getValue()?.toLocaleString(undefined, { maximumFractionDigits: 2 }) },
+            { accessorKey: 'totalBuy', header: 'Total Value', cell: info => (info.row.original.buyPrice * info.row.original.quantity).toLocaleString(undefined, { maximumFractionDigits: 2 }) }
+        );
+        return cols;
+    }, [selectedRegion]);
+
+    const sellTable = useReactTable({
+        data: parsedItems,
+        columns: sellColumns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        debugTable: false,
+    });
+
+    const buyTable = useReactTable({
+        data: parsedItems,
+        columns: buyColumns,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        debugTable: false,
+    });
+
     return (
         <div className="appraisal-tool">
             <h2 className='title'>Appraisal Tool</h2>
 
-            <div className="region-selector-wrapper">
-                <label htmlFor="region">Select Region:</label>
-                <RegionSelector
-                    selectedRegion={selectedRegion}
-                    onRegionChange={({ regionName, regionID }) => {
-                        setSelectedRegion(regionName);
-                        setSelectedRegionID(regionID);
-                    }}
-                />
-            </div>
+            {/* Use shared RegionSelector with no extra wrapper/label for consistency */}
+            <RegionSelector
+                selectedRegion={selectedRegion}
+                onRegionChange={setSelectedRegion}
+            />
 
             <textarea
                 rows={8}
@@ -206,30 +264,79 @@ export default function AppraisalTool() {
             {error && <div className="error">{error}</div>}
 
             {parsedItems.length > 0 && (
-                <table className="results-table">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            {selectedRegion === 'all' && <th>Region</th>}
-                            <th>Buy Price (each)</th>
-                            <th>Sell Price (each)</th>
-                            <th>Total Sell</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {parsedItems.map((item, index) => (
-                            <tr key={index}>
-                                <td>{item.name}</td>
-                                <td>{item.quantity}</td>
-                                {selectedRegion === 'all' && <td>{item.regionName}</td>}
-                                <td>{item.buyPrice?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                                <td>{item.sellPrice?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                                <td>{(item.sellPrice * item.quantity).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <>
+                    <div className="market-table-wrapper">
+                        <h3 className="market-table-title">Sell Orders - Lowest Prices (What you pay to buy)</h3>
+                        <div className="market-table">
+                            <div className="thead">
+                                {sellTable.getHeaderGroups().map(headerGroup => (
+                                    <div key={headerGroup.id} className="thead-row">
+                                        {headerGroup.headers.map(header => (
+                                            <div
+                                                className="column-header"
+                                                key={header.id}
+                                                style={{ width: header.getSize ? header.getSize() : 120, minWidth: 80 }}
+                                            >
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="table-body">
+                                {sellTable.getRowModel().rows.map(row => (
+                                    <div className="table-row" key={row.id}>
+                                        {row.getVisibleCells().map(cell => (
+                                            <div
+                                                className="table-cell"
+                                                key={cell.id}
+                                                style={{ width: cell.column.getSize ? cell.column.getSize() : 120, minWidth: 80 }}
+                                            >
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="market-table-wrapper">
+                        <h3 className="market-table-title">Buy Orders - Highest Prices (What you get for selling)</h3>
+                        <div className="market-table">
+                            <div className="thead">
+                                {buyTable.getHeaderGroups().map(headerGroup => (
+                                    <div key={headerGroup.id} className="thead-row">
+                                        {headerGroup.headers.map(header => (
+                                            <div
+                                                className="column-header"
+                                                key={header.id}
+                                                style={{ width: header.getSize ? header.getSize() : 120, minWidth: 80 }}
+                                            >
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="table-body">
+                                {buyTable.getRowModel().rows.map(row => (
+                                    <div className="table-row" key={row.id}>
+                                        {row.getVisibleCells().map(cell => (
+                                            <div
+                                                className="table-cell"
+                                                key={cell.id}
+                                                style={{ width: cell.column.getSize ? cell.column.getSize() : 120, minWidth: 80 }}
+                                            >
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     );

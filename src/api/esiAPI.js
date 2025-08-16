@@ -204,30 +204,29 @@ export async function fetchOreBuyPrices(typeIDList, regionRef = null) {
     return prices;
 }
 
-// For locations
 export async function fetchLocations() {
     try {
-        const res = await fetch(`${WORKER_KV_BASE}locations.json`);
+        // Use the same endpoint for both dev and prod
+        const res = await fetch(`${WORKER_KV_BASE}locations`);
         if (!res.ok) throw new Error('Failed to fetch locations from worker');
         return res.json();
     } catch (err) {
         console.warn('Worker fetch failed, falling back to public:', err);
-        const res = await fetch('/locations.json');
+        const res = await fetch('/data/locations.json');
         if (!res.ok) throw new Error('Failed to fetch locations from public');
         return res.json();
     }
 }
 
-
-// For market tree
 export async function fetchMarketTree() {
     try {
-        const res = await fetch(`${WORKER_KV_BASE}market.json`);
+        // Use the same endpoint for both dev and prod
+        const res = await fetch(`${WORKER_KV_BASE}market-tree`);
         if (!res.ok) throw new Error('Failed to fetch market tree from worker');
         return res.json();
     } catch (err) {
         console.warn('Worker fetch failed, falling back to public:', err);
-        const res = await fetch('/market.json');
+        const res = await fetch('/data/market.json');
         if (!res.ok) throw new Error('Failed to fetch market tree from public');
         return res.json();
     }
@@ -257,7 +256,7 @@ export function getAPIUrl(path) {
  * @param {number} [params.maxJumps=Infinity]
  * @param {function} [params.updateProgress] optional progress callback
  */
-export async function fetchMarketData(params) {
+export async function fetchTradeRouteData(params) {
     const {
         startRegionID,
         endRegionID,
@@ -271,7 +270,7 @@ export async function fetchMarketData(params) {
         updateProgress
     } = params;
 
-    const url = new URL(`${WORKER_KV_BASE}trade-route`);
+    const url = new URL(getAPIUrl('trade-route'));
 
     url.searchParams.set('startRegionID', startRegionID);
     url.searchParams.set('endRegionID', endRegionID);
@@ -296,7 +295,7 @@ export async function fetchMarketData(params) {
 
         return data;
     } catch (err) {
-        console.error('fetchMarketData error:', err);
+        console.error('fetchTradeRouteData error:', err);
         throw err;
     }
 }
