@@ -52,3 +52,49 @@ export async function handleCleanKV(env) {
         headers: { 'Content-Type': 'text/plain' }
     });
 }
+
+// Add this to your handlers/debug.js or create a new debug handler
+
+export async function handleDebugOrders(request, env) {
+    try {
+        const url = new URL(request.url);
+        const regionID = Number(url.searchParams.get('regionID')) || 10000002; // Default to The Forge
+
+        // Import your fetcher
+        const { fetchMarketOrdersFromBackend } = await import('../utils/fetchers.js');
+
+        const orders = await fetchMarketOrdersFromBackend(regionID);
+
+        // Get some stats
+        const buyOrders = orders.filter(o => o.is_buy_order);
+        const sellOrders = orders.filter(o => !o.is_buy_order);
+        const uniqueTypes = new Set(orders.map(o => o.type_id));
+
+        return new Response(JSON.stringify({
+            regionID,
+            totalOrders: orders.length,
+            buyOrders: buyOrders.length,
+            sellOrders: sellOrders.length,
+            uniqueItemTypes: uniqueTypes.size,
+            sampleOrders: orders.slice(0, 5), // First 5 orders for inspection
+            uniqueTypesPreview: Array.from(uniqueTypes).slice(0, 20) // First 20 type IDs
+        }, null, 2), {
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
+        });
+
+    } catch (err) {
+        return new Response(JSON.stringify({
+            error: err.message,
+            stack: err.stack
+        }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
+        });
+    }
+}

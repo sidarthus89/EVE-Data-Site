@@ -6,6 +6,7 @@ import { proxyToESI } from './utils/proxy.js';
 import { handleTradeRoute } from './handlers/trade-route.js';
 import { handleMarketTree, handleLocations } from './handlers/kv.js';
 import * as debugHandler from './handlers/debug.js';
+import { handleDebugOrders } from './handlers/debug.js';
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*', // adjust to your domain if needed
@@ -89,6 +90,7 @@ export default {
                 request.method === 'POST'
                     ? seedKV(env)
                     : new Response('Method Not Allowed', { status: 405 }),
+            '/api/debug/orders': () => handleDebugOrders(request, env)
         };
 
         if (routeMap[pathname]) {
