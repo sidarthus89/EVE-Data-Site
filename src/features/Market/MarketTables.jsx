@@ -389,8 +389,8 @@ export default function MarketTables({ sellers, buyers, locationsData, activeTab
 
                                                 {isActiveFilter && (
                                                     <div className="filter-panel" ref={filterPanelRef}>
-                                                        <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ccc', backgroundColor: 'white' }}>
-                                                            <div style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                                                        <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #333', backgroundColor: '#444' }}>
+                                                            <div style={{ padding: '8px', borderBottom: '1px solid #333' }}>
                                                                 <input
                                                                     type="text"
                                                                     placeholder="Search..."
