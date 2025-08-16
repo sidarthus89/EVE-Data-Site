@@ -9,4 +9,4 @@ kv_namespaces = [
 ]
 
 [vars]
-IS_DEV = "true"
+IS_DEV = "false"
