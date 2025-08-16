@@ -1,0 +1,1 @@
+import{j as e}from"./index-B5RA6i3W.js";function a(){return e.jsxs("section",{className:"heat-map",children:[e.jsx("h1",{children:"Heat Map"}),e.jsx("p",{children:"In development"})]})}export{a as default};
