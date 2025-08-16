@@ -31,7 +31,7 @@ export async function handleTradeRoute(request, env) {
         }
 
         // Example: fetch all item orders from start & end regions
-        // You’d likely want to iterate over a list of typeIDs, but here’s a placeholder logic
+        // You'd likely want to iterate over a list of typeIDs, but here's a placeholder logic
         const typeIDsToCheck = [34, 35, 36]; // Replace with your actual typeIDs list or source
 
         const routes = [];
