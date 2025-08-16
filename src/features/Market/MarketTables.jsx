@@ -226,19 +226,28 @@ export default function MarketTables({ sellers, buyers, locationsData, activeTab
     });
 
     const renderHeaderWithFilter = (label, column, tableType) => (
-        <>
-            <span className="header-text">{label}</span>
+        <div className="header-with-filter">
+            <span
+                className="header-text"
+                onClick={column.getToggleSortingHandler?.()}
+                style={{ flex: 1 }}
+            >
+                {label}
+                {{ asc: ' ▲', desc: ' ▼' }[column.getIsSorted?.()] ?? ''}
+            </span>
             <button
                 className="header-filter-btn"
                 onClick={(e) => {
                     e.stopPropagation();
                     setActiveFilterColumns(prev => ({ ...prev, [tableType]: column.id }));
                 }}
+                title="Filter column"
             >
                 <FiFilter />
             </button>
-        </>
+        </div>
     );
+
 
     // Column definitions
     const sellerColumns = useMemo(() => [
@@ -413,12 +422,17 @@ export default function MarketTables({ sellers, buyers, locationsData, activeTab
                                                                 <label style={{ display: 'block', padding: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                                                                     <input
                                                                         type="checkbox"
-                                                                        checked={!header.column.getFilterValue() || header.column.getFilterValue().length === 0}
+                                                                        checked={
+                                                                            !header.column.getFilterValue() ||
+                                                                            header.column.getFilterValue().length === 0
+                                                                        }
                                                                         onChange={(e) => {
+                                                                            const allValues = getColumnUniqueValues(table, header.column.id);
                                                                             if (e.target.checked) {
+                                                                                // Select all
                                                                                 header.column.setFilterValue([]);
                                                                             } else {
-                                                                                const allValues = getColumnUniqueValues(table, header.column.id);
+                                                                                // Unselect all
                                                                                 header.column.setFilterValue(allValues);
                                                                             }
                                                                         }}
@@ -442,26 +456,24 @@ export default function MarketTables({ sellers, buyers, locationsData, activeTab
                                                                                     type="checkbox"
                                                                                     checked={isChecked}
                                                                                     onChange={(e) => {
-                                                                                        const currentFilter = header.column.getFilterValue() || [];
+                                                                                        const allValues = getColumnUniqueValues(table, header.column.id);
                                                                                         let newFilter;
 
                                                                                         if (e.target.checked) {
-                                                                                            // Add to filter
-                                                                                            newFilter = currentFilter.length === 0 ?
-                                                                                                [value] :
-                                                                                                [...currentFilter, value];
+                                                                                            newFilter = currentFilter.length === 0
+                                                                                                ? [value]
+                                                                                                : [...currentFilter, value];
                                                                                         } else {
-                                                                                            // Remove from filter
                                                                                             if (currentFilter.length === 0) {
-                                                                                                // If "Select All" was active, start with all values except this one
-                                                                                                const allValues = getColumnUniqueValues(table, header.column.id);
                                                                                                 newFilter = allValues.filter(v => v !== value);
                                                                                             } else {
                                                                                                 newFilter = currentFilter.filter(v => v !== value);
                                                                                             }
                                                                                         }
 
-                                                                                        header.column.setFilterValue(newFilter.length === getColumnUniqueValues(table, header.column.id).length ? [] : newFilter);
+                                                                                        header.column.setFilterValue(
+                                                                                            newFilter.length === allValues.length ? [] : newFilter
+                                                                                        );
                                                                                     }}
                                                                                     style={{ marginRight: '6px' }}
                                                                                 />
@@ -471,30 +483,6 @@ export default function MarketTables({ sellers, buyers, locationsData, activeTab
                                                                             </label>
                                                                         );
                                                                     })}
-                                                            </div>
-
-                                                            <div style={{ padding: '8px', borderTop: '1px solid #eee', display: 'flex', gap: '8px' }}>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        header.column.setFilterValue([]);
-                                                                        setFilterSearchTerms(prev => ({
-                                                                            ...prev,
-                                                                            [tableType]: {
-                                                                                ...prev[tableType],
-                                                                                [header.column.id]: ''
-                                                                            }
-                                                                        }));
-                                                                    }}
-                                                                    style={{ padding: '4px 8px', fontSize: '12px' }}
-                                                                >
-                                                                    Clear
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => setActiveFilterColumns(prev => ({ ...prev, [tableType]: null }))}
-                                                                    style={{ padding: '4px 8px', fontSize: '12px' }}
-                                                                >
-                                                                    Close
-                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
