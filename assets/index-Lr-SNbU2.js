@@ -1,4 +1,4 @@
-import{r as N}from"./index-CB4xd9rp.js";/**
+import{r as N}from"./index-CFOTuLoU.js";/**
    * table-core
    *
    * Copyright (c) TanStack
