@@ -9,6 +9,7 @@ const Market = lazy(() => import('./features/Market/Market.jsx'));
 const Appraisal = lazy(() => import('./features/Appraisal/Appraisal.jsx'));
 const HeatMap = lazy(() => import('./features/HeatMap/HeatMap.jsx'));
 const TradeRoute = lazy(() => import('./features/TradeRoute/TradeRoute.jsx'));
+const StationTrading = lazy(() => import('./features/TradeRoute/StationTrading.jsx'));
 const Ores = lazy(() => import('./features/Ores/Ores'));
 const Minerals = lazy(() => import('./features/Minerals/Minerals.jsx'));
 const MarketDistribution = lazy(() => import('./features/Market/MarketDistribution.jsx'));
@@ -60,6 +61,11 @@ function App() {
         <Route path="trade-route" element={
           <Suspense fallback={<PageLoader />}>
             <TradeRoute />
+          </Suspense>
+        } />
+        <Route path="station-trading" element={
+          <Suspense fallback={<PageLoader />}>
+            <StationTrading />
           </Suspense>
         } />
         <Route path="privacy" element={<Privacy />} />

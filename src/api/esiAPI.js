@@ -300,3 +300,10 @@ export async function fetchTradeRouteData(params) {
     }
 }
 
+export async function fetchOrdersByStation(stationID) {
+    if (!stationID) throw new Error('stationID is required');
+    const url = `https://esi.evetech.net/latest/markets/orders/?order_type=all&structure_id=${stationID}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Failed to fetch orders for station ${stationID}`);
+    return await res.json();
+}

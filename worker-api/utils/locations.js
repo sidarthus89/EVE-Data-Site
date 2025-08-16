@@ -1,19 +1,26 @@
 // worker-api\utils\locations.js
 
 // Utility to fetch locations.json at runtime (for dev/local worker only)
-export async function getLocationsJSONResponse() {
-    // In production, fetch from KV or other storage as needed
-    // In dev, fetch from public/data/locations.json
+export async function getLocationsJSONResponse(env) {
     let data = {};
+
     try {
-        const res = await fetch('http://127.0.0.1:5173/data/locations.json');
-        if (res.ok) {
-            data = await res.json();
+        if (env?.LOCATIONS) {
+            // ✅ Production: fetch from KV
+            const raw = await env.LOCATIONS.get('locations.json');
+            if (!raw) throw new Error('KV: locations.json not found');
+            data = JSON.parse(raw);
         } else {
-            throw new Error('Failed to fetch locations.json');
+            // 🧪 Dev: fetch from local Vite server
+            const res = await fetch('http://127.0.0.1:5173/data/locations.json');
+            if (!res.ok) throw new Error('Dev fetch failed');
+            data = await res.json();
         }
     } catch (err) {
-        return new Response(JSON.stringify({ error: 'Could not load locations.json', details: err.message }), {
+        return new Response(JSON.stringify({
+            error: 'Could not load locations.json',
+            details: err.message
+        }), {
             status: 500,
             headers: {
                 'Content-Type': 'application/json',
@@ -22,6 +29,7 @@ export async function getLocationsJSONResponse() {
             }
         });
     }
+
     return new Response(JSON.stringify(data), {
         status: 200,
         headers: {
