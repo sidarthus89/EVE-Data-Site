@@ -1,3 +1,4 @@
+// MarketTables.jsx
 import { useMemo, useState, useRef, useEffect } from 'react';
 import {
     useReactTable,
@@ -117,19 +118,12 @@ export default function MarketTables({ sellers, buyers, locationsData, activeTab
     const excelStyleFilter = (row, columnId, filterValue) => {
         if (!filterValue || filterValue.length === 0) return true;
 
-        let cellValue;
-        const column = row.table.getColumn(columnId);
+        let cellValue = row.getValue(columnId);  // ✅ Safe
 
-        if (column?.columnDef.accessorFn) {
-            cellValue = column.columnDef.accessorFn(row.original);
-        } else if (column?.columnDef.accessorKey) {
-            cellValue = row.original[column.columnDef.accessorKey];
-        }
-
-        // Format cell value to match display format
+        // Custom format logic
         if (columnId === 'security') {
             const sec = truncateToOneDecimal(cellValue ?? 0);
-            cellValue = sec >= 0 ? `${sec.toFixed(1)}` : `${sec.toFixed(1)}`;
+            cellValue = `${sec.toFixed(1)}`;
         } else if (columnId === 'location_name') {
             cellValue = capitalizeWords(stationInfoMap[cellValue]?.name || '');
         } else if (columnId === 'region_name') {
@@ -138,6 +132,7 @@ export default function MarketTables({ sellers, buyers, locationsData, activeTab
 
         return filterValue.includes(String(cellValue));
     };
+
     const stationInfoMap = useMemo(() => {
         if (!locationsData) return {};
         const map = {};

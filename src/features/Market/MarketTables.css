@@ -175,56 +175,25 @@
             transparent 100%);
 }
 
-.market-link {
-    position: relative;
-    display: inline-block;
-    padding-bottom: 4px;
-    font-weight: bold;
-    color: #ccc;
-    text-decoration: none !important;
-    transition: color 0.2s ease;
-}
-
-.market-link:hover,
-.market-link:focus,
-.market-link.active {
-    color: #fff;
-    text-decoration: none !important;
-}
-
-.tab-underline {
-    position: absolute;
-    bottom: 0;
-    height: 2px;
-    background: linear-gradient(to right, transparent, #00bfff, transparent);
-    border-radius: 2px;
-    pointer-events: none;
-    transition: transform 0.35s ease-in-out, opacity 0.2s ease;
-    transform-origin: left;
-    opacity: 1;
-}
-
 .table-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.refresh-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    color: #ccc;
-    border-radius: 2px;
+.filter-button {
+    background: none;
+    border: none;
     cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-    line-height: 1;
-    padding: 0;
-    flex-shrink: 0;
+    font-size: 1em;
+    padding: 2px;
+}
+
+.filter-panel {
+    position: absolute;
+    background: #444;
+    border: 1px solid #333;
+    padding: 6px;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
