@@ -43,7 +43,9 @@ export function fetchMarketTree() {
 }
 
 export async function fetchRegions() {
-    const response = await fetch('/data/regions.json');
+    // Use Vite base URL so GitHub Pages serves from correct path
+    const url = `${import.meta.env.BASE_URL}data/regions.json`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch regions.json');
     const data = await response.json();
 
