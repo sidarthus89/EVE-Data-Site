@@ -8,7 +8,7 @@ module.exports = async function (context) {
     // Warm core HTTP endpoints
     for (let path of endpoints) {
         try {
-            await fetch(`https://<your-app>.azurewebsites.net${path}`);
+            await fetch(`evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net${path}`);
             context.log(`Warmed ${path}`);
         } catch (e) {
             context.log.error(`Warmup failed for ${path}:`, e);
@@ -23,7 +23,7 @@ module.exports = async function (context) {
             const destination = hubs[j];
             const path = `/api/region_hauling?origin_region_id=${origin}&destination_region_id=${destination}`;
             try {
-                await fetch(`https://<your-app>.azurewebsites.net${path}`);
+                await fetch(`evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net${path}`);
                 context.log(`Hybrid warmed region hauling ${origin}->${destination}`);
             } catch (e) {
                 context.log.error(`Hybrid warmup failed for ${origin}->${destination}:`, e);
