@@ -1,10 +1,12 @@
 import dotenv from 'dotenv';
 import fs from 'fs/promises';
 import fetch from 'node-fetch';
+import path from 'path';
 
 dotenv.config({ path: '../.env.local' });
 
 const ESI_BASE = 'https://esi.evetech.net/latest';
+const ESI_DATASOURCE = 'tranquility';
 const HEADERS = { 'User-Agent': 'EVE-Data-Site-Bootstrap' };
 
 const ACCESS_TOKEN = process.env.ESI_ACCESS_TOKEN;
@@ -15,142 +17,205 @@ if (!ACCESS_TOKEN || !CHARACTER_ID) {
     process.exit(1);
 }
 
-function delay(ms) {
-    return new Promise(res => setTimeout(res, ms));
+class RateLimiter {
+    constructor(perSecond) {
+        this.window = 1000;
+        this.max = perSecond;
+        this.times = [];
+    }
+    async throttle() {
+        const now = Date.now();
+        this.times = this.times.filter(t => now - t < this.window);
+        if (this.times.length >= this.max) {
+            const oldest = Math.min(...this.times);
+            const wait = this.window - (now - oldest);
+            if (wait > 0) await new Promise(r => setTimeout(r, wait));
+            return this.throttle();
+        }
+        this.times.push(now);
+    }
 }
 
-async function fetchESI(endpoint, auth = false) {
-    const headers = { ...HEADERS };
-    if (auth) headers['Authorization'] = `Bearer ${ACCESS_TOKEN}`;
+const rateLimiter = new RateLimiter(50);
 
-    const res = await fetch(`${ESI_BASE}${endpoint}`, { headers });
-    if (!res.ok) throw new Error(`Failed: ${endpoint} (${res.status})`);
-    return res.json();
+function buildEsiUrl(endpoint, params = {}) {
+    const hasQuery = endpoint.indexOf('?') !== -1;
+    const base = `${ESI_BASE}${endpoint}${hasQuery ? '&' : '?'}datasource=${ESI_DATASOURCE}`;
+    const extra = Object.keys(params).map(k => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join('&');
+    return extra ? `${base}&${extra}` : base;
 }
 
-async function fetchMarketAccess(structureID) {
-    const headers = {
-        'Authorization': `Bearer ${ACCESS_TOKEN}`,
-        ...HEADERS
-    };
-    const res = await fetch(`${ESI_BASE}/markets/structures/${structureID}/`, { headers });
-    return res.status === 200;
-}
-
-async function getAllRegions() {
-    return await fetchESI('/universe/regions/');
-}
-
-async function getRegionDetails(id) {
-    return await fetchESI(`/universe/regions/${id}/`);
-}
-
-async function getConstellationsInRegion(regionId) {
-    const region = await getRegionDetails(regionId);
-    return region.constellations || [];
-}
-
-async function getConstellationDetails(id) {
-    return await fetchESI(`/universe/constellations/${id}/`);
-}
-
-async function getSystemDetails(id) {
-    return await fetchESI(`/universe/systems/${id}/`);
-}
-
-async function getStationDetails(id) {
-    return await fetchESI(`/universe/stations/${id}/`);
-}
-
-async function main() {
-    const stations = [];
-    const structures = [];
-    const regionMap = new Map();
-
-    console.log('📦 Fetching station data...');
-    const stationIDs = await getAllStationIDs();
-    for (const id of stationIDs.slice(0, 1000)) {
+async function fetchESI(endpoint, retries = 3) {
+    await rateLimiter.throttle();
+    for (let i = 0; i < retries; i++) {
         try {
-            const s = await getStationDetails(id);
-            stations.push({
-                stationID: id,
-                station_id: id,  // Add for compatibility
-                name: s.name,
-                systemID: s.system_id,
-                regionID: s.region_id,
-                region_id: s.region_id,  // Add for compatibility
-                region_name: null,  // Will be resolved later
-                security: s.security_status,
-                security_status: s.security_status,  // Add for compatibility
-                is_npc: true,
-                type: 'station'
-            });
-            regionMap.set(s.region_id, true);
-            await delay(50);
+            const url = buildEsiUrl(endpoint);
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error(`ESI ${resp.status} ${resp.statusText}`);
+            return await resp.json();
         } catch (err) {
-            console.warn(`⚠️ Station ${id} failed: ${err.message}`);
+            if (i === retries - 1) throw err;
+            await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+        }
+    }
+}
+
+async function fetchESIPaged(endpoint, opts = {}) {
+    const results = [];
+    let page = 1;
+    let totalPages = null;
+    while (true) {
+        await rateLimiter.throttle();
+        try {
+            const url = buildEsiUrl(endpoint, { page });
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error(`ESI ${resp.status} ${resp.statusText}`);
+            const pageJson = await resp.json();
+            if (Array.isArray(pageJson) && pageJson.length === 0) break;
+            if (Array.isArray(pageJson)) results.push(...pageJson);
+
+            if (totalPages === null) {
+                const xp = resp.headers.get('x-pages');
+                if (xp) totalPages = parseInt(xp, 10);
+                else {
+                    const link = resp.headers.get('link');
+                    if (link) {
+                        const m = link.match(/<[^>]+[?&]page=(\d+)[^>]*>;\s*rel="last"/i);
+                        if (m) totalPages = parseInt(m[1], 10);
+                    }
+                }
+            }
+
+            if (totalPages !== null && page >= totalPages) break;
+            if (Array.isArray(pageJson) && pageJson.length < 1) break;
+            page++;
+        } catch (e) {
+            throw e;
+        }
+    }
+    return results;
+}
+
+async function isStructureMarketAccessible(structureId) {
+    try {
+        await rateLimiter.throttle();
+        const url = `${ESI_BASE}/markets/structures/${structureId}/?datasource=${ESI_DATASOURCE}`;
+        const resp = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
+        });
+        return resp.status === 200;
+    } catch (e) {
+        return false;
+    }
+}
+
+async function fetchRegionsData() {
+    console.log('🌍 Fetching regions data...');
+    const regionIds = await fetchESI('/universe/regions/');
+    const regions = [];
+
+    for (const regionId of regionIds) {
+        try {
+            const regionInfo = await fetchESI(`/universe/regions/${regionId}/`);
+            regions.push({
+                region_id: regionId,
+                region_name: regionInfo.name
+            });
+            console.log(`✅ Added region: ${regionInfo.name}`);
+        } catch (err) {
+            console.warn(`⚠️ Region ${regionId} failed: ${err.message}`);
         }
     }
 
-    console.log('🏗️ Fetching public market structures...');
-    const structureIDs = await getPublicMarketStructures();
-    for (const id of structureIDs) {
+    return regions;
+}
+
+async function fetchStructuresData() {
+    console.log('🏗️ Fetching market structures...');
+    let structureIds = [];
+
+    try {
+        structureIds = await fetchESIPaged('/universe/structures/?filter=market');
+        console.log(`Found ${structureIds.length} potential market structures`);
+    } catch (e) {
+        console.log('Failed to fetch market structures from ESI:', e.message);
+        return [];
+    }
+
+    const structures = [];
+
+    for (const structureId of structureIds.slice(0, 100)) { // Limit for testing
         try {
-            const hasAccess = await fetchMarketAccess(id);
+            const hasAccess = await isStructureMarketAccessible(structureId);
             if (!hasAccess) {
-                console.log(`🚫 No market access to structure ${id}`);
+                console.log(`🚫 No market access to structure ${structureId}`);
                 continue;
             }
 
-            const s = await getStructureDetails(id);
+            const structureInfo = await fetchESI(`/universe/structures/${structureId}/`);
+            let systemInfo = null;
+            let regionId = null;
+            let regionName = 'Unknown';
+
+            if (structureInfo.system_id) {
+                try {
+                    systemInfo = await fetchESI(`/universe/systems/${structureInfo.system_id}/`);
+                    regionId = systemInfo.region_id;
+                    const regionInfo = await fetchESI(`/universe/regions/${regionId}/`);
+                    regionName = regionInfo.name;
+                } catch (e) {
+                    console.warn(`Failed to get region info for structure ${structureId}`);
+                }
+            }
+
             structures.push({
-                stationID: id,  // Changed from structureID to stationID for consistency
-                locationName: s.name,  // Changed from name to locationName
-                name: s.name,  // Keep both for compatibility
-                systemID: s.system_id,
-                regionID: s.region_id,
-                regionName: null,  // Will be resolved later
-                typeID: s.type_id,
-                security: null,  // Structures don't have direct security, would need system lookup
-                is_npc: false,  // Player structures are not NPC
-                type: 'structure'
+                structure_id: structureId,
+                name: structureInfo.name,
+                system_id: structureInfo.system_id,
+                region_id: regionId,
+                region_name: regionName,
+                type_id: structureInfo.type_id,
+                is_npc: false
             });
-            regionMap.set(s.region_id, true);
-            console.log(`✅ Added structure ${id}: ${s.name}`);
-            await delay(100);
+
+            console.log(`✅ Added structure: ${structureInfo.name}`);
         } catch (err) {
-            console.warn(`⚠️ Structure ${id} failed: ${err.message}`);
+            console.warn(`⚠️ Structure ${structureId} failed: ${err.message}`);
         }
     }
 
-    console.log('🌍 Resolving region names...');
-    const regionIDs = Array.from(regionMap.keys());
-    const regions = [];
-    for (const id of regionIDs) {
-        try {
-            const r = await getRegionDetails(id);
-            regions.push({ regionID: id, regionName: r.name });
-            await delay(50);
-        } catch (err) {
-            console.warn(`⚠️ Region ${id} failed: ${err.message}`);
-        }
-    }
-
-    // Now update stations and structures with region names
-    const regionLookup = new Map(regions.map(r => [r.regionID, r.regionName]));
-    stations.forEach(station => {
-        station.region_name = regionLookup.get(station.regionID) || 'Unknown';
-    });
-    structures.forEach(structure => {
-        structure.regionName = regionLookup.get(structure.regionID) || 'Unknown';
-    });
-
-    await fs.mkdir('./public/data', { recursive: true });
-    await fs.writeFile('./public/data/stations.json', JSON.stringify(stations, null, 2));
-    await fs.writeFile('./public/data/structures.json', JSON.stringify(structures, null, 2));
-    await fs.writeFile('./public/data/regions.json', JSON.stringify(regions, null, 2));
-
-    console.log('✅ Bootstrap complete: stations, structures, regions written to public/data/');
+    return structures;
 }
 
-main().catch(err => console.error('❌ Bootstrap failed:', err));
+async function main() {
+    console.log('📦 Starting bootstrap process...');
+
+    try {
+        // Fetch regions data
+        const regions = await fetchRegionsData();
+
+        // Fetch structures data  
+        const structures = await fetchStructuresData();
+
+        // Write to the correct locations
+        const regionsPath = path.join(process.cwd(), 'public', 'data', 'regions.json');
+        const structuresPath = path.join(process.cwd(), 'public', 'data', 'structures.json');
+
+        await fs.writeFile(regionsPath, JSON.stringify(regions, null, 2));
+        console.log(`✅ Updated ${regionsPath} with ${regions.length} regions`);
+
+        await fs.writeFile(structuresPath, JSON.stringify(structures, null, 2));
+        console.log(`✅ Updated ${structuresPath} with ${structures.length} structures`);
+
+        console.log('✅ Bootstrap complete!');
+    } catch (error) {
+        console.error('❌ Bootstrap failed:', error);
+        process.exit(1);
+    }
+}
+
+// Call main if executed directly
+main().catch(err => {
+    console.error('Bootstrap script failed:', err);
+    process.exit(1);
+});

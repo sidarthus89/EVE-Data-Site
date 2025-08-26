@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import RegionSelector from '../../components/RegionSelector/RegionSelector.jsx';
 import { getSecurityColor, getStationInfo, getRegionInfo } from '../../utils/common.js';
 import { fetchMarketOrders, fetchRegionHaulingData } from '../../utils/market.js';
-import { fetchRegions } from '../../utils/api.js';
+import { fetchRegions, fetchWithRetry } from '../../utils/api.js';
 import stations from '../../data/stations.json';
 import './RegionHauling.css';
 
@@ -46,6 +46,63 @@ export default function RegionHauling() {
     const [nearbyRegions, setNearbyRegions] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(50);
+    const [isFormSticky, setIsFormSticky] = useState(false);
+
+    // Fetch item details (volume and name) from ESI
+    const fetchItemDetails = async (typeId) => {
+        try {
+            const response = await fetchWithRetry(`https://esi.evetech.net/latest/universe/types/${typeId}/`);
+            return {
+                volume: response.volume || 0.01,
+                name: response.name || `Item ${typeId}`
+            };
+        } catch (error) {
+            console.warn(`Failed to fetch details for type ${typeId}:`, error);
+            return {
+                volume: 0.01,
+                name: `Item ${typeId}`
+            };
+        }
+    };
+
+    // Calculate jumps between two systems
+    const calculateJumps = async (fromSystemId, toSystemId) => {
+        try {
+            const routeResponse = await fetchWithRetry(
+                `https://esi.evetech.net/latest/route/${fromSystemId}/${toSystemId}/`
+            );
+            return routeResponse.length - 1; // Number of jumps is route length minus 1
+        } catch (error) {
+            console.warn(`Failed to calculate jumps from ${fromSystemId} to ${toSystemId}:`, error);
+            return 'N/A';
+        }
+    };
+
+    // Handle form sticky behavior on scroll
+    useEffect(() => {
+        const handleScroll = () => {
+            const formElement = document.querySelector('.hauling-form');
+            if (formElement) {
+                const formRect = formElement.getBoundingClientRect();
+                const navbarHeight = 60; // Adjust based on your navbar height
+                setIsFormSticky(formRect.top <= navbarHeight);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Copy location name to clipboard
+    const copyToClipboard = async (text) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            // Could add a toast notification here
+            console.log('Copied to clipboard:', text);
+        } catch (err) {
+            console.error('Failed to copy to clipboard:', err);
+        }
+    };
 
     // Fast region loading using same system as Market.jsx
     useEffect(() => {
@@ -101,53 +158,7 @@ export default function RegionHauling() {
                 toRegion: null
             }));
         }
-    }, [formData.nearbyOnly, nearbyRegions]);    // Fetch live market data for trade route analysis
-    const fetchTradeRouteData = async (fromRegionId, toRegionId, itemTypes = [34, 44992]) => {
-        console.log('🚛 Fetching live market data for trade routes...');
-
-        const tradeOpportunities = [];
-
-        for (const typeId of itemTypes) {
-            try {
-                // Fetch orders from Azure Functions
-                const destResult = await fetchMarketOrders(typeId, toRegionId, null, true);
-                const buyOrders = destResult.buyOrders || [];
-                const srcResult = await fetchMarketOrders(typeId, fromRegionId, null, false);
-                const sellOrders = srcResult.sellOrders || [];
-
-                if (buyOrders.length > 0 && sellOrders.length > 0) {
-                    // Find best prices
-                    const bestBuyPrice = Math.max(...buyOrders.map(order => order.price));
-                    const bestSellPrice = Math.min(...sellOrders.map(order => order.price));
-
-                    if (bestBuyPrice > bestSellPrice) {
-                        const profit = bestBuyPrice - bestSellPrice;
-                        const profitPercent = (profit / bestSellPrice) * 100;
-
-                        // Get volumes
-                        const maxBuyVolume = buyOrders.find(o => o.price === bestBuyPrice)?.volume_remain || 0;
-                        const maxSellVolume = sellOrders.find(o => o.price === bestSellPrice)?.volume_remain || 0;
-
-                        tradeOpportunities.push({
-                            type_id: typeId,
-                            buy_price: bestSellPrice,
-                            sell_price: bestBuyPrice,
-                            profit_per_unit: profit,
-                            profit_percentage: profitPercent,
-                            max_volume: Math.min(maxBuyVolume, maxSellVolume),
-                            from_location: fromRegionId,
-                            to_location: toRegionId,
-                            jumps: 'N/A' // Could be calculated with route data
-                        });
-                    }
-                }
-            } catch (error) {
-                console.warn(`🚛 Failed to fetch market data for type ${typeId}:`, error);
-            }
-        }
-
-        return tradeOpportunities.sort((a, b) => b.profit_percentage - a.profit_percentage);
-    };
+    }, [formData.nearbyOnly, nearbyRegions]);
 
     // Data transformation function to convert API/market data to display format
     const transformApiResponseToDisplayFormat = async (apiData, formData) => {
@@ -163,85 +174,25 @@ export default function RegionHauling() {
             return [];
         }
 
-        // Item volume data (m3 per unit)
-        const itemVolumes = {
-            34: 0.01,     // Tritanium
-            35: 0.01,     // Pyerite
-            36: 0.01,     // Mexallon
-            37: 0.01,     // Isogen
-            38: 0.01,     // Nocxium
-            39: 0.01,     // Zydrine
-            40: 0.01,     // Megacyte
-            44992: 0.01,  // PLEX
-            11399: 0.01,  // Morphite
-            16634: 0.01,  // Crystalline Carbonide
-            16640: 0.01,  // Titanium Carbide
-            16643: 0.01,  // Tungsten Carbide
-            16647: 0.01,  // Vanadium Carbide
-            16648: 0.01,  // Scandium
-            16649: 0.01,  // Chromium
-            16650: 0.01,  // Hafnium
-            16651: 0.01,  // Platinum
-            16652: 0.01,  // Cobalt
-            16653: 0.01,  // Cadmium
-            11382: 0.01,  // Oxygen
-            3683: 0.1,    // Oxygen Isotopes
-            3684: 0.1,    // Nitrogen Isotopes
-            3685: 0.1,    // Hydrogen Isotopes
-            3686: 0.1,    // Helium Isotopes
-            29668: 0.01,  // Skill Injector
-            40519: 0.01,  // Skill Extractor
-        };
-
-        const getItemName = (typeId, fallbackName = null) => {
-            const basicTypes = {
-                34: 'Tritanium',
-                35: 'Pyerite',
-                36: 'Mexallon',
-                37: 'Isogen',
-                38: 'Nocxium',
-                39: 'Zydrine',
-                40: 'Megacyte',
-                44992: 'PLEX',
-                11399: 'Morphite',
-                16634: 'Crystalline Carbonide',
-                16640: 'Titanium Carbide',
-                16643: 'Tungsten Carbide',
-                16647: 'Vanadium Carbide',
-                16648: 'Scandium',
-                16649: 'Chromium',
-                16650: 'Hafnium',
-                16651: 'Platinum',
-                16652: 'Cobalt',
-                16653: 'Cadmium',
-                11382: 'Oxygen',
-                3683: 'Oxygen Isotopes',
-                3684: 'Nitrogen Isotopes',
-                3685: 'Hydrogen Isotopes',
-                3686: 'Helium Isotopes',
-                29668: 'Skill Injector',
-                40519: 'Skill Extractor',
-            };
-            return fallbackName || basicTypes[typeId] || `Item ${typeId}`;
-        };
-
         // Get cargo capacity from form (convert to number, default to unlimited if not specified)
         const cargoCapacity = formData.maxWeight ? parseFloat(formData.maxWeight) : null;
 
-        return apiData.map((trade, index) => {
-            console.log(`🚛 Transforming trade ${index}:`, trade);
+        const transformedTrades = [];
 
-            // Get item volume
-            const itemVolume = trade.item_volume || itemVolumes[trade.type_id] || 0.01;
+        for (const trade of apiData) {
+            console.log(`🚛 Transforming trade:`, trade);
+
+            // Get item details (volume and name) from ESI
+            const itemDetails = await fetchItemDetails(trade.type_id);
 
             // Calculate maximum units that can fit in cargo hold
             let maxUnits = trade.max_volume || 0;
-            if (cargoCapacity && itemVolume > 0) {
-                const cargoLimitedUnits = Math.floor(cargoCapacity / itemVolume);
+            if (cargoCapacity && itemDetails.volume > 0) {
+                const cargoLimitedUnits = Math.floor(cargoCapacity / itemDetails.volume);
                 maxUnits = Math.min(maxUnits, cargoLimitedUnits);
             }
             // Compute total volume
-            const totalVolume = Math.floor(maxUnits * itemVolume);
+            const totalVolume = Math.floor(maxUnits * itemDetails.volume);
 
             // Determine origin/destination IDs and lookup info
             const originId = trade.origin_id ?? trade.from_location;
@@ -255,24 +206,39 @@ export default function RegionHauling() {
             const destinationSecurity = destInfo.security_status ?? destInfo.security ?? null;
             const destinationIsNPC = destInfo.type === 'station' || destInfo.is_npc === 1;
 
-            return {
-                'Item': getItemName(trade.type_id, trade.item_name),
-                'From': { name: originStationName, security: originSecurity, isNPC: originIsNPC },
-                'To': { name: destinationStationName, security: destinationSecurity, isNPC: destinationIsNPC },
+            // Calculate jumps between systems
+            let jumps = 'N/A';
+            if (originInfo.system_id && destInfo.system_id) {
+                jumps = await calculateJumps(originInfo.system_id, destInfo.system_id);
+            }
+
+            transformedTrades.push({
+                'Item': itemDetails.name,
+                'From': {
+                    name: originStationName,
+                    security: originSecurity,
+                    isNPC: originIsNPC,
+                    systemId: originInfo.system_id
+                },
+                'To': {
+                    name: destinationStationName,
+                    security: destinationSecurity,
+                    isNPC: destinationIsNPC,
+                    systemId: destInfo.system_id
+                },
                 'Buy Price': trade.sell_price || 0,
                 'Sell Price': trade.buy_price || 0,
                 'Profit Per Unit': trade.profit_per_unit || 0,
                 'Profit Percentage': trade.profit_margin || 0,
                 'Quantity': maxUnits,
                 'Total Volume (m3)': totalVolume,
-                'Item Volume': itemVolume,
-                'Jumps': trade.jumps || 'N/A',
+                'Item Volume': itemDetails.volume,
+                'Jumps': jumps,
                 '_rawData': trade
-            };
-        })
-            .filter(trade => {
-                return trade['Quantity'] > 0;
             });
+        }
+
+        return transformedTrades.filter(trade => trade['Quantity'] > 0);
     };
 
     const handleInputChange = (field, value) => {
@@ -469,203 +435,184 @@ export default function RegionHauling() {
             </div>
 
             {/* Always show the form */}
-            <div className="hauling-form">
+            <div className={`hauling-form ${isFormSticky ? 'sticky' : ''}`}>
                 <form onSubmit={handleSubmit}>
-                    <div className="form-row region-selector-row">
-                        <div className="form-group">
-                            <label>Starting Region</label>
-                            <RegionSelector
-                                selectedRegion={formData.fromRegion}
-                                onRegionChange={handleFromRegionChange}
-                                allowAllRegions={false}
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Ending Region</label>
-                            {formData.nearbyOnly ? (
-                                <div className="nearby-region-display">
-                                    <div className="nearby-region-info">
-                                        <span className="nearby-count">
-                                            {nearbyRegions.length} Nearby Regions
-                                        </span>
-                                        <div className="nearby-list">
-                                            <small>Includes: {nearbyRegions.join(', ')}</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
+                    <div className="form-container">
+                        <div className="form-row region-selector-row">
+                            <div className="form-group region-group">
+                                <label>Starting Region</label>
                                 <RegionSelector
-                                    selectedRegion={formData.toRegion}
-                                    onRegionChange={handleToRegionChange}
+                                    selectedRegion={formData.fromRegion}
+                                    onRegionChange={handleFromRegionChange}
                                     allowAllRegions={false}
                                 />
-                            )}
-                        </div>
-                    </div>
+                            </div>
 
-                    {/* Nearby regions feature hidden due to CORS issues with EVE-Trade API
-                        <div className="form-row">
-                            <div className="form-group checkbox-group">
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.nearbyOnly}
-                                        onChange={(e) => handleInputChange('nearbyOnly', e.target.checked)}
-                                        disabled={true}
+                            <div className="form-group region-group">
+                                <label>Ending Region</label>
+                                {formData.nearbyOnly ? (
+                                    <div className="nearby-region-display">
+                                        <div className="nearby-region-info">
+                                            <span className="nearby-count">
+                                                {nearbyRegions.length} Nearby Regions
+                                            </span>
+                                            <div className="nearby-list">
+                                                <small>Includes: {nearbyRegions.join(', ')}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <RegionSelector
+                                        selectedRegion={formData.toRegion}
+                                        onRegionChange={handleToRegionChange}
+                                        allowAllRegions={false}
                                     />
-                                    Only show routes with nearby regions (temporarily disabled)
-                                </label>
+                                )}
                             </div>
                         </div>
-                        */}
 
-                    <div className="form-row form-row-main">
-                        <div className="form-group form-group-wide">
-                            <label htmlFor="minProfit">Only Profit Above</label>
-                            <input
-                                id="minProfit"
-                                type="number"
-                                value={formData.minProfit}
-                                onChange={(e) => handleInputChange('minProfit', e.target.value)}
-                                placeholder="Default: 500,000"
-                                className="form-control"
-                            />
+                        <div className="form-row form-row-main">
+                            <div className="form-group">
+                                <label htmlFor="minProfit">Min Profit</label>
+                                <input
+                                    id="minProfit"
+                                    type="number"
+                                    value={formData.minProfit}
+                                    onChange={(e) => handleInputChange('minProfit', e.target.value)}
+                                    placeholder="500,000"
+                                    className="form-control"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="minROI">ROI %</label>
+                                <input
+                                    id="minROI"
+                                    type="number"
+                                    value={formData.minROI}
+                                    onChange={(e) => handleInputChange('minROI', Number(e.target.value) || 0)}
+                                    className="form-control"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="maxBudget">Budget</label>
+                                <input
+                                    id="maxBudget"
+                                    type="number"
+                                    value={formData.maxBudget}
+                                    onChange={(e) => handleInputChange('maxBudget', e.target.value)}
+                                    placeholder="No Limit"
+                                    className="form-control"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="maxWeight">Cargo (m³)</label>
+                                <input
+                                    id="maxWeight"
+                                    type="number"
+                                    value={formData.maxWeight}
+                                    onChange={(e) => handleInputChange('maxWeight', e.target.value)}
+                                    placeholder="No Limit"
+                                    className="form-control"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="maxJumps">Max Jumps</label>
+                                <input
+                                    id="maxJumps"
+                                    type="number"
+                                    value={formData.maxJumps}
+                                    onChange={(e) => handleInputChange('maxJumps', e.target.value)}
+                                    placeholder="No Limit"
+                                    className="form-control"
+                                />
+                            </div>
                         </div>
 
-                        <div className="form-group form-group-narrow">
-                            <label htmlFor="minROI">ROI %</label>
-                            <input
-                                id="minROI"
-                                type="number"
-                                value={formData.minROI}
-                                onChange={(e) => handleInputChange('minROI', Number(e.target.value) || 0)}
-                                className="form-control"
-                            />
+                        <div className="form-row form-row-secondary">
+                            <div className="form-group">
+                                <label htmlFor="salesTax">Sales Tax</label>
+                                <select
+                                    id="salesTax"
+                                    value={formData.salesTax}
+                                    onChange={(e) => handleInputChange('salesTax', Number(e.target.value))}
+                                    className="form-control"
+                                >
+                                    {salesTaxOptions.map((option) => (
+                                        <option key={option.level} value={option.tax}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="securityStatus">Security</label>
+                                <select
+                                    id="securityStatus"
+                                    value={formData.securityStatus}
+                                    onChange={(e) => handleInputChange('securityStatus', e.target.value)}
+                                    className="form-control"
+                                >
+                                    {securityStatusOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="structureType">Structures</label>
+                                <select
+                                    id="structureType"
+                                    value={formData.structureType}
+                                    onChange={(e) => handleInputChange('structureType', e.target.value)}
+                                    className="form-control"
+                                >
+                                    {structureTypeOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="routePreference">Route</label>
+                                <select
+                                    id="routePreference"
+                                    value={formData.routePreference}
+                                    onChange={(e) => handleInputChange('routePreference', e.target.value)}
+                                    className="form-control"
+                                >
+                                    {routePreferenceOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
-                        <div className="form-group form-group-wide">
-                            <label htmlFor="maxBudget">Budget</label>
-                            <input
-                                id="maxBudget"
-                                type="number"
-                                value={formData.maxBudget}
-                                onChange={(e) => handleInputChange('maxBudget', e.target.value)}
-                                placeholder="Default: No Limit"
-                                className="form-control"
-                            />
-                        </div>
+                        {error && (
+                            <div className="error-message">
+                                {error}
+                            </div>
+                        )}
 
-                        <div className="form-group form-group-wide">
-                            <label htmlFor="salesTax">Sales Tax</label>
-                            <select
-                                id="salesTax"
-                                value={formData.salesTax}
-                                onChange={(e) => handleInputChange('salesTax', Number(e.target.value))}
-                                className="form-control"
+                        <div className="form-actions">
+                            <button
+                                type="submit"
+                                disabled={loading || !formData.fromRegion || !formData.toRegion}
+                                className="submit-btn"
                             >
-                                {salesTaxOptions.map((option) => (
-                                    <option key={option.level} value={option.tax}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
+                                {loading ? 'Searching...' : 'Find Trade Routes'}
+                            </button>
                         </div>
-
-                        <div className="form-group form-group-wide">
-                            <label htmlFor="maxWeight">Cargo Capacity</label>
-                            <input
-                                id="maxWeight"
-                                type="number"
-                                value={formData.maxWeight}
-                                onChange={(e) => handleInputChange('maxWeight', e.target.value)}
-                                placeholder="Default: No Limit"
-                                className="form-control"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-row form-row-secondary">
-                        <div className="form-group form-group-medium">
-                            <label htmlFor="securityStatus">Security Status</label>
-                            <select
-                                id="securityStatus"
-                                value={formData.securityStatus}
-                                onChange={(e) => handleInputChange('securityStatus', e.target.value)}
-                                className="form-control"
-                            >
-                                {securityStatusOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-group form-group-medium">
-                            <label htmlFor="routePreference">Route Preference</label>
-                            <select
-                                id="routePreference"
-                                value={formData.routePreference}
-                                onChange={(e) => handleInputChange('routePreference', e.target.value)}
-                                className="form-control"
-                            >
-                                {routePreferenceOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-group form-group-medium">
-                            <label htmlFor="maxJumps">Max Jumps</label>
-                            <input
-                                id="maxJumps"
-                                type="number"
-                                value={formData.maxJumps}
-                                onChange={(e) => handleInputChange('maxJumps', e.target.value)}
-                                placeholder="Default: No Limit"
-                                className="form-control"
-                            />
-                        </div>
-
-                        <div className="form-group form-group-medium">
-                            <label htmlFor="structureType">Structures</label>
-                            <select
-                                id="structureType"
-                                value={formData.structureType}
-                                onChange={(e) => handleInputChange('structureType', e.target.value)}
-                                className="form-control"
-                            >
-                                {structureTypeOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {error && (
-                        <div className="error-message">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="form-actions">
-                        <button
-                            type="submit"
-                            disabled={loading || !formData.fromRegion || !formData.toRegion}
-                            className="submit-btn"
-                            onClick={() => {
-                                console.log('🚛 Submit button clicked');
-                                console.log('🚛 Loading state:', loading);
-                                console.log('🚛 Form valid:', !(!formData.fromRegion || !formData.toRegion));
-                            }}
-                        >
-                            {loading ? 'Searching...' : 'Find Trade Routes'}
-                        </button>
                     </div>
                 </form>
             </div>
@@ -700,7 +647,7 @@ export default function RegionHauling() {
                         </button>
                     </div>
                     <div className="results-table-container">
-                        <table className="results-table">
+                        <table className="results-table wide-table">
                             <thead>
                                 <tr>
                                     <th>Item</th>
@@ -711,7 +658,7 @@ export default function RegionHauling() {
                                     <th>Profit Per Unit</th>
                                     <th>Profit %</th>
                                     <th>Quantity</th>
-                                    <th>Total Volume (m3)</th>
+                                    <th>Total Volume (m³)</th>
                                     <th>Jumps</th>
                                 </tr>
                             </thead>
@@ -741,10 +688,18 @@ export default function RegionHauling() {
                                         const totalVolume = result['Total Volume (m3)'] || 0;
                                         const jumps = result.Jumps || 'N/A';
 
-                                        // Render station names with security coloring
+                                        // Render station names with security coloring and click-to-copy
                                         const renderStationName = (station) => {
                                             if (typeof station === 'string') {
-                                                return <span>{station}</span>;
+                                                return (
+                                                    <span
+                                                        className="clickable-location"
+                                                        onClick={() => copyToClipboard(station)}
+                                                        title="Click to copy to clipboard"
+                                                    >
+                                                        {station}
+                                                    </span>
+                                                );
                                             }
 
                                             const stationName = station.name || 'Unknown Station';
@@ -758,8 +713,10 @@ export default function RegionHauling() {
 
                                             return (
                                                 <span
+                                                    className="clickable-location"
                                                     style={{ color }}
-                                                    title={`Security: ${security !== null && security !== undefined ? security.toFixed(1) : 'Unknown'} | ${isNPC ? 'NPC Station' : 'Player Structure'}`}
+                                                    onClick={() => copyToClipboard(stationName)}
+                                                    title={`Security: ${security !== null && security !== undefined ? security.toFixed(1) : 'Unknown'} | ${isNPC ? 'NPC Station' : 'Player Structure'} | Click to copy`}
                                                 >
                                                     {stationName}
                                                 </span>

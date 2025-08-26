@@ -9,8 +9,8 @@ module.exports = async function (context, req) {
     context.log('Market structure endpoint called');
 
     try {
-        // Adjust this path based on where you place market.json in your Azure Functions project
-        const filePath = path.join(__dirname, '../data/market.json');
+        // Adjusted file path to point to root/src/data/market.json instead of a new directory
+        const filePath = path.join(__dirname, '../../src/data/market.json');
 
         // Check if file exists
         if (!fs.existsSync(filePath)) {
