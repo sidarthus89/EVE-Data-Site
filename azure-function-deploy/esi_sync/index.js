@@ -2,6 +2,8 @@
 const sql = require('mssql');
 const fs = require('fs');
 const path = require('path');
+// HTTP fetch for ESI
+const fetch = require('node-fetch');
 
 const ESI_BASE = 'https://esi.evetech.net/latest';
 const ESI_DATASOURCE = 'tranquility';
@@ -60,62 +62,72 @@ async function fetchESI(endpoint, retries = 3) {
 
 async function fetchESIPaged(endpoint, opts = {}) {
     // Fetch paged ESI endpoints using the 'page' query parameter and x-pages header fallback.
-    // Returns a concatenated array of results.
     const results = [];
     let page = 1;
     let totalPages = null;
     while (true) {
         await rateLimiter.throttle();
-        try {
-            const url = buildEsiUrl(endpoint, { page });
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error(`ESI ${resp.status} ${resp.statusText}`);
-            const pageJson = await resp.json();
-            if (Array.isArray(pageJson) && pageJson.length === 0) break;
-            if (Array.isArray(pageJson)) results.push(...pageJson);
-
-            // Try to detect total pages from headers (x-pages or Link)
-            if (totalPages === null) {
-                const xp = resp.headers.get('x-pages');
-                if (xp) totalPages = parseInt(xp, 10);
-                else {
-                    const link = resp.headers.get('link');
-                    if (link) {
-                        const m = link.match(/<[^>]+[?&]page=(\d+)[^>]*>;\s*rel="last"/i);
-                        if (m) totalPages = parseInt(m[1], 10);
-                    }
+        const url = buildEsiUrl(endpoint, { page });
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`ESI ${resp.status} ${resp.statusText}`);
+        const pageJson = await resp.json();
+        if (!Array.isArray(pageJson) || pageJson.length === 0) break;
+        results.push(...pageJson);
+        if (totalPages === null) {
+            const xp = resp.headers.get('x-pages');
+            if (xp) totalPages = parseInt(xp, 10);
+            else {
+                const link = resp.headers.get('link');
+                if (link) {
+                    const m = link.match(/<[^>]+[?&]page=(\d+)[^>]*>;\s*rel="last"/i);
+                    if (m) totalPages = parseInt(m[1], 10);
                 }
             }
-
-            if (totalPages !== null && page >= totalPages) break;
-            if (Array.isArray(pageJson) && pageJson.length < 1) break;
-            page++;
         }
+        if (totalPages !== null && page >= totalPages) break;
+        page++;
+    }
     return results;
-    }
+}
 
-    function loggerFor(context) {
-        if (!context) return console.log.bind(console);
-        if (typeof context.log === 'function') return context.log;
-        if (context.log && typeof context.log.log === 'function') return context.log.log.bind(context.log);
-        return console.log.bind(console);
-    }
+function loggerFor(context) {
+    if (!context) return console.log.bind(console);
+    if (typeof context.log === 'function') return context.log;
+    if (context.log && typeof context.log.log === 'function') return context.log.log.bind(context.log);
+    return console.log.bind(console);
+}
 
-    async function logStart(pool, type) {
-        try {
-            const r = await pool.request().input('updateType', sql.NVarChar, type).query("INSERT INTO esi_update_log (update_type, started_at, status) OUTPUT INSERTED.id VALUES (@updateType, GETDATE(), 'running')");
-            return r.recordset && r.recordset[0] && r.recordset[0].id ? r.recordset[0].id : null;
-        } catch (e) { return null; }
-    }
+async function logStart(pool, type) {
+    try {
+        const r = await pool.request().input('updateType', sql.NVarChar, type).query("INSERT INTO esi_update_log (update_type, started_at, status) OUTPUT INSERTED.id VALUES (@updateType, GETDATE(), 'running')");
+        return r.recordset && r.recordset[0] && r.recordset[0].id ? r.recordset[0].id : null;
+    } catch (e) { return null; }
+}
 
-    async function logComplete(pool, id, stats) {
-        if (!id) return;
-        try {
-            await pool.request().input('logId', sql.Int, id).input('recordsProcessed', sql.Int, stats.processed || 0).input('recordsAdded', sql.Int, stats.added || 0).input('recordsUpdated', sql.Int, stats.updated || 0).input('errorsCount', sql.Int, stats.errors || 0).input('status', sql.NVarChar, stats.errors > 0 ? 'completed_with_errors' : 'completed').query("UPDATE esi_update_log SET completed_at = GETDATE(), records_processed = @recordsProcessed, records_added = @recordsAdded, records_updated = @recordsUpdated, errors_count = @errorsCount, status = @status, duration_seconds = DATEDIFF(second, started_at, GETDATE()) WHERE id = @logId");
-        } catch (err) {
-            logger('❌ Unhandled exception in ESI sync:', err.stack || err.message || err);
-        }
-    } catch (e) { /* ignore */ }
+async function logComplete(pool, id, stats) {
+    if (!id) return;
+    try {
+        await pool.request()
+            .input('logId', sql.Int, id)
+            .input('recordsProcessed', sql.Int, stats.processed || 0)
+            .input('recordsAdded', sql.Int, stats.added || 0)
+            .input('recordsUpdated', sql.Int, stats.updated || 0)
+            .input('errorsCount', sql.Int, stats.errors || 0)
+            .input('status', sql.NVarChar, stats.errors > 0 ? 'completed_with_errors' : 'completed')
+            .query(
+                `UPDATE esi_update_log
+                     SET completed_at = GETDATE(),
+                         records_processed = @recordsProcessed,
+                         records_added = @recordsAdded,
+                         records_updated = @recordsUpdated,
+                         errors_count = @errorsCount,
+                         status = @status,
+                         duration_seconds = DATEDIFF(second, started_at, GETDATE())
+                     WHERE id = @logId`
+            );
+    } catch (err) {
+        logger('❌ Unhandled exception in ESI sync logComplete:', err.stack || err.message || err);
+    }
 }
 
 async function upsertRegion(pool, regionId, regionInfo) {
@@ -290,6 +302,11 @@ module.exports = async function runEsiSync(context, myTimer) {
     } catch (err) {
         logger('❌ Unhandled exception in ESI sync:', err.stack || err.message || err);
     }
+
+    // Log any top-level error for Azure log stream
+    // eslint-disable-next-line no-console
+    console.error('❌ Top-level error in esi_sync/index.js:', err && err.stack ? err.stack : err);
+    throw err;
 }
 
 /**
