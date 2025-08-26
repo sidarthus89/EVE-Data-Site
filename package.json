@@ -18,6 +18,7 @@
     "db:reset": "npx wrangler d1 execute eve_market --remote --file sql/schema.sql"
   },
   "dependencies": {
+    "@azure/msal-node": "^3.7.2",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.12",
     "dotenv": "^16.0.0",
