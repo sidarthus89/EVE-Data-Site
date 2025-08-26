@@ -10,7 +10,8 @@ export async function loadStations() {
 
 export async function loadStructures() {
     if (structuresCache) return structuresCache;
-    const res = await fetch('/data/structures.json');
+    const url = `${import.meta.env.BASE_URL}data/structures.json`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to load structures');
     structuresCache = await res.json();
     return structuresCache;
@@ -18,7 +19,8 @@ export async function loadStructures() {
 
 export async function loadRegions() {
     if (regionsCache) return regionsCache;
-    const res = await fetch('/data/regions.json');
+    const url = `${import.meta.env.BASE_URL}data/regions.json`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to load regions');
     regionsCache = await res.json();
     return regionsCache;

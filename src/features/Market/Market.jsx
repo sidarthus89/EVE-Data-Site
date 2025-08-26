@@ -16,7 +16,8 @@ import marketTreeStatic from '../../data/market.json';
 
 // If your regions.json is a raw array, this loader handles both raw and wrapped formats
 async function loadRegionsFile() {
-    const res = await fetch('/data/regions.json');
+    const url = `${import.meta.env.BASE_URL}data/regions.json`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to load regions.json');
     const data = await res.json();
     return Array.isArray(data) ? data : data.regions || [];
@@ -124,8 +125,12 @@ export default function Market() {
     }, [regions, structures]);
 
     useEffect(() => {
-        fetch('/data/structures.json')
-            .then(res => res.json())
+        const url = `${import.meta.env.BASE_URL}data/structures.json`;
+        fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load structures.json');
+                return res.json();
+            })
             .then(setStructures)
             .catch(err => console.error('❌ Failed to load structures:', err));
     }, []);

@@ -4,6 +4,7 @@ import RegionSelector from '../../components/RegionSelector/RegionSelector.jsx';
 import { getSecurityColor, getStationInfo, getRegionInfo } from '../../utils/common.js';
 import { fetchMarketOrders, fetchRegionHaulingData } from '../../utils/market.js';
 import { fetchRegions } from '../../utils/api.js';
+import stations from '../../data/stations.json';
 import './RegionHauling.css';
 
 // Utility functions for formatting (replaces eveTradeAPI utils)
@@ -151,6 +152,11 @@ export default function RegionHauling() {
     // Data transformation function to convert API/market data to display format
     const transformApiResponseToDisplayFormat = async (apiData, formData) => {
         console.log('🚛 Transforming API data:', apiData);
+        // Load static structure data for mapping
+        const structures = await fetch(`${import.meta.env.BASE_URL}data/structures.json`)
+            .then(res => res.ok ? res.json() : []);
+        const stationMap = new Map(stations.map(s => [Number(s.station_id || s.stationID), s]));
+        const structMap = new Map(structures.map(s => [Number(s.stationID), s]));
 
         if (!apiData || !Array.isArray(apiData)) {
             console.log('🚛 Invalid API data for transformation');
@@ -234,38 +240,38 @@ export default function RegionHauling() {
                 const cargoLimitedUnits = Math.floor(cargoCapacity / itemVolume);
                 maxUnits = Math.min(maxUnits, cargoLimitedUnits);
             }
+            // Compute total volume
+            const totalVolume = Math.floor(maxUnits * itemVolume);
 
-            // Create station name components with security coloring
-            const originStationName = trade.origin_station_name || 'Unknown Station';
-            const destinationStationName = trade.destination_station_name || 'Unknown Station';
-            const originSecurity = trade.origin_security;
-            const destinationSecurity = trade.destination_security;
+            // Determine origin/destination IDs and lookup info
+            const originId = trade.origin_id ?? trade.from_location;
+            const destId = trade.destination_id ?? trade.to_location;
+            const originInfo = stationMap.get(originId) || structMap.get(originId) || {};
+            const destInfo = stationMap.get(destId) || structMap.get(destId) || {};
+            const originStationName = originInfo.name || 'Unknown Station';
+            const originSecurity = originInfo.security_status ?? originInfo.security ?? null;
+            const originIsNPC = originInfo.type === 'station' || originInfo.is_npc === 1;
+            const destinationStationName = destInfo.name || 'Unknown Station';
+            const destinationSecurity = destInfo.security_status ?? destInfo.security ?? null;
+            const destinationIsNPC = destInfo.type === 'station' || destInfo.is_npc === 1;
 
             return {
                 'Item': getItemName(trade.type_id, trade.item_name),
-                'From': {
-                    name: originStationName,
-                    security: originSecurity,
-                    isNPC: trade.origin_is_npc
-                },
-                'Take To': {
-                    name: destinationStationName,
-                    security: destinationSecurity,
-                    isNPC: trade.destination_is_npc
-                },
+                'From': { name: originStationName, security: originSecurity, isNPC: originIsNPC },
+                'To': { name: destinationStationName, security: destinationSecurity, isNPC: destinationIsNPC },
                 'Buy Price': trade.sell_price || 0,
                 'Sell Price': trade.buy_price || 0,
                 'Profit Per Unit': trade.profit_per_unit || 0,
                 'Profit Percentage': trade.profit_margin || 0,
-                'Max Units': maxUnits,
+                'Quantity': maxUnits,
+                'Total Volume (m3)': totalVolume,
                 'Item Volume': itemVolume,
-                'Jumps': 'N/A', // Azure function doesn't provide jump data
-                '_rawData': trade // Keep original data for debugging
+                'Jumps': trade.jumps || 'N/A',
+                '_rawData': trade
             };
         })
             .filter(trade => {
-                // Apply cargo capacity filter - only show routes where we can carry at least some items
-                return trade['Max Units'] > 0;
+                return trade['Quantity'] > 0;
             });
     };
 
@@ -698,13 +704,14 @@ export default function RegionHauling() {
                             <thead>
                                 <tr>
                                     <th>Item</th>
-                                    <th>From Station</th>
-                                    <th>To Station</th>
+                                    <th>From</th>
+                                    <th>To</th>
                                     <th>Buy Price</th>
                                     <th>Sell Price</th>
                                     <th>Profit Per Unit</th>
                                     <th>Profit %</th>
-                                    <th>Max Units</th>
+                                    <th>Quantity</th>
+                                    <th>Total Volume (m3)</th>
                                     <th>Jumps</th>
                                 </tr>
                             </thead>
@@ -730,7 +737,8 @@ export default function RegionHauling() {
                                         const sellPrice = result['Sell Price'] || 0;
                                         const profitPerUnit = result['Profit Per Unit'] || 0;
                                         const profitPercentage = result['Profit Percentage'] || 0;
-                                        const maxUnits = result['Max Units'] || 0;
+                                        const quantity = result['Quantity'] || 0;
+                                        const totalVolume = result['Total Volume (m3)'] || 0;
                                         const jumps = result.Jumps || 'N/A';
 
                                         // Render station names with security coloring
@@ -767,7 +775,8 @@ export default function RegionHauling() {
                                                 <td>{utils.formatNumber(sellPrice)}</td>
                                                 <td>{utils.formatNumber(profitPerUnit)}</td>
                                                 <td>{utils.formatNumber(profitPercentage, 1)}%</td>
-                                                <td>{utils.formatNumber(maxUnits, 0)}</td>
+                                                <td>{utils.formatNumber(quantity, 0)}</td>
+                                                <td>{utils.formatNumber(totalVolume, 0)}</td>
                                                 <td>{jumps}</td>
                                             </tr>
                                         );

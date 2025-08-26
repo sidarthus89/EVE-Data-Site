@@ -151,8 +151,8 @@ module.exports = async function (context, req) {
         } else if (is_buy_order === 'false') {
             query += " ORDER BY price ASC";
         } else {
-            query += " ORDER BY is_buy_order DESC, price " +
-                "CASE WHEN is_buy_order = 1 THEN DESC ELSE ASC END";
+            // Default: group buys first, then sort price descending
+            query += " ORDER BY is_buy_order DESC, price DESC";
         }
 
         query += " OFFSET 0 ROWS FETCH NEXT 1000 ROWS ONLY";
