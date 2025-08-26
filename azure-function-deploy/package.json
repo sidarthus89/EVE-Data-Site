@@ -1,0 +1,26 @@
+{
+    "name": "eve-trade-azure-functions",
+    "version": "1.0.0",
+    "description": "Azure Functions for EVE Online trading and market data",
+    "main": "index.js",
+    "scripts": {
+        "start": "func start",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "deploy": "func azure functionapp publish evetradefunc01"
+    },
+    "dependencies": {
+        "mssql": "^9.1.1"
+    },
+    "devDependencies": {
+        "@azure/functions": "^4.0.0"
+    },
+    "keywords": [
+        "azure",
+        "functions",
+        "eve-online",
+        "trading",
+        "market-data"
+    ],
+    "author": "",
+    "license": "ISC"
+}

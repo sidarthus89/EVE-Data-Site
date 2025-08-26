@@ -1,0 +1,192 @@
+/* src/components/EVEAuth.css */
+/* EVE Online Authentication Component Styles */
+
+.eve-auth {
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.eve-auth--loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #2a2a2a;
+}
+
+.eve-auth__spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.eve-auth--error {
+    background: #2d1b1b;
+    border-color: #d32f2f;
+}
+
+.eve-auth__error {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.eve-auth__error-icon {
+    font-size: 1.5em;
+    color: #ff9800;
+}
+
+.eve-auth__retry-btn {
+    background: #d32f2f;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.eve-auth__retry-btn:hover {
+    background: #b71c1c;
+}
+
+.eve-auth--logged-out {
+    background: #1e2a3a;
+    border-color: #4a90e2;
+}
+
+.eve-auth__login-prompt {
+    text-align: center;
+}
+
+.eve-auth__icon {
+    font-size: 2em;
+    margin-bottom: 1rem;
+}
+
+.eve-auth__login-prompt h3 {
+    margin: 0 0 1rem 0;
+    color: #4a90e2;
+}
+
+.eve-auth__login-prompt p {
+    margin: 0 0 1rem 0;
+    color: #ccc;
+    line-height: 1.4;
+}
+
+.eve-auth__benefits {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    text-align: left;
+    display: inline-block;
+}
+
+.eve-auth__benefits li {
+    margin: 0.5rem 0;
+    color: #a5d6a7;
+}
+
+.eve-auth__login-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin: 1rem 0;
+    transition: opacity 0.2s;
+}
+
+.eve-auth__login-btn:hover {
+    opacity: 0.8;
+}
+
+.eve-auth__login-btn img {
+    height: 40px;
+    width: auto;
+}
+
+.eve-auth__note {
+    font-size: 0.8em;
+    color: #999;
+    margin-top: 1rem;
+}
+
+.eve-auth--logged-in {
+    background: #1b2d1b;
+    border-color: #4caf50;
+}
+
+.eve-auth__character-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.eve-auth__character {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.eve-auth__portrait {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid #4caf50;
+}
+
+.eve-auth__details strong {
+    color: #4caf50;
+}
+
+.eve-auth__status--success {
+    color: #81c784;
+}
+
+.eve-auth__status--warning {
+    color: #ffb74d;
+}
+
+.eve-auth__logout-btn {
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2em;
+    transition: background-color 0.2s;
+}
+
+.eve-auth__logout-btn:hover {
+    background: #555;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .eve-auth {
+        padding: 0.75rem;
+    }
+
+    .eve-auth__character-info {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .eve-auth__benefits {
+        text-align: center;
+    }
+}

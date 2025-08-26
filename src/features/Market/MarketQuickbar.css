@@ -1,0 +1,64 @@
+/* src\features\Market\MarketQuickbar.css */
+.quickbar {
+    padding: 8px;
+}
+
+.quickbar-empty {
+    padding: 16px;
+    text-align: center;
+    color: #888;
+}
+
+.quickbar-hint {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 8px;
+}
+
+.quickbar-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.quickbar-item:hover {
+    background-color: #0e1f24;
+}
+
+.quickbar-item-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    flex-grow: 1;
+}
+
+.quickbar-item-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.quickbar-remove-btn {
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.2s, color 0.2s;
+}
+
+.quickbar-item:hover .quickbar-remove-btn {
+    visibility: visible;
+    opacity: 1;
+}
+
+.quickbar-remove-btn:hover {
+    color: #ff4444;
+}
