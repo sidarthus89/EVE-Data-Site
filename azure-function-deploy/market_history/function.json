@@ -6,9 +6,7 @@
             "direction": "in",
             "name": "req",
             "methods": [
-                "get",
-                "post",
-                "options"
+                "get"
             ],
             "route": "market/history"
         },

@@ -68,14 +68,17 @@ export async function fetchMarketSummary(typeId, regionId = null) {
     return fetchWithRetry(`${AZURE_BASE}/market/summary?${params}`, {}, 3);
 }
 
-export async function fetchMarketHistory(typeId, regionId, days = 30) {
-    const params = new URLSearchParams({ type_id: typeId, region_id: regionId, days });
+export async function fetchMarketHistory(type_id, region_id, days = 30) {
+    const url = `https://evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net/api/market/history?type_id=${type_id}&region_id=${region_id}&days=${days}`;
     try {
-        const response = await fetchWithRetry(`${AZURE_BASE}/market/history?${params}`, {}, 3);
-        return response.history || response; // Handle both wrapped and direct array responses
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch market history: ${response.statusText}`);
+        }
+        return await response.json();
     } catch (error) {
-        console.error('❌ Market history fetch failed:', error);
-        return []; // Return empty array on failure
+        console.error('Error in fetchMarketHistory:', error);
+        throw error;
     }
 }
 
