@@ -732,7 +732,7 @@ export default function RegionHauling() {
                                         // Extract values from the new data structure
                                         const item = result.Item || 'Unknown Item';
                                         const fromStation = result.From || {};
-                                        const toStation = result['Take To'] || {};
+                                        const toStation = result['To'] || result['Take To'] || {};
                                         const buyPrice = result['Buy Price'] || 0;
                                         const sellPrice = result['Sell Price'] || 0;
                                         const profitPerUnit = result['Profit Per Unit'] || 0;
@@ -759,7 +759,7 @@ export default function RegionHauling() {
                                             return (
                                                 <span
                                                     style={{ color }}
-                                                    title={`Security: ${security !== null ? security.toFixed(1) : 'Unknown'} | ${isNPC ? 'NPC Station' : 'Player Structure'}`}
+                                                    title={`Security: ${security !== null && security !== undefined ? security.toFixed(1) : 'Unknown'} | ${isNPC ? 'NPC Station' : 'Player Structure'}`}
                                                 >
                                                     {stationName}
                                                 </span>

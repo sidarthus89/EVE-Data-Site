@@ -70,7 +70,13 @@ export async function fetchMarketSummary(typeId, regionId = null) {
 
 export async function fetchMarketHistory(typeId, regionId, days = 30) {
     const params = new URLSearchParams({ type_id: typeId, region_id: regionId, days });
-    return fetchWithRetry(`${AZURE_BASE}/market/history?${params}`, {}, 3);
+    try {
+        const response = await fetchWithRetry(`${AZURE_BASE}/market/history?${params}`, {}, 3);
+        return response.history || response; // Handle both wrapped and direct array responses
+    } catch (error) {
+        console.error('❌ Market history fetch failed:', error);
+        return []; // Return empty array on failure
+    }
 }
 
 export async function fetchAggregatedOrders(typeId, regionId) {

@@ -37,24 +37,29 @@ async function fetchMarketAccess(structureID) {
     return res.status === 200;
 }
 
-async function getAllStationIDs() {
-    return await fetchESI('/universe/stations/');
-}
-
-async function getStationDetails(id) {
-    return await fetchESI(`/universe/stations/${id}/`);
-}
-
-async function getPublicMarketStructures() {
-    return await fetchESI('/universe/structures/?filter=market');
-}
-
-async function getStructureDetails(id) {
-    return await fetchESI(`/universe/structures/${id}/`, true);
+async function getAllRegions() {
+    return await fetchESI('/universe/regions/');
 }
 
 async function getRegionDetails(id) {
     return await fetchESI(`/universe/regions/${id}/`);
+}
+
+async function getConstellationsInRegion(regionId) {
+    const region = await getRegionDetails(regionId);
+    return region.constellations || [];
+}
+
+async function getConstellationDetails(id) {
+    return await fetchESI(`/universe/constellations/${id}/`);
+}
+
+async function getSystemDetails(id) {
+    return await fetchESI(`/universe/systems/${id}/`);
+}
+
+async function getStationDetails(id) {
+    return await fetchESI(`/universe/stations/${id}/`);
 }
 
 async function main() {
@@ -69,10 +74,16 @@ async function main() {
             const s = await getStationDetails(id);
             stations.push({
                 stationID: id,
+                station_id: id,  // Add for compatibility
                 name: s.name,
                 systemID: s.system_id,
                 regionID: s.region_id,
-                security: s.security_status
+                region_id: s.region_id,  // Add for compatibility
+                region_name: null,  // Will be resolved later
+                security: s.security_status,
+                security_status: s.security_status,  // Add for compatibility
+                is_npc: true,
+                type: 'station'
             });
             regionMap.set(s.region_id, true);
             await delay(50);
@@ -93,11 +104,16 @@ async function main() {
 
             const s = await getStructureDetails(id);
             structures.push({
-                structureID: id,
-                name: s.name,
+                stationID: id,  // Changed from structureID to stationID for consistency
+                locationName: s.name,  // Changed from name to locationName
+                name: s.name,  // Keep both for compatibility
                 systemID: s.system_id,
                 regionID: s.region_id,
-                typeID: s.type_id
+                regionName: null,  // Will be resolved later
+                typeID: s.type_id,
+                security: null,  // Structures don't have direct security, would need system lookup
+                is_npc: false,  // Player structures are not NPC
+                type: 'structure'
             });
             regionMap.set(s.region_id, true);
             console.log(`✅ Added structure ${id}: ${s.name}`);
@@ -119,6 +135,15 @@ async function main() {
             console.warn(`⚠️ Region ${id} failed: ${err.message}`);
         }
     }
+
+    // Now update stations and structures with region names
+    const regionLookup = new Map(regions.map(r => [r.regionID, r.regionName]));
+    stations.forEach(station => {
+        station.region_name = regionLookup.get(station.regionID) || 'Unknown';
+    });
+    structures.forEach(structure => {
+        structure.regionName = regionLookup.get(structure.regionID) || 'Unknown';
+    });
 
     await fs.mkdir('./public/data', { recursive: true });
     await fs.writeFile('./public/data/stations.json', JSON.stringify(stations, null, 2));
