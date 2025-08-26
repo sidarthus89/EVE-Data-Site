@@ -1,1 +1,0 @@
-import{j as e}from"./index-Bf3-lqD2.js";import"./react-vendor-BIXhp891.js";function r(){return e.jsxs("section",{className:"ores",children:[e.jsx("h1",{children:"Ores"}),e.jsx("p",{children:"In development"})]})}export{r as default};
