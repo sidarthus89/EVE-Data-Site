@@ -1,1 +1,0 @@
-import{j as e}from"./index-B87ZvA71.js";import"./react-vendor-qWGkjVPF.js";function n(){return e.jsxs("section",{className:"heat-map",children:[e.jsx("h1",{children:"Heat Map"}),e.jsx("p",{children:"In development"})]})}export{n as default};
