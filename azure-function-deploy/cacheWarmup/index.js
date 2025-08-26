@@ -1,5 +1,16 @@
-// in azure-function-deploy/cacheWarmup/index.js
+const fetch = require('node-fetch');
+
+// Read function app hostname from env or fallback (set WEBSITE_HOSTNAME in Azure)
+const HOST = process.env.WEBSITE_HOSTNAME || '<your-app>.azurewebsites.net';
 module.exports = async function (context) {
+    let fetch;
+    try {
+        fetch = require('node-fetch');
+    } catch (e) {
+        context.log.error('node-fetch not found. Please add node-fetch to your dependencies.', e.message);
+        return;
+    }
+
     const endpoints = [
         '/api/market-structure',
         '/api/market/summary?type_id=34&region_id=10000002',
@@ -8,7 +19,7 @@ module.exports = async function (context) {
     // Warm core HTTP endpoints
     for (let path of endpoints) {
         try {
-            await fetch(`evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net${path}`);
+            await fetch(`https://${HOST}${path}`);
             context.log(`Warmed ${path}`);
         } catch (e) {
             context.log.error(`Warmup failed for ${path}:`, e);
@@ -23,7 +34,7 @@ module.exports = async function (context) {
             const destination = hubs[j];
             const path = `/api/region_hauling?origin_region_id=${origin}&destination_region_id=${destination}`;
             try {
-                await fetch(`evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net${path}`);
+                await fetch(`https://${HOST}${path}`);
                 context.log(`Hybrid warmed region hauling ${origin}->${destination}`);
             } catch (e) {
                 context.log.error(`Hybrid warmup failed for ${origin}->${destination}:`, e);

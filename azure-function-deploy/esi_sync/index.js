@@ -1,6 +1,5 @@
 // Full Azure Function ESI sync runner
 const sql = require('mssql');
-const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 
@@ -82,7 +81,6 @@ async function fetchESIPaged(endpoint, opts = {}) {
                 else {
                     const link = resp.headers.get('link');
                     if (link) {
-                        // look for rel="last" page=N
                         const m = link.match(/<[^>]+[?&]page=(\d+)[^>]*>;\s*rel="last"/i);
                         if (m) totalPages = parseInt(m[1], 10);
                     }
@@ -92,35 +90,31 @@ async function fetchESIPaged(endpoint, opts = {}) {
             if (totalPages !== null && page >= totalPages) break;
             if (Array.isArray(pageJson) && pageJson.length < 1) break;
             page++;
-        } catch (e) {
-            if (opts.fallbackFile) {
-                // give a chance for fallback below
-                throw e;
-            }
-            throw e;
         }
-    }
     return results;
-}
+    }
 
-function loggerFor(context) {
-    if (!context) return console.log.bind(console);
-    if (typeof context.log === 'function') return context.log;
-    if (context.log && typeof context.log.log === 'function') return context.log.log.bind(context.log);
-    return console.log.bind(console);
-}
+    function loggerFor(context) {
+        if (!context) return console.log.bind(console);
+        if (typeof context.log === 'function') return context.log;
+        if (context.log && typeof context.log.log === 'function') return context.log.log.bind(context.log);
+        return console.log.bind(console);
+    }
 
-async function logStart(pool, type) {
-    try {
-        const r = await pool.request().input('updateType', sql.NVarChar, type).query("INSERT INTO esi_update_log (update_type, started_at, status) OUTPUT INSERTED.id VALUES (@updateType, GETDATE(), 'running')");
-        return r.recordset && r.recordset[0] && r.recordset[0].id ? r.recordset[0].id : null;
-    } catch (e) { return null; }
-}
+    async function logStart(pool, type) {
+        try {
+            const r = await pool.request().input('updateType', sql.NVarChar, type).query("INSERT INTO esi_update_log (update_type, started_at, status) OUTPUT INSERTED.id VALUES (@updateType, GETDATE(), 'running')");
+            return r.recordset && r.recordset[0] && r.recordset[0].id ? r.recordset[0].id : null;
+        } catch (e) { return null; }
+    }
 
-async function logComplete(pool, id, stats) {
-    if (!id) return;
-    try {
-        await pool.request().input('logId', sql.Int, id).input('recordsProcessed', sql.Int, stats.processed || 0).input('recordsAdded', sql.Int, stats.added || 0).input('recordsUpdated', sql.Int, stats.updated || 0).input('errorsCount', sql.Int, stats.errors || 0).input('status', sql.NVarChar, stats.errors > 0 ? 'completed_with_errors' : 'completed').query("UPDATE esi_update_log SET completed_at = GETDATE(), records_processed = @recordsProcessed, records_added = @recordsAdded, records_updated = @recordsUpdated, errors_count = @errorsCount, status = @status, duration_seconds = DATEDIFF(second, started_at, GETDATE()) WHERE id = @logId");
+    async function logComplete(pool, id, stats) {
+        if (!id) return;
+        try {
+            await pool.request().input('logId', sql.Int, id).input('recordsProcessed', sql.Int, stats.processed || 0).input('recordsAdded', sql.Int, stats.added || 0).input('recordsUpdated', sql.Int, stats.updated || 0).input('errorsCount', sql.Int, stats.errors || 0).input('status', sql.NVarChar, stats.errors > 0 ? 'completed_with_errors' : 'completed').query("UPDATE esi_update_log SET completed_at = GETDATE(), records_processed = @recordsProcessed, records_added = @recordsAdded, records_updated = @recordsUpdated, errors_count = @errorsCount, status = @status, duration_seconds = DATEDIFF(second, started_at, GETDATE()) WHERE id = @logId");
+        } catch (err) {
+            logger('❌ Unhandled exception in ESI sync:', err.stack || err.message || err);
+        }
     } catch (e) { /* ignore */ }
 }
 
@@ -258,34 +252,43 @@ async function syncSystemsAndStations(pool, logger) {
     } finally { await logComplete(pool, logId, stats); }
 }
 
-async function runEsiSync(context, myTimer) {
+module.exports = async function runEsiSync(context, myTimer) {
     const logger = loggerFor(context);
-    logger('Starting full ESI sync');
-
-    if (process.env.DRY_RUN === '1' || process.env.DRY_RUN === 'true') {
-        logger('DRY_RUN enabled — running ESI reads only');
-        const r = await fetchESI('/universe/regions/');
-        logger('DRY_RUN fetched regions:', Array.isArray(r) ? r.length : 0);
-        return;
-    }
-
-    let pool;
+    logger('🔄 Starting full ESI sync');
     try {
-        pool = await sql.connect(dbConfig);
-        logger('Connected to DB');
+        // Ensure fetch is available
+        if (!global.fetch) {
+            try { global.fetch = require('node-fetch'); }
+            catch { logger('❌ node-fetch missing'); }
+        }
 
-        // Order matters: regions -> systems/stations -> structures (structures use market checks)
-        await syncRegions(pool, logger);
-        await syncSystemsAndStations(pool, logger);
-        await syncMarketStructures(pool, logger);
-        // Sync market orders for each region into market_orders table
-        await syncMarketOrders(pool, logger);
+        if (process.env.DRY_RUN === '1' || process.env.DRY_RUN === 'true') {
+            logger('DRY_RUN enabled — running ESI reads only');
+            const r = await fetchESI('/universe/regions/');
+            logger('DRY_RUN fetched regions:', Array.isArray(r) ? r.length : 0);
+            return;
+        }
 
-        logger('ESI sync complete');
+        let pool;
+        try {
+            pool = await sql.connect(dbConfig);
+            logger('Connected to DB');
+
+            // Order matters: regions -> systems/stations -> structures (structures use market checks)
+            await syncRegions(pool, logger);
+            await syncSystemsAndStations(pool, logger);
+            await syncMarketStructures(pool, logger);
+            // Sync market orders for each region into market_orders table
+            await syncMarketOrders(pool, logger);
+
+            logger('ESI sync complete');
+        } catch (err) {
+            logger('❌ ESI sync failed:', err && err.message ? err.message : err);
+        } finally {
+            if (pool) await pool.close();
+        }
     } catch (err) {
-        logger('❌ ESI sync failed:', err && err.message ? err.message : err);
-    } finally {
-        if (pool) await pool.close();
+        logger('❌ Unhandled exception in ESI sync:', err.stack || err.message || err);
     }
 }
 
@@ -339,6 +342,3 @@ WHEN NOT MATCHED THEN INSERT (order_id,type_id,region_id,location_id,price,volum
         }
     }
 }
-
-module.exports = runEsiSync;
-module.exports.runEsiSync = runEsiSync;
