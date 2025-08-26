@@ -47,6 +47,8 @@ export default function RegionHauling() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(50);
     const [isFormSticky, setIsFormSticky] = useState(false);
+    const [formCollapsed, setFormCollapsed] = useState(false);
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
     // Fetch item details (volume and name) from ESI
     const fetchItemDetails = async (typeId) => {
@@ -234,6 +236,7 @@ export default function RegionHauling() {
                 'Total Volume (m3)': totalVolume,
                 'Item Volume': itemDetails.volume,
                 'Jumps': jumps,
+                'Total Profit': (trade.profit_per_unit || 0) * maxUnits,
                 '_rawData': trade
             });
         }
@@ -290,7 +293,7 @@ export default function RegionHauling() {
 
     // Structure type options
     const structureTypeOptions = [
-        { value: 'both', label: 'Both' },
+        { value: 'both', label: 'Any' },
         { value: 'stations', label: 'NPC Stations' },
         { value: 'structures', label: 'Player Structures' }
     ];
@@ -416,6 +419,51 @@ export default function RegionHauling() {
         }
     };
 
+    // Sorting handler
+    const handleSort = (key) => {
+        setSortConfig(prev => {
+            if (prev.key === key) {
+                return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+            }
+            return { key, direction: 'asc' };
+        });
+    };
+
+    // Sorted results based on sort config
+    const sortedResults = useMemo(() => {
+        if (!sortConfig.key) return results;
+        const sorted = [...results];
+        sorted.sort((a, b) => {
+            const getValue = (item, key) => {
+                switch (key) {
+                    case 'Item': return item.Item || '';
+                    case 'From': return (item.From && item.From.name) || item.From || '';
+                    case 'To': return (item.To && item.To.name) || item['Take To'] || '';
+                    case 'Quantity': return item['Quantity'] || 0;
+                    case 'Buy Price': return item['Buy Price'] || 0;
+                    case 'Total Buy Price': return (item['Buy Price'] || 0) * (item['Quantity'] || 0);
+                    case 'Sell Price': return item['Sell Price'] || 0;
+                    case 'Net Profit': return item['Total Profit'] || 0;
+                    case 'Jumps': return typeof item.Jumps === 'number' ? item.Jumps : 0;
+                    case 'Profit per Jump': return typeof item.Jumps === 'number' && item['Total Profit'] ? item['Total Profit'] / item.Jumps : 0;
+                    case 'Profit Per Item': return item['Profit Per Unit'] || 0;
+                    case 'ROI': return item['Profit Percentage'] || 0;
+                    case 'Total Volume (m³)': return item['Total Volume (m3)'] || 0;
+                    default: return item[key] || '';
+                }
+            };
+            const aVal = getValue(a, sortConfig.key);
+            const bVal = getValue(b, sortConfig.key);
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+            }
+            return sortConfig.direction === 'asc'
+                ? String(aVal).localeCompare(String(bVal))
+                : String(bVal).localeCompare(String(aVal));
+        });
+        return sorted;
+    }, [results, sortConfig]);
+
     if (!regionsData) {
         return (
             <div className="region-hauling">
@@ -430,171 +478,66 @@ export default function RegionHauling() {
         <div className="region-hauling">
             <div className="page-header">
                 <h1>Region to Region Trading</h1>
-                <p>Find the most profitable trade routes between regions.</p>
-                <p className="disclaimer">Orders change frequently. Profit is not guaranteed. Verify prices are accurate.</p>
+                <p className="disclaimer">This feature is still a WIP and may have issues.</p>
             </div>
 
-            {/* Always show the form */}
-            <div className={`hauling-form ${isFormSticky ? 'sticky' : ''}`}>
+            {/* Form section with collapse toggle */}
+            <div className={`hauling-form ${isFormSticky ? 'sticky' : ''} ${formCollapsed ? 'collapsed' : ''}`}>
+                <button
+                    type="button"
+                    className="toggle-form-btn"
+                    onClick={() => setFormCollapsed(prev => !prev)}
+                >
+                    {formCollapsed ? 'Show Filters' : 'Hide Filters'}
+                </button>
                 <form onSubmit={handleSubmit}>
                     <div className="form-container">
-                        <div className="form-row region-selector-row">
+                        <div className="form-row form-row-top">
                             <div className="form-group region-group">
                                 <label>Starting Region</label>
-                                <RegionSelector
-                                    selectedRegion={formData.fromRegion}
-                                    onRegionChange={handleFromRegionChange}
-                                    allowAllRegions={false}
-                                />
+                                <RegionSelector selectedRegion={formData.fromRegion} onRegionChange={handleFromRegionChange} allowAllRegions={false} />
                             </div>
-
                             <div className="form-group region-group">
                                 <label>Ending Region</label>
-                                {formData.nearbyOnly ? (
-                                    <div className="nearby-region-display">
-                                        <div className="nearby-region-info">
-                                            <span className="nearby-count">
-                                                {nearbyRegions.length} Nearby Regions
-                                            </span>
-                                            <div className="nearby-list">
-                                                <small>Includes: {nearbyRegions.join(', ')}</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <RegionSelector
-                                        selectedRegion={formData.toRegion}
-                                        onRegionChange={handleToRegionChange}
-                                        allowAllRegions={false}
-                                    />
-                                )}
+                                {formData.nearbyOnly ? <div className="nearby-region-display">…</div> : <RegionSelector selectedRegion={formData.toRegion} onRegionChange={handleToRegionChange} allowAllRegions={false} />}
+                            </div>
+                            <div className="form-group">
+                                <label>Security</label>
+                                <select value={formData.securityStatus} onChange={e => handleInputChange('securityStatus', e.target.value)} className="form-control">{securityStatusOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+                            </div>
+                            <div className="form-group">
+                                <label>Staions/Structures</label>
+                                <select value={formData.structureType} onChange={e => handleInputChange('structureType', e.target.value)} className="form-control">{structureTypeOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+                            </div>
+                            <div className="form-group">
+                                <label>Route</label>
+                                <select value={formData.routePreference} onChange={e => handleInputChange('routePreference', e.target.value)} className="form-control">{routePreferenceOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+                            </div>
+                            <div className="form-group">
+                                <label>Max Jumps</label>
+                                <input type="number" value={formData.maxJumps} onChange={e => handleInputChange('maxJumps', e.target.value)} placeholder="No Limit" className="form-control" />
                             </div>
                         </div>
-
-                        <div className="form-row form-row-main">
+                        <div className="form-row form-row-bottom">
                             <div className="form-group">
-                                <label htmlFor="minProfit">Min Profit</label>
-                                <input
-                                    id="minProfit"
-                                    type="number"
-                                    value={formData.minProfit}
-                                    onChange={(e) => handleInputChange('minProfit', e.target.value)}
-                                    placeholder="500,000"
-                                    className="form-control"
-                                />
+                                <label>Budget</label>
+                                <input type="number" value={formData.maxBudget} onChange={e => handleInputChange('maxBudget', e.target.value)} placeholder="No Limit" className="form-control" />
                             </div>
-
                             <div className="form-group">
-                                <label htmlFor="minROI">ROI %</label>
-                                <input
-                                    id="minROI"
-                                    type="number"
-                                    value={formData.minROI}
-                                    onChange={(e) => handleInputChange('minROI', Number(e.target.value) || 0)}
-                                    className="form-control"
-                                />
+                                <label>Capacity (m³)</label>
+                                <input type="number" value={formData.maxWeight} onChange={e => handleInputChange('maxWeight', e.target.value)} placeholder="No Limit" className="form-control" />
                             </div>
-
                             <div className="form-group">
-                                <label htmlFor="maxBudget">Budget</label>
-                                <input
-                                    id="maxBudget"
-                                    type="number"
-                                    value={formData.maxBudget}
-                                    onChange={(e) => handleInputChange('maxBudget', e.target.value)}
-                                    placeholder="No Limit"
-                                    className="form-control"
-                                />
+                                <label>Sales Tax</label>
+                                <select value={formData.salesTax} onChange={e => handleInputChange('salesTax', Number(e.target.value))} className="form-control">{salesTaxOptions.map(o => <option key={o.level} value={o.tax}>{o.label}</option>)}</select>
                             </div>
-
                             <div className="form-group">
-                                <label htmlFor="maxWeight">Cargo (m³)</label>
-                                <input
-                                    id="maxWeight"
-                                    type="number"
-                                    value={formData.maxWeight}
-                                    onChange={(e) => handleInputChange('maxWeight', e.target.value)}
-                                    placeholder="No Limit"
-                                    className="form-control"
-                                />
+                                <label>Min Profit</label>
+                                <input type="number" value={formData.minProfit} onChange={e => handleInputChange('minProfit', e.target.value)} placeholder="Default: 500,000" className="form-control" />
                             </div>
-
                             <div className="form-group">
-                                <label htmlFor="maxJumps">Max Jumps</label>
-                                <input
-                                    id="maxJumps"
-                                    type="number"
-                                    value={formData.maxJumps}
-                                    onChange={(e) => handleInputChange('maxJumps', e.target.value)}
-                                    placeholder="No Limit"
-                                    className="form-control"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-row form-row-secondary">
-                            <div className="form-group">
-                                <label htmlFor="salesTax">Sales Tax</label>
-                                <select
-                                    id="salesTax"
-                                    value={formData.salesTax}
-                                    onChange={(e) => handleInputChange('salesTax', Number(e.target.value))}
-                                    className="form-control"
-                                >
-                                    {salesTaxOptions.map((option) => (
-                                        <option key={option.level} value={option.tax}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="securityStatus">Security</label>
-                                <select
-                                    id="securityStatus"
-                                    value={formData.securityStatus}
-                                    onChange={(e) => handleInputChange('securityStatus', e.target.value)}
-                                    className="form-control"
-                                >
-                                    {securityStatusOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="structureType">Structures</label>
-                                <select
-                                    id="structureType"
-                                    value={formData.structureType}
-                                    onChange={(e) => handleInputChange('structureType', e.target.value)}
-                                    className="form-control"
-                                >
-                                    {structureTypeOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="routePreference">Route</label>
-                                <select
-                                    id="routePreference"
-                                    value={formData.routePreference}
-                                    onChange={(e) => handleInputChange('routePreference', e.target.value)}
-                                    className="form-control"
-                                >
-                                    {routePreferenceOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                <label>ROI %</label>
+                                <input type="number" value={formData.minROI} onChange={e => handleInputChange('minROI', Number(e.target.value) || 0)} className="form-control" />
                             </div>
                         </div>
 
@@ -618,158 +561,180 @@ export default function RegionHauling() {
             </div>
 
             {/* Results section - show if we have results */}
-            {results.length > 0 && (
-                <div id="results-section" className="results-container">
-                    <div className="results-header">
-                        <h2>Trade Route Results ({results.length} found)</h2>
-                        {usingFallback && (
-                            <div className="fallback-warning" style={{
-                                backgroundColor: '#fff3cd',
-                                border: '1px solid #ffeaa7',
-                                borderRadius: '4px',
-                                padding: '10px',
-                                margin: '10px 0',
-                                color: '#856404'
-                            }}>
-                                ⚠️ Azure Functions unavailable. Using basic market data analysis. Results may be limited to common trade items.
-                            </div>
-                        )}
-                        <button
-                            onClick={() => {
-                                setResults([]);
-                                setError(null);
-                                setCurrentPage(1);
-                                setUsingFallback(false);
-                            }}
-                            className="new-search-btn"
-                        >
-                            Clear Results
-                        </button>
-                    </div>
-                    <div className="results-table-container">
-                        <table className="results-table wide-table">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th>Buy Price</th>
-                                    <th>Sell Price</th>
-                                    <th>Profit Per Unit</th>
-                                    <th>Profit %</th>
-                                    <th>Quantity</th>
-                                    <th>Total Volume (m³)</th>
-                                    <th>Jumps</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {(() => {
-                                    // Calculate pagination
-                                    const startIndex = (currentPage - 1) * itemsPerPage;
-                                    const endIndex = startIndex + itemsPerPage;
-                                    const paginatedResults = results.slice(startIndex, endIndex);
+            {sortedResults.length > 0 && (
+                <div className="results-scroll">
+                    <div id="results-section" className="results-container">
+                        <div className="results-header">
+                            <h2>Trade Route Results ({sortedResults.length} found)</h2>
+                            {usingFallback && (
+                                <div className="fallback-warning" style={{
+                                    backgroundColor: '#fff3cd',
+                                    border: '1px solid #ffeaa7',
+                                    borderRadius: '4px',
+                                    padding: '10px',
+                                    margin: '10px 0',
+                                    color: '#856404'
+                                }}>
+                                    ⚠️ Azure Functions unavailable. Using basic market data analysis. Results may be limited to common trade items.
+                                </div>
+                            )}
+                            <button
+                                onClick={() => {
+                                    setResults([]);
+                                    setError(null);
+                                    setCurrentPage(1);
+                                    setUsingFallback(false);
+                                }}
+                                className="new-search-btn"
+                            >
+                                Clear Results
+                            </button>
+                        </div>
+                        <div className="results-table-container">
+                            <table className="results-table wide-table">
+                                <thead>
+                                    <tr>
+                                        <th onClick={() => handleSort('Item')}>Item{sortConfig.key === 'Item' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('From')}>From{sortConfig.key === 'From' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('Quantity')}>Quantity{sortConfig.key === 'Quantity' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('Buy Price')}>Buy Price{sortConfig.key === 'Buy Price' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('Total Buy Price')}>Total Buy Price{sortConfig.key === 'Total Buy Price' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('To')}>To{sortConfig.key === 'To' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('Sell Price')}>Sell Price{sortConfig.key === 'Sell Price' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('Net Profit')}>Net Profit{sortConfig.key === 'Net Profit' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('Jumps')}>Jumps{sortConfig.key === 'Jumps' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('Profit per Jump')}>Profit per Jump{sortConfig.key === 'Profit per Jump' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('Profit Per Item')}>Profit Per Item{sortConfig.key === 'Profit Per Item' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('ROI')}>ROI{sortConfig.key === 'ROI' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <th onClick={() => handleSort('Total Volume (m³)')}>Total Volume (m³){sortConfig.key === 'Total Volume (m³)' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(() => {
+                                        // Calculate pagination
+                                        const startIndex = (currentPage - 1) * itemsPerPage;
+                                        const endIndex = startIndex + itemsPerPage;
+                                        const paginatedResults = sortedResults.slice(startIndex, endIndex);
 
-                                    return paginatedResults.map((result, index) => {
-                                        // Debug: Log the structure of each result object
-                                        if (index === 0 && currentPage === 1) {
-                                            console.log('🚛 First result object keys:', Object.keys(result));
-                                            console.log('🚛 First result object:', result);
-                                        }
+                                        return paginatedResults.map((result, index) => {
+                                            // Debug: Log the structure of each result object
+                                            if (index === 0 && currentPage === 1) {
+                                                console.log('🚛 First result object keys:', Object.keys(result));
+                                                console.log('🚛 First result object:', result);
+                                            }
 
-                                        // Extract values from the new data structure
-                                        const item = result.Item || 'Unknown Item';
-                                        const fromStation = result.From || {};
-                                        const toStation = result['To'] || result['Take To'] || {};
-                                        const buyPrice = result['Buy Price'] || 0;
-                                        const sellPrice = result['Sell Price'] || 0;
-                                        const profitPerUnit = result['Profit Per Unit'] || 0;
-                                        const profitPercentage = result['Profit Percentage'] || 0;
-                                        const quantity = result['Quantity'] || 0;
-                                        const totalVolume = result['Total Volume (m3)'] || 0;
-                                        const jumps = result.Jumps || 'N/A';
+                                            // Extract values from the new data structure
+                                            const item = result.Item || 'Unknown Item';
+                                            const fromStation = result.From || {};
+                                            const toStation = result['To'] || result['Take To'] || {};
+                                            const buyPrice = result['Buy Price'] || 0;
+                                            const sellPrice = result['Sell Price'] || 0;
+                                            const profitPerUnit = result['Profit Per Unit'] || 0;
+                                            const profitPercentage = result['Profit Percentage'] || 0;
+                                            const totalProfit = result['Total Profit'] || 0;
+                                            const quantity = result['Quantity'] || 0;
+                                            const totalVolume = result['Total Volume (m3)'] || 0;
+                                            const jumps = result.Jumps || 'N/A';
+                                            // Calculate total buy price and profit per jump
+                                            const totalBuyPrice = buyPrice * quantity;
+                                            const profitPerJump = (typeof jumps === 'number' && jumps > 0)
+                                                ? totalProfit / jumps
+                                                : 0;
 
-                                        // Render station names with security coloring and click-to-copy
-                                        const renderStationName = (station) => {
-                                            if (typeof station === 'string') {
+                                            // Render station names with security coloring and click-to-copy
+                                            const renderStationName = (station) => {
+                                                if (typeof station === 'string') {
+                                                    return (
+                                                        <span
+                                                            className="clickable-location"
+                                                            onClick={() => copyToClipboard(station)}
+                                                            title="Click to copy to clipboard"
+                                                        >
+                                                            {station}
+                                                        </span>
+                                                    );
+                                                }
+
+                                                const stationName = station.name || 'Unknown Station';
+                                                const security = station.security;
+                                                const isNPC = station.isNPC;
+
+                                                let color = '#ffffff'; // Default color
+                                                if (security !== null && security !== undefined) {
+                                                    color = getSecurityColor(security);
+                                                }
+
                                                 return (
                                                     <span
                                                         className="clickable-location"
-                                                        onClick={() => copyToClipboard(station)}
-                                                        title="Click to copy to clipboard"
+                                                        style={{ color }}
+                                                        onClick={() => copyToClipboard(stationName)}
+                                                        title={`Security: ${security !== null && security !== undefined ? security.toFixed(1) : 'Unknown'} | ${isNPC ? 'NPC Station' : 'Player Structure'} | Click to copy`}
                                                     >
-                                                        {station}
+                                                        {stationName}
                                                     </span>
                                                 );
-                                            }
-
-                                            const stationName = station.name || 'Unknown Station';
-                                            const security = station.security;
-                                            const isNPC = station.isNPC;
-
-                                            let color = '#ffffff'; // Default color
-                                            if (security !== null && security !== undefined) {
-                                                color = getSecurityColor(security);
-                                            }
+                                            };
 
                                             return (
-                                                <span
-                                                    className="clickable-location"
-                                                    style={{ color }}
-                                                    onClick={() => copyToClipboard(stationName)}
-                                                    title={`Security: ${security !== null && security !== undefined ? security.toFixed(1) : 'Unknown'} | ${isNPC ? 'NPC Station' : 'Player Structure'} | Click to copy`}
-                                                >
-                                                    {stationName}
-                                                </span>
+                                                <tr key={startIndex + index}>
+                                                    <td>
+                                                        <span
+                                                            className="clickable-location"
+                                                            onClick={() => copyToClipboard(item)}
+                                                            title="Click to copy item name"
+                                                        >
+                                                            {item}
+                                                        </span>
+                                                    </td>
+                                                    <td>{renderStationName(fromStation)}</td>
+                                                    <td>{utils.formatNumber(quantity, 0)}</td>
+                                                    <td>{utils.formatNumber(buyPrice)}</td>
+                                                    <td>{utils.formatNumber(totalBuyPrice)}</td>
+                                                    <td>{renderStationName(toStation)}</td>
+                                                    <td>{utils.formatNumber(sellPrice)}</td>
+                                                    <td>{utils.formatNumber(totalProfit)}</td>
+                                                    <td>{jumps}</td>
+                                                    <td>{utils.formatNumber(profitPerJump)}</td>
+                                                    <td>{utils.formatNumber(profitPerUnit)}</td>
+                                                    <td>{utils.formatNumber(profitPercentage, 1)}%</td>
+                                                    <td>{utils.formatNumber(totalVolume, 0)}</td>
+                                                </tr>
                                             );
-                                        };
-
-                                        return (
-                                            <tr key={startIndex + index}>
-                                                <td>{item}</td>
-                                                <td>{renderStationName(fromStation)}</td>
-                                                <td>{renderStationName(toStation)}</td>
-                                                <td>{utils.formatNumber(buyPrice)}</td>
-                                                <td>{utils.formatNumber(sellPrice)}</td>
-                                                <td>{utils.formatNumber(profitPerUnit)}</td>
-                                                <td>{utils.formatNumber(profitPercentage, 1)}%</td>
-                                                <td>{utils.formatNumber(quantity, 0)}</td>
-                                                <td>{utils.formatNumber(totalVolume, 0)}</td>
-                                                <td>{jumps}</td>
-                                            </tr>
-                                        );
-                                    });
-                                })()}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Pagination */}
-                    {results.length > itemsPerPage && (
-                        <div className="pagination-container">
-                            <div className="pagination">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="pagination-btn"
-                                >
-                                    Previous
-                                </button>
-
-                                <span className="pagination-info">
-                                    Page {currentPage} of {Math.ceil(results.length / itemsPerPage)}
-                                    ({results.length} total results)
-                                </span>
-
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(results.length / itemsPerPage)))}
-                                    disabled={currentPage >= Math.ceil(results.length / itemsPerPage)}
-                                    className="pagination-btn"
-                                >
-                                    Next
-                                </button>
-                            </div>
+                                        });
+                                    })()}
+                                </tbody>
+                            </table>
                         </div>
-                    )}
+
+                        {/* Pagination */}
+                        {sortedResults.length > itemsPerPage && (
+                            <div className="pagination-container">
+                                <div className="pagination">
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="pagination-btn"
+                                    >
+                                        Previous
+                                    </button>
+
+                                    <span className="pagination-info">
+                                        Page {currentPage} of {Math.ceil(sortedResults.length / itemsPerPage)}
+                                        ({sortedResults.length} total results)
+                                    </span>
+
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(sortedResults.length / itemsPerPage)))}
+                                        disabled={currentPage >= Math.ceil(sortedResults.length / itemsPerPage)}
+                                        className="pagination-btn"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>

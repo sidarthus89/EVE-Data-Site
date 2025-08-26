@@ -1,7 +1,7 @@
 // src/utils/market.js
 // Market data functions (Azure + ESI fallback)
 
-import { fetchWithRetry, AZURE_BASE, ESI_BASE } from './api.js';
+import { fetchWithRetry, AZURE_BASE, ESI_BASE, fetchMarketTree } from './api.js';
 
 export async function fetchMarketOrders(typeId, regionId = null, locationId = null, isBuyOrder = null) {
     const params = new URLSearchParams({ type_id: typeId });
@@ -194,48 +194,46 @@ export async function fetchRegionHaulingData(originRegionId, destinationRegionId
 async function generateBasicTradeRoutes(originRegionId, destinationRegionId = null) {
     console.log('🚛 Generating basic trade routes using live market data...');
 
-    // Common high-value trade items in EVE with their volumes (m3)
-    const commonTradeItems = [
-        { typeId: 34, name: 'Tritanium', volume: 0.01 },
-        { typeId: 35, name: 'Pyerite', volume: 0.01 },
-        { typeId: 36, name: 'Mexallon', volume: 0.01 },
-        { typeId: 37, name: 'Isogen', volume: 0.01 },
-        { typeId: 38, name: 'Nocxium', volume: 0.01 },
-        { typeId: 39, name: 'Zydrine', volume: 0.01 },
-        { typeId: 40, name: 'Megacyte', volume: 0.01 },
-        { typeId: 44992, name: 'PLEX', volume: 0.01 },
-        { typeId: 11399, name: 'Morphite', volume: 0.01 },
-        { typeId: 16634, name: 'Crystalline Carbonide', volume: 0.01 },
-        { typeId: 16640, name: 'Titanium Carbide', volume: 0.01 },
-        { typeId: 16643, name: 'Tungsten Carbide', volume: 0.01 },
-        { typeId: 16647, name: 'Vanadium Carbide', volume: 0.01 },
-        { typeId: 16648, name: 'Scandium', volume: 0.01 },
-        { typeId: 16649, name: 'Chromium', volume: 0.01 },
-        { typeId: 16650, name: 'Hafnium', volume: 0.01 },
-        { typeId: 16651, name: 'Platinum', volume: 0.01 },
-        { typeId: 16652, name: 'Cobalt', volume: 0.01 },
-        { typeId: 16653, name: 'Cadmium', volume: 0.01 },
-        { typeId: 11382, name: 'Oxygen', volume: 0.01 },
-        { typeId: 3683, name: 'Oxygen Isotopes', volume: 0.1 },
-        { typeId: 3684, name: 'Nitrogen Isotopes', volume: 0.1 },
-        { typeId: 3685, name: 'Hydrogen Isotopes', volume: 0.1 },
-        { typeId: 3686, name: 'Helium Isotopes', volume: 0.1 },
-        { typeId: 29668, name: 'Skill Injector', volume: 0.01 },
-        { typeId: 40519, name: 'Skill Extractor', volume: 0.01 },
-    ];
+    // Load full set of tradeable items from market.json
+    const marketTree = await fetchMarketTree();
+    const commonTradeItems = [];
+    const traverse = node => {
+        if (node.items) {
+            node.items.forEach(item => {
+                commonTradeItems.push({
+                    typeId: Number(item.typeID),
+                    name: item.typeName,
+                    volume: item.volume || 0.01
+                });
+            });
+        }
+        Object.keys(node).forEach(key => {
+            if (key !== 'items' && key !== '_info' && typeof node[key] === 'object') {
+                traverse(node[key]);
+            }
+        });
+    };
+    traverse(marketTree);
 
     const tradeOpportunities = [];
     const destRegionId = destinationRegionId || originRegionId; // If no destination, use same region
 
+    // Helper: fetch orders directly from ESI and split by buy/sell
+    async function fetchEsiOrders(typeId, regionId) {
+        const url = `${ESI_BASE}/markets/${regionId}/orders/?type_id=${typeId}`;
+        const orders = await fetchWithRetry(url, {}, 1);
+        return {
+            sellOrders: orders.filter(o => !o.is_buy_order),
+            buyOrders: orders.filter(o => o.is_buy_order)
+        };
+    }
     for (const item of commonTradeItems) {
+        const { typeId } = item;
         try {
-            // Fetch sell orders from origin region
-            const originResult = await fetchMarketOrders(item.typeId, originRegionId, null, false);
-            const sellOrders = originResult.sellOrders || [];
-
-            // Fetch buy orders from destination region
-            const destResult = await fetchMarketOrders(item.typeId, destRegionId, null, true);
-            const buyOrders = destResult.buyOrders || [];
+            // Fetch sell orders from origin region via ESI
+            const { sellOrders } = await fetchEsiOrders(typeId, originRegionId);
+            // Fetch buy orders from destination region via ESI
+            const { buyOrders } = await fetchEsiOrders(typeId, destRegionId);
 
             if (sellOrders.length > 0 && buyOrders.length > 0) {
                 // Find best prices

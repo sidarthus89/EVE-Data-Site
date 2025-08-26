@@ -2,8 +2,13 @@ import dotenv from 'dotenv';
 import fs from 'fs/promises';
 import fetch from 'node-fetch';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config({ path: '../.env.local' });
+// Resolve project root directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT = path.resolve(__dirname, '..');
 
 const ESI_BASE = 'https://esi.evetech.net/latest';
 const ESI_DATASOURCE = 'tranquility';
@@ -130,84 +135,112 @@ async function fetchRegionsData() {
     return regions;
 }
 
-async function fetchStructuresData() {
-    console.log('🏗️ Fetching market structures...');
-    let structureIds = [];
-
+// Fetch NPC stations that offer market service
+async function fetchStationsData() {
+    console.log('🏭 Fetching stations data...');
+    let stationIds = [];
     try {
-        structureIds = await fetchESIPaged('/universe/structures/?filter=market');
-        console.log(`Found ${structureIds.length} potential market structures`);
+        stationIds = await fetchESIPaged('/universe/stations/');
     } catch (e) {
-        console.log('Failed to fetch market structures from ESI:', e.message);
+        console.warn('Failed to fetch station IDs:', e.message);
         return [];
     }
-
-    const structures = [];
-
-    for (const structureId of structureIds.slice(0, 100)) { // Limit for testing
+    const stations = [];
+    for (const id of stationIds) {
         try {
-            const hasAccess = await isStructureMarketAccessible(structureId);
-            if (!hasAccess) {
-                console.log(`🚫 No market access to structure ${structureId}`);
-                continue;
+            const info = await fetchESI(`/universe/stations/${id}/`);
+            if (Array.isArray(info.services) && info.services.includes('market')) {
+                stations.push({
+                    station_id: id,
+                    name: info.name,
+                    system_id: info.system_id,
+                    region_id: info.region_id,
+                    security_status: info.security_status,
+                    services: info.services
+                });
             }
-
-            const structureInfo = await fetchESI(`/universe/structures/${structureId}/`);
-            let systemInfo = null;
-            let regionId = null;
-            let regionName = 'Unknown';
-
-            if (structureInfo.system_id) {
-                try {
-                    systemInfo = await fetchESI(`/universe/systems/${structureInfo.system_id}/`);
-                    regionId = systemInfo.region_id;
-                    const regionInfo = await fetchESI(`/universe/regions/${regionId}/`);
-                    regionName = regionInfo.name;
-                } catch (e) {
-                    console.warn(`Failed to get region info for structure ${structureId}`);
-                }
-            }
-
-            structures.push({
-                structure_id: structureId,
-                name: structureInfo.name,
-                system_id: structureInfo.system_id,
-                region_id: regionId,
-                region_name: regionName,
-                type_id: structureInfo.type_id,
-                is_npc: false
-            });
-
-            console.log(`✅ Added structure: ${structureInfo.name}`);
         } catch (err) {
-            console.warn(`⚠️ Structure ${structureId} failed: ${err.message}`);
+            console.warn(`Station ${id} failed:`, err.message);
         }
     }
+    return stations;
+}
 
+// Fetch player structures that have market access
+async function fetchStructuresData() {
+    console.log('🏗️ Fetching market structures...');
+    let structIds = [];
+    try {
+        structIds = await fetchESIPaged('/universe/structures/');
+    } catch (e) {
+        console.warn('Failed to list structures:', e.message);
+        return [];
+    }
+    console.log(`🔍 Checking ${structIds.length} structures for market access...`);
+    const structures = [];
+    for (let i = 0; i < structIds.length; i++) {
+        const id = structIds[i];
+        console.log(`⌛ [${i + 1}/${structIds.length}] Checking structure ${id}...`);
+        try {
+            const accessible = await isStructureMarketAccessible(id);
+            if (!accessible) {
+                console.log(`🚫 Structure ${id} no market access, skipping.`);
+                continue;
+            }
+            const info = await fetchESI(`/universe/structures/${id}/`);
+            structures.push({
+                structure_id: id,
+                name: info.name,
+                system_id: info.system_id,
+                region_id: info.region_id,
+                type_id: info.type_id,
+                is_npc: false
+            });
+            console.log(`✅ Added structure: ${info.name} (${id})`);
+        } catch (err) {
+            console.warn(`⚠️ Structure ${id} failed:`, err.message);
+        }
+    }
+    console.log(`✅ Fetched ${structures.length} market structures.`);
     return structures;
 }
 
 async function main() {
+    console.time('⏱️ Total Bootstrap Time');
     console.log('📦 Starting bootstrap process...');
 
     try {
-        // Fetch regions data
-        const regions = await fetchRegionsData();
-
-        // Fetch structures data  
+        // Load static stations data from local file
+        const stationsJson = await fs.readFile(path.join(ROOT, 'src', 'data', 'stations.json'), 'utf8');
+        const stations = JSON.parse(stationsJson);
         const structures = await fetchStructuresData();
-
+        // Derive regions where markets exist
+        const regionSet = new Set();
+        stations.forEach(s => regionSet.add(s.region_id));
+        structures.forEach(s => regionSet.add(s.region_id));
+        const regions = [];
+        for (const regionId of regionSet) {
+            try {
+                const info = await fetchESI(`/universe/regions/${regionId}/`);
+                regions.push({ region_id: regionId, region_name: info.name });
+            } catch (err) {
+                console.warn(`Region ${regionId} failed:`, err.message);
+            }
+        }
         // Write to the correct locations
-        const regionsPath = path.join(process.cwd(), 'public', 'data', 'regions.json');
-        const structuresPath = path.join(process.cwd(), 'public', 'data', 'structures.json');
-
+        const regionsPath = path.join(ROOT, 'public', 'data', 'regions.json');
+        const stationsPath = path.join(ROOT, 'src', 'data', 'stations.json');
+        const structuresPath = path.join(ROOT, 'public', 'data', 'structures.json');
+        // Write stations and structures first (static)
+        // Static stations.json is maintained manually; skipping write
+        await fs.writeFile(structuresPath, JSON.stringify(structures, null, 2));
+        console.log(`✅ Updated ${structuresPath} with ${structures.length} structures`);
+        // Then write dynamic regions
         await fs.writeFile(regionsPath, JSON.stringify(regions, null, 2));
         console.log(`✅ Updated ${regionsPath} with ${regions.length} regions`);
 
-        await fs.writeFile(structuresPath, JSON.stringify(structures, null, 2));
-        console.log(`✅ Updated ${structuresPath} with ${structures.length} structures`);
-
         console.log('✅ Bootstrap complete!');
+        console.timeEnd('⏱️ Total Bootstrap Time');
     } catch (error) {
         console.error('❌ Bootstrap failed:', error);
         process.exit(1);

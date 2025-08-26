@@ -1,3 +1,23 @@
+:root {
+    /* === ADJUSTABLE STYLES: Update row height and column width variables below === */
+    /* Row height for table rows */
+    --row-height: 40px;
+    /* Column width variables */
+    --col-item: 120px;
+    --col-from: 200px;
+    --col-quantity: 100px;
+    --col-buy-price: 120px;
+    --col-total-buy-price: 120px;
+    --col-to: 200px;
+    --col-sell-price: 140px;
+    --col-net-profit: 120px;
+    --col-jumps: 80px;
+    --col-profit-per-jump: 140px;
+    --col-profit-per-item: 100px;
+    --col-roi: 100px;
+    --col-total-volume: 100px;
+}
+
 /* src/features/TradeTools/RegionHauling.css */
 
 .region-hauling {

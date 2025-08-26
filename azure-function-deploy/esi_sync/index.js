@@ -278,15 +278,67 @@ async function runEsiSync(context, myTimer) {
         await syncRegions(pool, logger);
         await syncSystemsAndStations(pool, logger);
         await syncMarketStructures(pool, logger);
+        // Sync market orders for each region into market_orders table
+        await syncMarketOrders(pool, logger);
 
-        logger('Full ESI sync finished');
-    } catch (e) {
-        logger('Full ESI sync failed', e && e.message ? e.message : e);
-        throw e;
+        logger('ESI sync complete');
+    } catch (err) {
+        logger('❌ ESI sync failed:', err && err.message ? err.message : err);
     } finally {
         if (pool) await pool.close();
     }
 }
 
-module.exports = async function (context, myTimer) { return runEsiSync(context, myTimer); };
+/**
+ * Fetch and cache latest market orders from ESI into SQL market_orders table
+ */
+async function syncMarketOrders(pool, logger) {
+    logger('Syncing market orders for all regions');
+    // Retrieve region IDs from DB
+    const regionsResult = await pool.request().query('SELECT region_id FROM regions');
+    const regions = regionsResult.recordset.map(r => r.region_id);
+    for (const regionId of regions) {
+        logger(`⏳ Fetching orders for region ${regionId}`);
+        try {
+            const orders = await fetchESIPaged(`/markets/${regionId}/orders/`, {});
+            logger(`🔄 Upserting ${orders.length} orders for region ${regionId}`);
+            for (const order of orders) {
+                const req = pool.request()
+                    .input('orderId', sql.BigInt, order.order_id)
+                    .input('typeId', sql.Int, order.type_id)
+                    .input('regionId', sql.Int, regionId)
+                    .input('locationId', sql.BigInt, order.location_id)
+                    .input('price', sql.Decimal(18, 2), order.price)
+                    .input('volTotal', sql.Int, order.volume_total)
+                    .input('volRemain', sql.Int, order.volume_remain)
+                    .input('minVol', sql.Int, order.min_volume)
+                    .input('isBuy', sql.Bit, order.is_buy_order ? 1 : 0)
+                    .input('duration', sql.Int, order.duration)
+                    .input('issued', sql.DateTime2, new Date(order.issued));
+                await req.query(`
+MERGE market_orders AS target
+USING (SELECT @orderId as order_id) AS source
+ON target.order_id = source.order_id
+WHEN MATCHED THEN UPDATE SET
+    type_id = @typeId,
+    region_id = @regionId,
+    location_id = @locationId,
+    price = @price,
+    volume_total = @volTotal,
+    volume_remain = @volRemain,
+    min_volume = @minVol,
+    is_buy_order = @isBuy,
+    duration = @duration,
+    issued = @issued
+WHEN NOT MATCHED THEN INSERT (order_id,type_id,region_id,location_id,price,volume_total,volume_remain,min_volume,is_buy_order,duration,issued)
+    VALUES (@orderId,@typeId,@regionId,@locationId,@price,@volTotal,@volRemain,@minVol,@isBuy,@duration,@issued);
+                `);
+            }
+        } catch (e) {
+            logger(`Error syncing orders for region ${regionId}:`, e && e.message ? e.message : e);
+        }
+    }
+}
+
+module.exports = runEsiSync;
 module.exports.runEsiSync = runEsiSync;

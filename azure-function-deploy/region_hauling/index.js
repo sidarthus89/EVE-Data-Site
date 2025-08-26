@@ -27,16 +27,18 @@ async function getPool() {
 
 module.exports = async function (context, req) {
     const { method } = req;
+    // Default CORS headers
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    };
 
     // Handle CORS preflight requests
     if (method === 'OPTIONS') {
         context.res = {
             status: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-            }
+            headers: corsHeaders
         };
         return;
     }
@@ -112,21 +114,65 @@ module.exports = async function (context, req) {
         const result = await request.query(query);
         const routes = result.recordset || [];
 
-        context.log(`Found ${routes.length} routes`);
+        // Hybrid model: update cached routes with live ESI data for freshness
+        let finalRoutes = routes;
+        try {
+            const origin = parseInt(origin_region_id);
+            const dest = destination_region_id ? parseInt(destination_region_id) : origin;
+            const typeIds = [...new Set(routes.map(r => r.type_id))];
+            for (const typeId of typeIds) {
+                // Fetch best sell (NPC sell orders) from origin via ESI
+                const sellRes = await fetch(`${ESI_BASE}/markets/${origin}/orders/?type_id=${typeId}&datasource=${ESI_DATASOURCE}`);
+                const sellData = await sellRes.json();
+                const sells = sellData.filter(o => !o.is_buy_order);
+                const bestSell = sells.length ? Math.min(...sells.map(o => o.price)) : null;
+                // Fetch best buy (player buy orders) from destination via ESI
+                const buyRes = await fetch(`${ESI_BASE}/markets/${dest}/orders/?type_id=${typeId}&datasource=${ESI_DATASOURCE}`);
+                const buyData = await buyRes.json();
+                const buys = buyData.filter(o => o.is_buy_order);
+                const bestBuy = buys.length ? Math.max(...buys.map(o => o.price)) : null;
+                if (bestSell === null || bestBuy === null) continue;
+                const profitUnit = bestBuy - bestSell;
+                if (profitUnit <= 0) continue;
+                // Determine max volume
+                const volSell = sells.find(o => o.price === bestSell)?.volume_remain || 0;
+                const volBuy = buys.find(o => o.price === bestBuy)?.volume_remain || 0;
+                const maxVol = Math.min(volSell, volBuy);
+                const profitMargin = bestSell > 0 ? (profitUnit / bestSell) * 100 : 0;
+                // Update existing or add new route
+                const idx = finalRoutes.findIndex(r => r.type_id === typeId);
+                const updated = {
+                    type_id: typeId,
+                    origin_id: origin,
+                    destination_id: dest,
+                    sell_price: bestSell,
+                    buy_price: bestBuy,
+                    profit_per_unit: profitUnit,
+                    profit_margin: profitMargin,
+                    max_volume: maxVol
+                };
+                if (idx >= 0) finalRoutes[idx] = updated;
+                else finalRoutes.push(updated);
+            }
+            // Sort and limit top 50
+            finalRoutes.sort((a, b) => b.profit_margin - a.profit_margin);
+            finalRoutes = finalRoutes.slice(0, 50);
+        } catch (liveErr) {
+            context.log.warn('⚠️ Live ESI update failed:', liveErr.message);
+        }
 
+        context.log(`Returning ${finalRoutes.length} routes (cached + live hybrid)`);
         context.res = {
             status: 200,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type'
+                ...corsHeaders
             },
             body: {
                 origin_region_id,
                 destination_region_id: destination_region_id || origin_region_id,
-                routes,
-                count: routes.length,
+                routes: finalRoutes,
+                count: finalRoutes.length,
                 tableName
             }
         };
@@ -135,10 +181,8 @@ module.exports = async function (context, req) {
         context.res = {
             status: 500,
             headers: {
-                'Access-Control-Allow-Origin': '*',
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type'
+                ...corsHeaders
             },
             body: {
                 error: error.message,
