@@ -43,7 +43,7 @@ module.exports = async function (context, req) {
     if (!typeId || !regionId) {
         context.res = {
             status: 400,
-            headers: { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' },
+            headers: setCorsHeaders(),
             body: 'Missing type_id or region_id query parameter.'
         };
         return;
@@ -59,25 +59,25 @@ module.exports = async function (context, req) {
 
         // Execute query to retrieve market history
         const query = `
-          SELECT *
-          FROM MarketHistory
-          WHERE type_id = @typeId
-            AND region_id = @regionId
-            AND date > DATEADD(day, -@days, GETDATE())
-          ORDER BY date ASC;
-        `;
+                    SELECT *
+                    FROM price_history
+                    WHERE type_id = @typeId
+                        AND region_id = @regionId
+                        AND date > DATEADD(day, -@days, GETDATE())
+                    ORDER BY date ASC;
+                `;
         const result = await requestSql.query(query);
 
         context.res = {
             status: 200,
-            headers: { 'Access-Control-Allow-Origin': '*' },
+            headers: setCorsHeaders(),
             body: result.recordset
         };
     } catch (err) {
         context.log.error('Error querying market history:', err);
         context.res = {
             status: 500,
-            headers: { 'Access-Control-Allow-Origin': '*' },
+            headers: setCorsHeaders(),
             body: 'Internal Server Error'
         };
     }

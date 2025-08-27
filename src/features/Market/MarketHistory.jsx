@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { fetchMarketHistory, fetchUniverseMarketHistory } from '../../utils/market.js';
 
-export default function MarketHistory({ selectedItem, selectedRegion }) {
+export default function MarketHistory({ selectedItem, selectedRegion, setActiveTab }) {
     const [historyData, setHistoryData] = useState([]);
     const [startIndex, setStartIndex] = useState(0);
     const [endIndex, setEndIndex] = useState(30); // Changed: Set to 30 initially instead of 0

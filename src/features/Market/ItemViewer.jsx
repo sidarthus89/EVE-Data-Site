@@ -71,9 +71,8 @@ export default function ItemViewer({ selectedItem, marketTree, onBreadcrumbClick
                         <button
                             onClick={async () => {
                                 // Get base URL accounting for both dev and prod environments
-                                const baseUrl = import.meta.env.IS_DEV
-                                    ? `${window.location.origin}/market`
-                                    : 'https://sidarthus89.github.io/EVE-Data-Site/market';
+                                // Determine base market route for current environment
+                                const baseUrl = `${window.location.origin}${import.meta.env.BASE_URL || ''}market`;
                                 const link = `${baseUrl}?item=${selectedItem.typeID}`;
                                 try {
                                     await navigator.clipboard.writeText(link);
