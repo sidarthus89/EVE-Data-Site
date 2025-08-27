@@ -1,3 +1,5 @@
+// azure-function-deploy/esi_sync/index.js
+
 // Full Azure Function ESI sync runner
 const sql = require('mssql');
 const fs = require('fs');
@@ -265,6 +267,8 @@ async function syncSystemsAndStations(pool, logger) {
 }
 
 module.exports = async function runEsiSync(context, myTimer) {
+    await syncPriceHistory(pool, log);
+
     const logger = loggerFor(context);
     logger('🔄 Starting full ESI sync');
     try {
@@ -359,3 +363,56 @@ WHEN NOT MATCHED THEN INSERT (order_id,type_id,region_id,location_id,price,volum
         }
     }
 }
+
+async function syncPriceHistory(pool, log) {
+    log('📈 Starting price history sync');
+
+    const regions = await pool.request().query('SELECT region_id FROM regions');
+    const types = await pool.request().query('SELECT DISTINCT type_id FROM market_orders');
+
+    for (const { region_id } of regions.recordset) {
+        for (const { type_id } of types.recordset) {
+            try {
+                const url = `https://esi.evetech.net/latest/markets/${region_id}/history/?type_id=${type_id}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    log(`⚠️ Failed to fetch history for region ${region_id}, type ${type_id}: ${response.status}`);
+                    continue;
+                }
+
+                const history = await response.json();
+                log(`🔄 Upserting ${history.length} records for region ${region_id}, type ${type_id}`);
+
+                for (const entry of history) {
+                    await pool.request()
+                        .input('regionId', sql.Int, region_id)
+                        .input('typeId', sql.Int, type_id)
+                        .input('date', sql.Date, entry.date)
+                        .input('average', sql.Float, entry.average)
+                        .input('highest', sql.Float, entry.highest)
+                        .input('lowest', sql.Float, entry.lowest)
+                        .input('orderCount', sql.Int, entry.order_count)
+                        .input('volume', sql.BigInt, entry.volume)
+                        .query(`
+MERGE price_history AS target
+USING (SELECT @regionId AS region_id, @typeId AS type_id, @date AS date) AS source
+ON target.region_id = source.region_id AND target.type_id = source.type_id AND target.date = source.date
+WHEN MATCHED THEN UPDATE SET
+    average = @average,
+    highest = @highest,
+    lowest = @lowest,
+    order_count = @orderCount,
+    volume = @volume
+WHEN NOT MATCHED THEN INSERT (region_id, type_id, date, average, highest, lowest, order_count, volume)
+VALUES (@regionId, @typeId, @date, @average, @highest, @lowest, @orderCount, @volume);
+                    `);
+                }
+            } catch (err) {
+                log(`❌ Error syncing history for region ${region_id}, type ${type_id}: ${err.message}`);
+            }
+        }
+    }
+
+    log('✅ Price history sync complete');
+}
+
