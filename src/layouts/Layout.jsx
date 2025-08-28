@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import './Layout.css';
 
-const GA_ID = 'G-DGNCY3H8X5'; // <-- replace with your GA measurement ID if different
+const GA_ID = 'G-DGNCY3H8X5';
 const GA_SCRIPT_SRC = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
 
 function loadGAScriptsOnce() {
@@ -19,7 +19,6 @@ function loadGAScriptsOnce() {
         document.head.appendChild(script1);
     }
 
-    // Inline config script: set send_page_view: false so we control page view events
     if (!document.querySelector(`script[data-gtag-config="${GA_ID}"]`)) {
         const script2 = document.createElement('script');
         script2.setAttribute('data-gtag-config', GA_ID);
@@ -51,27 +50,22 @@ function sendPageView(pathname, search = '') {
 }
 
 export default function Layout() {
-    // null => not chosen yet (show modal)
-    // true/false => stored user choice
     const [cookieConsent, setCookieConsent] = useState(null);
     const location = useLocation();
 
-    // On mount: inject favicon and load cookie preference (if any)
     useEffect(() => {
         // Inject favicon into <head>
         const favicon = document.createElement('link');
         favicon.rel = 'icon';
         favicon.type = 'image/svg+xml';
-        favicon.href = '/favicon.svg'; // ensure this is in public/
+        favicon.href = '/favicon.svg';
         document.head.appendChild(favicon);
 
-        // Load stored cookie preference
         const stored = localStorage.getItem('cookieConsent');
         if (stored !== null) {
             setCookieConsent(stored === 'true');
         }
 
-        // cleanup only removes the favicon we added (useful for hot reload)
         return () => {
             try {
                 if (favicon && document.head.contains(favicon)) {
@@ -81,26 +75,19 @@ export default function Layout() {
         };
     }, []);
 
-    // When user grants consent, load GA scripts (once)
     useEffect(() => {
         if (cookieConsent === true) {
             loadGAScriptsOnce();
-            // Try to send initial page view right after loading
             sendPageView(location.pathname, location.search);
         }
-        // Do not remove GA scripts when cookieConsent flips to false
-        // (If you want to fully disable in-session, you'd need a more complex teardown.)
-    }, [cookieConsent]); // run when consent changes
+    }, [cookieConsent]);
 
-    // Track SPA route changes
     useEffect(() => {
         if (cookieConsent === true) {
-            // If gtag isn't ready yet, sendPageView will silently no-op
             sendPageView(location.pathname, location.search);
         }
     }, [location, cookieConsent]);
 
-    // Store consent changes
     function handleConsent(choice) {
         localStorage.setItem('cookieConsent', String(choice));
         setCookieConsent(choice);
@@ -130,25 +117,23 @@ export default function Layout() {
                         <div className="nav-dropdown-menu">
                             <Link to="/market" className="eve-button">Full Market</Link>
                             <Link to="/appraisal" className="eve-button">Appraisal</Link>
-                            <div className="nav-subdropdown">
+                            {/* <div className="nav-subdropdown">
                                 <span className="eve-button">Resource Pricing ▸</span>
                                 <div className="nav-submenu">
                                     <Link to="/ores" className="eve-button">Ores</Link>
                                     <Link to="/minerals" className="eve-button">Minerals</Link>
                                 </div>
-                            </div>
+                            </div>*/}
                         </div>
                     </div>
                     <div className="nav-dropdown">
                         <span className="eve-button">Trade Tools▾</span>
                         <div className="nav-dropdown-menu">
-                            <Link to="/station-trading" className="eve-button">Station Trading</Link>
-                            <Link to="/station-hauling" className="eve-button">Station to Station</Link>
+                            {/*<Link to="/station-trading" className="eve-button">Station Trading</Link>
+                            <Link to="/station-hauling" className="eve-button">Station to Station</Link>*/}
                             <Link to="/region-hauling" className="eve-button">Region to Region</Link>
                         </div>
                     </div>
-
-                    <Link to="/heat-map" className="eve-button">Heat Map</Link>
 
                     {/* 💬 Support Dropdown */}
                     <div className="nav-dropdown">

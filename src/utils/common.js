@@ -62,9 +62,16 @@ export function applyOutlierFilter(orders, filterType = FILTER_OPTIONS.NONE) {
             upperPercentile = 0.75;
             iqrMultiplier = 0.5;
             break;
+        case FILTER_OPTIONS.ULTRA:
+            lowerPercentile = 0.375;
+            upperPercentile = 0.625;
+            iqrMultiplier = 0.25;
+            break;
         default:
             return orders;
     }
+
+    <option value="ultra">37.5th to 62.5th percentile (0.25 IQR)</option>
 
     const q1Index = Math.floor(sorted.length * lowerPercentile);
     const q3Index = Math.floor(sorted.length * upperPercentile);

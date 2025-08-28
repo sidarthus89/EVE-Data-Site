@@ -33,8 +33,6 @@ export default function RegionSelector({ selectedRegion, onRegionChange, allowAl
                     throw new Error('Invalid regions.json format');
                 }
 
-                console.log('✅ RegionSelector: Loaded', staticData.regions.length, 'regions from static data');
-
                 // 🚫 FILTER OUT PLEX REGION from user selection (but keep it available programmatically)
                 const PLEX_REGION_ID = 19000001;
                 const userSelectableRegions = staticData.regions.filter(region => region.regionID !== PLEX_REGION_ID);

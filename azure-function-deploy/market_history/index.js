@@ -1,5 +1,18 @@
 // azure-function-deploy/market_history/index.js
-const sql = require('mssql');
+let sql;
+try {
+    sql = require('mssql');
+} catch (err) {
+    module.exports = async function (context, req) {
+        context.log.error('❌ Failed to load mssql module:', err.message);
+        context.res = {
+            status: 500,
+            body: { error: 'Module load failure', message: err.message }
+        };
+    };
+    return;
+}
+
 
 // Helper function to set consistent CORS headers
 function setCorsHeaders() {

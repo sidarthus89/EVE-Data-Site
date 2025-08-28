@@ -840,7 +840,7 @@ export default function MarketTables({
             Header: ['security', 'region_name', 'location_name', 'range'].includes(col.id)
                 ? createHeader(col.header, 'buyer', buyerTable)
                 : createHeader(col.header, 'buyer', buyerTable)
-        })), [buyerColumns, buyerTable]
+        })), [buyerColumns, buyerTable, filteredBuyers]
     );
 
     // Rebuild tables with updated headers (keeps filter/sort wiring)

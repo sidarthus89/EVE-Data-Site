@@ -4,7 +4,7 @@ dotenv.config({ path: '.env.local' });
 
 const CLIENT_ID = process.env.VITE_EVE_CLIENT_ID;
 const SECRET = process.env.EVE_SECRET_KEY;
-const CODE = 'rZr0wacWmEikhtfnsjtJNg'; // Replace with your actual code
+const CODE = 'rZr0wacWmEikhtfnsjtJNg';
 
 async function getAccessToken() {
     const auth = Buffer.from(`${CLIENT_ID}:${SECRET}`).toString('base64');
@@ -12,7 +12,7 @@ async function getAccessToken() {
     const params = new URLSearchParams();
     params.append('grant_type', 'authorization_code');
     params.append('code', CODE);
-    params.append('redirect_uri', 'https://sidarthus89.github.io/EVE-Data-Site/callback'); // match your app
+    params.append('redirect_uri', 'https://sidarthus89.github.io/EVE-Data-Site/callback');
 
     const res = await fetch('https://login.eveonline.com/v2/oauth/token', {
         method: 'POST',
@@ -50,9 +50,6 @@ async function getCharacterID(token) {
     try {
         const token = await getAccessToken();
         const charID = await getCharacterID(token);
-
-        console.log('✅ Access Token:', token);
-        console.log('✅ Character ID:', charID);
     } catch (err) {
         console.error('❌ Error:', err.message);
     }

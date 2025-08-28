@@ -115,7 +115,6 @@ async function isStructureMarketAccessible(structureId) {
 }
 
 async function fetchRegionsData() {
-    console.log('🌍 Fetching regions data...');
     const regionIds = await fetchESI('/universe/regions/');
     const regions = [];
 
@@ -126,7 +125,6 @@ async function fetchRegionsData() {
                 region_id: regionId,
                 region_name: regionInfo.name
             });
-            console.log(`✅ Added region: ${regionInfo.name}`);
         } catch (err) {
             console.warn(`⚠️ Region ${regionId} failed: ${err.message}`);
         }
@@ -137,7 +135,6 @@ async function fetchRegionsData() {
 
 // Fetch NPC stations that offer market service
 async function fetchStationsData() {
-    console.log('🏭 Fetching stations data...');
     let stationIds = [];
     try {
         stationIds = await fetchESIPaged('/universe/stations/');
@@ -168,7 +165,6 @@ async function fetchStationsData() {
 
 // Fetch player structures that have market access
 async function fetchStructuresData() {
-    console.log('🏗️ Fetching market structures...');
     let structIds = [];
     try {
         structIds = await fetchESIPaged('/universe/structures/');
@@ -176,15 +172,12 @@ async function fetchStructuresData() {
         console.warn('Failed to list structures:', e.message);
         return [];
     }
-    console.log(`🔍 Checking ${structIds.length} structures for market access...`);
     const structures = [];
     for (let i = 0; i < structIds.length; i++) {
         const id = structIds[i];
-        console.log(`⌛ [${i + 1}/${structIds.length}] Checking structure ${id}...`);
         try {
             const accessible = await isStructureMarketAccessible(id);
             if (!accessible) {
-                console.log(`🚫 Structure ${id} no market access, skipping.`);
                 continue;
             }
             const info = await fetchESI(`/universe/structures/${id}/`);
@@ -196,19 +189,14 @@ async function fetchStructuresData() {
                 type_id: info.type_id,
                 is_npc: false
             });
-            console.log(`✅ Added structure: ${info.name} (${id})`);
         } catch (err) {
             console.warn(`⚠️ Structure ${id} failed:`, err.message);
         }
     }
-    console.log(`✅ Fetched ${structures.length} market structures.`);
     return structures;
 }
 
 async function main() {
-    console.time('⏱️ Total Bootstrap Time');
-    console.log('📦 Starting bootstrap process...');
-
     try {
         // Load static stations data from local file
         const stationsJson = await fs.readFile(path.join(ROOT, 'src', 'data', 'stations.json'), 'utf8');
@@ -234,15 +222,9 @@ async function main() {
         // Write stations and structures first (static)
         // Static stations.json is maintained manually; skipping write
         await fs.writeFile(structuresPath, JSON.stringify(structures, null, 2));
-        console.log(`✅ Updated ${structuresPath} with ${structures.length} structures`);
         // Then write dynamic regions
         await fs.writeFile(regionsPath, JSON.stringify(regions, null, 2));
-        console.log(`✅ Updated ${regionsPath} with ${regions.length} regions`);
-
-        console.log('✅ Bootstrap complete!');
-        console.timeEnd('⏱️ Total Bootstrap Time');
     } catch (error) {
-        console.error('❌ Bootstrap failed:', error);
         process.exit(1);
     }
 }
