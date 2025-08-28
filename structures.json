@@ -1,0 +1,1952 @@
+[
+  {
+    "stationID": "1035768592387",
+    "locationName": "Muvolailen - Golden Mom's Structure Factory",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002780,
+    "systemName": "Muvolailen",
+    "security": 0.7080867290496826,
+    "type": "player"
+  },
+  {
+    "stationID": "1049552760837",
+    "locationName": "Atier - Azurite Industries",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002701,
+    "systemName": "Atier",
+    "security": 0.626695454120636,
+    "type": "player"
+  },
+  {
+    "stationID": "1043878365194",
+    "locationName": "Inghenges - CREDE Industries",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002672,
+    "systemName": "Inghenges",
+    "security": 0.7157557606697083,
+    "type": "player"
+  },
+  {
+    "stationID": "1047820613644",
+    "locationName": "Actee - Public Reprocessing Facility",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004981,
+    "systemName": "Actee",
+    "security": 0.5014649033546448,
+    "type": "player"
+  },
+  {
+    "stationID": "1046368262165",
+    "locationName": "Yasud - Nostromo",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001713,
+    "systemName": "Yasud",
+    "security": 0.6283124089241028,
+    "type": "player"
+  },
+  {
+    "stationID": "1046043963414",
+    "locationName": "Chesiette - CREDE - Ultima Porta Inferorum",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005327,
+    "systemName": "Chesiette",
+    "security": 0.5727048516273499,
+    "type": "player"
+  },
+  {
+    "stationID": "1050186534934",
+    "locationName": "Ney - Rockwell Endevor Refinery",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002650,
+    "systemName": "Ney",
+    "security": 0.4567548930644989,
+    "type": "player"
+  },
+  {
+    "stationID": "1048973232152",
+    "locationName": "Meves - BioCore One",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003032,
+    "systemName": "Meves",
+    "security": 0.9791473746299744,
+    "type": "player"
+  },
+  {
+    "stationID": "1026192451609",
+    "locationName": "Matyas - Matyas Refinery",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001654,
+    "systemName": "Matyas",
+    "security": 0.5541377663612366,
+    "type": "player"
+  },
+  {
+    "stationID": "1048015775771",
+    "locationName": "Yeder - Aitch-Aitch",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001710,
+    "systemName": "Yeder",
+    "security": 0.6314091086387634,
+    "type": "player"
+  },
+  {
+    "stationID": "1044873875483",
+    "locationName": "Usi - Kisumii's Pleasure Palace",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002755,
+    "systemName": "Usi",
+    "security": 0.5437586903572083,
+    "type": "player"
+  },
+  {
+    "stationID": "1045554501666",
+    "locationName": "Ohmahailen - Freeport Refining",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000136,
+    "systemName": "Ohmahailen",
+    "security": 0.6638108491897583,
+    "type": "player"
+  },
+  {
+    "stationID": "1041354471460",
+    "locationName": "Mesybier - Ship Manufacturing",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004975,
+    "systemName": "Mesybier",
+    "security": 0.4703787565231323,
+    "type": "player"
+  },
+  {
+    "stationID": "1048013631527",
+    "locationName": "Derririntel - INDUSTRY INC'S",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30005025,
+    "systemName": "Derririntel",
+    "security": 0.8188007473945618,
+    "type": "player"
+  },
+  {
+    "stationID": "1048446040103",
+    "locationName": "Sarum Prime - Domain Market Freeport",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003522,
+    "systemName": "Sarum Prime",
+    "security": 1.0,
+    "type": "player"
+  },
+  {
+    "stationID": "1050444740652",
+    "locationName": "Ethernity - Uber Refiner",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003033,
+    "systemName": "Ethernity",
+    "security": 0.9356340765953064,
+    "type": "player"
+  },
+  {
+    "stationID": "1046009497646",
+    "locationName": "Chesiette - CREDE - Fossores Lascivitis",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005327,
+    "systemName": "Chesiette",
+    "security": 0.5727048516273499,
+    "type": "player"
+  },
+  {
+    "stationID": "1046167760944",
+    "locationName": "Manatirid - Seraphim",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005230,
+    "systemName": "Manatirid",
+    "security": 0.5485262870788574,
+    "type": "player"
+  },
+  {
+    "stationID": "1047756617779",
+    "locationName": "Ervekam - 1111",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003867,
+    "systemName": "Ervekam",
+    "security": 0.6869200468063354,
+    "type": "player"
+  },
+  {
+    "stationID": "1044140443705",
+    "locationName": "Aurejet - MISRIAH MOON REFINERY",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003915,
+    "systemName": "Aurejet",
+    "security": 0.5006721615791321,
+    "type": "player"
+  },
+  {
+    "stationID": "1044140648520",
+    "locationName": "Aurejet - MISRIAH MOON DRILL 02",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003915,
+    "systemName": "Aurejet",
+    "security": 0.5006721615791321,
+    "type": "player"
+  },
+  {
+    "stationID": "1049759683151",
+    "locationName": "Sotrentaira - Builders Square",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001369,
+    "systemName": "Sotrentaira",
+    "security": 0.5125696063041687,
+    "type": "player"
+  },
+  {
+    "stationID": "1046987709010",
+    "locationName": "Perimeter - Sanitarium",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000144,
+    "systemName": "Perimeter",
+    "security": 0.9531232118606567,
+    "type": "player"
+  },
+  {
+    "stationID": "1044361986646",
+    "locationName": "Itamo - Production Center",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000119,
+    "systemName": "Itamo",
+    "security": 0.67173832654953,
+    "type": "player"
+  },
+  {
+    "stationID": "1049502095959",
+    "locationName": "Nakri - Platform 747SY Quartz",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003496,
+    "systemName": "Nakri",
+    "security": 0.805291473865509,
+    "type": "player"
+  },
+  {
+    "stationID": "1046489078364",
+    "locationName": "Usi - Gildii's Padded Cell",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002755,
+    "systemName": "Usi",
+    "security": 0.5437586903572083,
+    "type": "player"
+  },
+  {
+    "stationID": "1049983201885",
+    "locationName": "Stayme - VI - Moon 3 - Noxis Verge",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002675,
+    "systemName": "Stayme",
+    "security": 0.5829538106918335,
+    "type": "player"
+  },
+  {
+    "stationID": "1047245625949",
+    "locationName": "Earwik - Apollyon Bay",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003441,
+    "systemName": "Earwik",
+    "security": 0.5992996096611023,
+    "type": "player"
+  },
+  {
+    "stationID": "1047602899554",
+    "locationName": "Direrie - S+M+L Standard ship production",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002646,
+    "systemName": "Direrie",
+    "security": 0.5015194416046143,
+    "type": "player"
+  },
+  {
+    "stationID": "1042092309091",
+    "locationName": "Parses - D'oh Sunday-12-twice-mth",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003909,
+    "systemName": "Parses",
+    "security": 0.49869126081466675,
+    "type": "player"
+  },
+  {
+    "stationID": "1049590035043",
+    "locationName": "Illuin - Cosmic Refinery & Compression",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003377,
+    "systemName": "Illuin",
+    "security": 0.9133498668670654,
+    "type": "player"
+  },
+  {
+    "stationID": "1048600373863",
+    "locationName": "Avada - Lorzsa Inc",
+    "regionID": 10000054,
+    "regionName": "Aridia",
+    "systemID": 30004249,
+    "systemName": "Avada",
+    "security": 0.6893498301506042,
+    "type": "player"
+  },
+  {
+    "stationID": "1047584885352",
+    "locationName": "Litiura - Babylon 4.5",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001400,
+    "systemName": "Litiura",
+    "security": 0.48940494656562805,
+    "type": "player"
+  },
+  {
+    "stationID": "1049116871272",
+    "locationName": "Isaziwa - MURU Central Hub",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002739,
+    "systemName": "Isaziwa",
+    "security": 0.720814049243927,
+    "type": "player"
+  },
+  {
+    "stationID": "1042284880490",
+    "locationName": "Oshaima - Soup Maker",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002795,
+    "systemName": "Oshaima",
+    "security": 0.4531283676624298,
+    "type": "player"
+  },
+  {
+    "stationID": "1045561080427",
+    "locationName": "Hek - Refinery",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30002053,
+    "systemName": "Hek",
+    "security": 0.800000011920929,
+    "type": "player"
+  },
+  {
+    "stationID": "1050038596199",
+    "locationName": "Odotte - SHIPYARD",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30012715,
+    "systemName": "Odotte",
+    "security": 0.8716466426849365,
+    "type": "player"
+  },
+  {
+    "stationID": "1044354888302",
+    "locationName": "Saisio - Freeport Forge Cartel",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000146,
+    "systemName": "Saisio",
+    "security": 0.6524402499198914,
+    "type": "player"
+  },
+  {
+    "stationID": "1035768580719",
+    "locationName": "Muvolailen - Golden Mom's Shipyard & Factory",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002780,
+    "systemName": "Muvolailen",
+    "security": 0.7080867290496826,
+    "type": "player"
+  },
+  {
+    "stationID": "1048069587569",
+    "locationName": "Jolia - ZALEE'S POP SHOPPE",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002679,
+    "systemName": "Jolia",
+    "security": 0.507774293422699,
+    "type": "player"
+  },
+  {
+    "stationID": "1041471081074",
+    "locationName": "Otitoh - T1 Shipyard Freeport",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000171,
+    "systemName": "Otitoh",
+    "security": 0.4816668927669525,
+    "type": "player"
+  },
+  {
+    "stationID": "1035768656499",
+    "locationName": "Muvolailen - Golden Mom's Forge",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002780,
+    "systemName": "Muvolailen",
+    "security": 0.7080867290496826,
+    "type": "player"
+  },
+  {
+    "stationID": "1048092080588",
+    "locationName": "Boranai - Capsuckers R Us",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002188,
+    "systemName": "Boranai",
+    "security": 0.8937723636627197,
+    "type": "player"
+  },
+  {
+    "stationID": "1047243567570",
+    "locationName": "Villore - Dancing Around The Stars",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004993,
+    "systemName": "Villore",
+    "security": 0.8999999761581421,
+    "type": "player"
+  },
+  {
+    "stationID": "1050129078739",
+    "locationName": "Yuhelia - Little Red Refinery",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003545,
+    "systemName": "Yuhelia",
+    "security": 0.7996093034744263,
+    "type": "player"
+  },
+  {
+    "stationID": "1042187618773",
+    "locationName": "Emolgranlan - Nexus Galactic MOON & ICE Refi",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002548,
+    "systemName": "Emolgranlan",
+    "security": 0.5302433967590332,
+    "type": "player"
+  },
+  {
+    "stationID": "1044793850329",
+    "locationName": "Torvi - Deild Lillian",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003020,
+    "systemName": "Torvi",
+    "security": 0.5303086042404175,
+    "type": "player"
+  },
+  {
+    "stationID": "1049494385116",
+    "locationName": "Ivih - MM2",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001656,
+    "systemName": "Ivih",
+    "security": 0.5485958456993103,
+    "type": "player"
+  },
+  {
+    "stationID": "1034494312928",
+    "locationName": "Col - Freeport",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003904,
+    "systemName": "Col",
+    "security": 0.5267899632453918,
+    "type": "player"
+  },
+  {
+    "stationID": "1050393149922",
+    "locationName": "Tintoh - Ironworks Foundry",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002784,
+    "systemName": "Tintoh",
+    "security": 0.8133149147033691,
+    "type": "player"
+  },
+  {
+    "stationID": "1041739766245",
+    "locationName": "Nahol - Baumarkt II",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005069,
+    "systemName": "Nahol",
+    "security": 0.5542736649513245,
+    "type": "player"
+  },
+  {
+    "stationID": "1049494499813",
+    "locationName": "Ivih - tionscail agus acmhainni",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001656,
+    "systemName": "Ivih",
+    "security": 0.5485958456993103,
+    "type": "player"
+  },
+  {
+    "stationID": "1038688705006",
+    "locationName": "Amygnon - Mission City - Reprocessing",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005311,
+    "systemName": "Amygnon",
+    "security": 0.6375686526298523,
+    "type": "player"
+  },
+  {
+    "stationID": "1050419442165",
+    "locationName": "Boillair - Moon Moon You",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002649,
+    "systemName": "Boillair",
+    "security": 0.5232297778129578,
+    "type": "player"
+  },
+  {
+    "stationID": "1036626948602",
+    "locationName": "Gamis - Tet Hedu Nochard",
+    "regionID": 10000001,
+    "regionName": "Derelik",
+    "systemID": 30000107,
+    "systemName": "Gamis",
+    "security": 0.47390615940093994,
+    "type": "player"
+  },
+  {
+    "stationID": "1028750993915",
+    "locationName": "Kakakela - Brisc Rubal's C.S.M Headquarters",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001405,
+    "systemName": "Kakakela",
+    "security": 0.9722908735275269,
+    "type": "player"
+  },
+  {
+    "stationID": "1043676142082",
+    "locationName": "Jarkkolen - Structure Construction",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003080,
+    "systemName": "Jarkkolen",
+    "security": 0.8206006288528442,
+    "type": "player"
+  },
+  {
+    "stationID": "1050095925764",
+    "locationName": "Heydieles - FREEPORT Components & Equipment",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004979,
+    "systemName": "Heydieles",
+    "security": 0.3066251873970032,
+    "type": "player"
+  },
+  {
+    "stationID": "1042292048391",
+    "locationName": "Boystin - 5.5",
+    "regionID": 10000044,
+    "regionName": "Solitude",
+    "systemID": 30003574,
+    "systemName": "Boystin",
+    "security": 0.5230190753936768,
+    "type": "player"
+  },
+  {
+    "stationID": "1048877429256",
+    "locationName": "57-YRU - FREE ROACH",
+    "regionID": 10000041,
+    "regionName": "Unknown",
+    "systemID": 30003350,
+    "systemName": "57-YRU",
+    "security": -0.005675402004271746,
+    "type": "player"
+  },
+  {
+    "stationID": "1045193582746",
+    "locationName": "Ekura - MlNER NEEDs - Darkside of a Moon",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001378,
+    "systemName": "Ekura",
+    "security": 0.8764173984527588,
+    "type": "player"
+  },
+  {
+    "stationID": "1044140392605",
+    "locationName": "Aurejet - MISRIAH ICE REFINERY",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003915,
+    "systemName": "Aurejet",
+    "security": 0.5006721615791321,
+    "type": "player"
+  },
+  {
+    "stationID": "1047590912164",
+    "locationName": "Junsoraert - Floppy Rocks",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003016,
+    "systemName": "Junsoraert",
+    "security": 0.5241832137107849,
+    "type": "player"
+  },
+  {
+    "stationID": "1048717035688",
+    "locationName": "Osoggur - Frontline Haven Logistics",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002506,
+    "systemName": "Osoggur",
+    "security": 0.5315682888031006,
+    "type": "player"
+  },
+  {
+    "stationID": "1044026273960",
+    "locationName": "Villore - Clone Bay",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004993,
+    "systemName": "Villore",
+    "security": 0.8999999761581421,
+    "type": "player"
+  },
+  {
+    "stationID": "1039376930993",
+    "locationName": "Yona - Industrial Processing",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30005017,
+    "systemName": "Yona",
+    "security": 0.8251904845237732,
+    "type": "player"
+  },
+  {
+    "stationID": "1046327961777",
+    "locationName": "Lari - C.M.G-Minner-5",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001712,
+    "systemName": "Lari",
+    "security": 0.4930323362350464,
+    "type": "player"
+  },
+  {
+    "stationID": "1042017835187",
+    "locationName": "Slays - Pit Pony Free Mine 3",
+    "regionID": 10000048,
+    "regionName": "Placid",
+    "systemID": 30003798,
+    "systemName": "Slays",
+    "security": 0.4871707856655121,
+    "type": "player"
+  },
+  {
+    "stationID": "1047623024827",
+    "locationName": "Waira - Bby Baller",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002787,
+    "systemName": "Waira",
+    "security": 0.5346838235855103,
+    "type": "player"
+  },
+  {
+    "stationID": "1050164527298",
+    "locationName": "Gammel - Sleigh Grove INC R&D public",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003076,
+    "systemName": "Gammel",
+    "security": 0.4655892848968506,
+    "type": "player"
+  },
+  {
+    "stationID": "1046642352324",
+    "locationName": "Kemerk - Blueprints Forge",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005206,
+    "systemName": "Kemerk",
+    "security": 0.7669895887374878,
+    "type": "player"
+  },
+  {
+    "stationID": "1047131132102",
+    "locationName": "Sobaseki - Cheapest Market BE SMART",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001363,
+    "systemName": "Sobaseki",
+    "security": 0.8410254716873169,
+    "type": "player"
+  },
+  {
+    "stationID": "1030539397321",
+    "locationName": "Colelie - YC115 Battle of Colelie Memorial",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002682,
+    "systemName": "Colelie",
+    "security": 0.5123888254165649,
+    "type": "player"
+  },
+  {
+    "stationID": "1049659183306",
+    "locationName": "Tarta - NB2-Trotters Grove Moon",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005205,
+    "systemName": "Tarta",
+    "security": 0.49836358428001404,
+    "type": "player"
+  },
+  {
+    "stationID": "1044752365771",
+    "locationName": "Perimeter - 0.0% Neutral States HQ",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000144,
+    "systemName": "Perimeter",
+    "security": 0.9531232118606567,
+    "type": "player"
+  },
+  {
+    "stationID": "1048291956947",
+    "locationName": "Kamokor - HHI Mother of Invention",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001406,
+    "systemName": "Kamokor",
+    "security": 0.6876963376998901,
+    "type": "player"
+  },
+  {
+    "stationID": "1045477853396",
+    "locationName": "J154606 - iBeast PUB",
+    "regionID": 11000005,
+    "regionName": "B-R00005",
+    "systemID": 31000528,
+    "systemName": "J154606",
+    "security": -0.9900000095367432,
+    "type": "player"
+  },
+  {
+    "stationID": "1042990573784",
+    "locationName": "Friggi - R&D Division",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000168,
+    "systemName": "Friggi",
+    "security": 0.5091529488563538,
+    "type": "player"
+  },
+  {
+    "stationID": "1045093839064",
+    "locationName": "Hykkota - Ridiculous-House",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000134,
+    "systemName": "Hykkota",
+    "security": 0.8236534595489502,
+    "type": "player"
+  },
+  {
+    "stationID": "1049130604856",
+    "locationName": "Inari - KMC#2(Refine ICE Perfect)",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002793,
+    "systemName": "Inari",
+    "security": 0.46249669790267944,
+    "type": "player"
+  },
+  {
+    "stationID": "1049715364156",
+    "locationName": "Abagawa - The Workshop - Public",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000147,
+    "systemName": "Abagawa",
+    "security": 0.6252975463867188,
+    "type": "player"
+  },
+  {
+    "stationID": "1042193660223",
+    "locationName": "Mesybier - Sanctuary - Clonebay",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004975,
+    "systemName": "Mesybier",
+    "security": 0.4703787565231323,
+    "type": "player"
+  },
+  {
+    "stationID": "1046489053514",
+    "locationName": "Usi - Carlos' Hiding Place",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002755,
+    "systemName": "Usi",
+    "security": 0.5437586903572083,
+    "type": "player"
+  },
+  {
+    "stationID": "1049979179339",
+    "locationName": "Manatirid - Ice & asteroid refinery",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005230,
+    "systemName": "Manatirid",
+    "security": 0.5485262870788574,
+    "type": "player"
+  },
+  {
+    "stationID": "1050075500876",
+    "locationName": "Tuomuta - Imperial Refinery P5M2",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003064,
+    "systemName": "Tuomuta",
+    "security": 0.4537486732006073,
+    "type": "player"
+  },
+  {
+    "stationID": "1049972789581",
+    "locationName": "Direrie - Ammo and Fuel Production",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002646,
+    "systemName": "Direrie",
+    "security": 0.5015194416046143,
+    "type": "player"
+  },
+  {
+    "stationID": "1042569705813",
+    "locationName": "Siyi - Dark Knight Station",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001699,
+    "systemName": "Siyi",
+    "security": 0.5099367499351501,
+    "type": "player"
+  },
+  {
+    "stationID": "1022719887708",
+    "locationName": "Matyas - Matyas Labs",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001654,
+    "systemName": "Matyas",
+    "security": 0.5541377663612366,
+    "type": "player"
+  },
+  {
+    "stationID": "1047057973596",
+    "locationName": "Javrendei - Compress",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002564,
+    "systemName": "Javrendei",
+    "security": 0.8786523938179016,
+    "type": "player"
+  },
+  {
+    "stationID": "1022979469662",
+    "locationName": "Ohmahailen - Freeport Industrie",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000136,
+    "systemName": "Ohmahailen",
+    "security": 0.6638108491897583,
+    "type": "player"
+  },
+  {
+    "stationID": "1038983086433",
+    "locationName": "Jan - Open Source React & Repro",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001385,
+    "systemName": "Jan",
+    "security": 0.4169539213180542,
+    "type": "player"
+  },
+  {
+    "stationID": "1049313444193",
+    "locationName": "Niballe - Knohaus",
+    "regionID": 10000044,
+    "regionName": "Solitude",
+    "systemID": 30003580,
+    "systemName": "Niballe",
+    "security": 0.62018883228302,
+    "type": "player"
+  },
+  {
+    "stationID": "1050049438054",
+    "locationName": "Uminas - Swigity",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000184,
+    "systemName": "Uminas",
+    "security": 0.48390915989875793,
+    "type": "player"
+  },
+  {
+    "stationID": "1048963324266",
+    "locationName": "J124837 - Countryside Freeport",
+    "regionID": 11000016,
+    "regionName": "D-R00016",
+    "systemID": 31001399,
+    "systemName": "J124837",
+    "security": -0.9900000095367432,
+    "type": "player"
+  },
+  {
+    "stationID": "1021346851184",
+    "locationName": "Eletta - CAS Cloning Center",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005315,
+    "systemName": "Eletta",
+    "security": 0.9435089826583862,
+    "type": "player"
+  },
+  {
+    "stationID": "1023804021106",
+    "locationName": "Jinkah - Neu Aincrad",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005046,
+    "systemName": "Jinkah",
+    "security": 0.8475490808486938,
+    "type": "player"
+  },
+  {
+    "stationID": "1035617681782",
+    "locationName": "Nourvukaiken - Project Rigless",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001376,
+    "systemName": "Nourvukaiken",
+    "security": 0.8165567517280579,
+    "type": "player"
+  },
+  {
+    "stationID": "1045993707896",
+    "locationName": "Venilen - Pirate Sextoy Factory Memorial",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 30002798,
+    "systemName": "Unknown",
+    "security": null,
+    "type": "player"
+  },
+  {
+    "stationID": "1049960733415",
+    "locationName": "Shastal - Freeport",
+    "regionID": 10000036,
+    "regionName": "Devoid",
+    "systemID": 30002999,
+    "systemName": "Shastal",
+    "security": 0.4950195252895355,
+    "type": "player"
+  },
+  {
+    "stationID": "1046653612780",
+    "locationName": "Arant - Cap parts, Components, Structure",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004994,
+    "systemName": "Arant",
+    "security": 0.6047534942626953,
+    "type": "player"
+  },
+  {
+    "stationID": "1040876100335",
+    "locationName": "Slays - Pit Pony Free Mine 2",
+    "regionID": 10000048,
+    "regionName": "Placid",
+    "systemID": 30003798,
+    "systemName": "Slays",
+    "security": 0.4871707856655121,
+    "type": "player"
+  },
+  {
+    "stationID": "1050185499376",
+    "locationName": "Tarta - MC rockhard station 2",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005205,
+    "systemName": "Tarta",
+    "security": 0.49836358428001404,
+    "type": "player"
+  },
+  {
+    "stationID": "1042833494769",
+    "locationName": "Vay - MlNER NEEDs - we buy ORE",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005318,
+    "systemName": "Vay",
+    "security": 0.758522093296051,
+    "type": "player"
+  },
+  {
+    "stationID": "1049117033201",
+    "locationName": "Vaurent - Forge of Iskareth",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003027,
+    "systemName": "Vaurent",
+    "security": 0.584309995174408,
+    "type": "player"
+  },
+  {
+    "stationID": "1049369156351",
+    "locationName": "Diaderi - Tavdek Manufacturing",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005229,
+    "systemName": "Diaderi",
+    "security": 0.7713307738304138,
+    "type": "player"
+  },
+  {
+    "stationID": "1046902813441",
+    "locationName": "PF-346 - 222",
+    "regionID": 10000041,
+    "regionName": "Syndicate",
+    "systemID": 30003277,
+    "systemName": "PF-346",
+    "security": -0.3520785868167877,
+    "type": "player"
+  },
+  {
+    "stationID": "1050225455875",
+    "locationName": "J215431 - Arke Freeport",
+    "regionID": 11000002,
+    "regionName": "A-R00002",
+    "systemID": 31000233,
+    "systemName": "J215431",
+    "security": -0.9900000095367432,
+    "type": "player"
+  },
+  {
+    "stationID": "1048341132035",
+    "locationName": "Nalu - Xeno Manufacturing",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002262,
+    "systemName": "Nalu",
+    "security": 0.5813248753547668,
+    "type": "player"
+  },
+  {
+    "stationID": "1050377059077",
+    "locationName": "Odebeinn - Orbit City",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003470,
+    "systemName": "Odebeinn",
+    "security": 0.30779996514320374,
+    "type": "player"
+  },
+  {
+    "stationID": "1039371774728",
+    "locationName": "Stoure - The Stourehouse",
+    "regionID": 10000044,
+    "regionName": "Solitude",
+    "systemID": 30003593,
+    "systemName": "Stoure",
+    "security": 0.722419261932373,
+    "type": "player"
+  },
+  {
+    "stationID": "1050392800010",
+    "locationName": "Kaimon - Fine refining",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002751,
+    "systemName": "Kaimon",
+    "security": 0.6860520243644714,
+    "type": "player"
+  },
+  {
+    "stationID": "1035266839311",
+    "locationName": "Alakgur - Fin's Place",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002512,
+    "systemName": "Alakgur",
+    "security": 0.5588356852531433,
+    "type": "player"
+  },
+  {
+    "stationID": "1050464944913",
+    "locationName": "Raneilles - Port Creo",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005319,
+    "systemName": "Raneilles",
+    "security": 0.5502352118492126,
+    "type": "player"
+  },
+  {
+    "stationID": "1049769403154",
+    "locationName": "Aokannitoh - EVE GURU Industry",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30021407,
+    "systemName": "Aokannitoh",
+    "security": 0.9709233641624451,
+    "type": "player"
+  },
+  {
+    "stationID": "1048923693850",
+    "locationName": "Seiradih - Cheese's bday station",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002243,
+    "systemName": "Seiradih",
+    "security": 0.5587485432624817,
+    "type": "player"
+  },
+  {
+    "stationID": "1038515628827",
+    "locationName": "Talidal - Niflheim Station (All Services)",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003889,
+    "systemName": "Talidal",
+    "security": 0.509783148765564,
+    "type": "player"
+  },
+  {
+    "stationID": "1041937058588",
+    "locationName": "J151045 - Hydra Cordatus",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 31001238,
+    "systemName": "J151045",
+    "security": -0.9900000095367432,
+    "type": "player"
+  },
+  {
+    "stationID": "1049187259408",
+    "locationName": "Eitu - MURU Mining Refinery",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002740,
+    "systemName": "Eitu",
+    "security": 0.5380359292030334,
+    "type": "player"
+  },
+  {
+    "stationID": "1046111775765",
+    "locationName": "Misha - Purple Freeport",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005059,
+    "systemName": "Misha",
+    "security": 0.4948945641517639,
+    "type": "player"
+  },
+  {
+    "stationID": "1049380135958",
+    "locationName": "Gamis - Thena's Fractaral Practice",
+    "regionID": 10000001,
+    "regionName": "Derelik",
+    "systemID": 30000107,
+    "systemName": "Gamis",
+    "security": 0.47390615940093994,
+    "type": "player"
+  },
+  {
+    "stationID": "1045571230745",
+    "locationName": "Mani - Oh Mani",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001658,
+    "systemName": "Mani",
+    "security": 0.822144627571106,
+    "type": "player"
+  },
+  {
+    "stationID": "1050452636698",
+    "locationName": "Danyana - 0.3% Tax",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005044,
+    "systemName": "Danyana",
+    "security": 0.7735881209373474,
+    "type": "player"
+  },
+  {
+    "stationID": "1037315920925",
+    "locationName": "GZM-KB - VI - Moon 23",
+    "regionID": 10000018,
+    "regionName": "The Spire",
+    "systemID": 30001531,
+    "systemName": "GZM-KB",
+    "security": -0.18591897189617157,
+    "type": "player"
+  },
+  {
+    "stationID": "1048217867294",
+    "locationName": "Amattens - Aurora Research Lab",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003012,
+    "systemName": "Amattens",
+    "security": 0.590050220489502,
+    "type": "player"
+  },
+  {
+    "stationID": "1049653699616",
+    "locationName": "Seil - PUBLIC ICE Refinery & Clone",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001657,
+    "systemName": "Seil",
+    "security": 0.5878499746322632,
+    "type": "player"
+  },
+  {
+    "stationID": "1049497074722",
+    "locationName": "Inari - B I",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002793,
+    "systemName": "Inari",
+    "security": 0.46249669790267944,
+    "type": "player"
+  },
+  {
+    "stationID": "1050277555236",
+    "locationName": "Balle - MTU - Public Moon - Read Bio",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002634,
+    "systemName": "Balle",
+    "security": 0.4608891010284424,
+    "type": "player"
+  },
+  {
+    "stationID": "1050079960101",
+    "locationName": "Scheenins - BEEDL's Backwater Business",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005310,
+    "systemName": "Scheenins",
+    "security": 0.5374285578727722,
+    "type": "player"
+  },
+  {
+    "stationID": "1043667213354",
+    "locationName": "Faktun - Faktunafun",
+    "regionID": 10000036,
+    "regionName": "Devoid",
+    "systemID": 30003002,
+    "systemName": "Faktun",
+    "security": 0.6263664960861206,
+    "type": "player"
+  },
+  {
+    "stationID": "1048652710954",
+    "locationName": "Armala - Aegis Labs",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002205,
+    "systemName": "Armala",
+    "security": 0.782163143157959,
+    "type": "player"
+  },
+  {
+    "stationID": "1048742609973",
+    "locationName": "Otalieto - Candy Rose",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001421,
+    "systemName": "Otalieto",
+    "security": 0.5134408473968506,
+    "type": "player"
+  },
+  {
+    "stationID": "1047793763383",
+    "locationName": "Bashakru - Ice Compress and Refine",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002199,
+    "systemName": "Bashakru",
+    "security": 0.6445600986480713,
+    "type": "player"
+  },
+  {
+    "stationID": "1049830720572",
+    "locationName": "Ronne - Builders Paradise Public R&D",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003081,
+    "systemName": "Ronne",
+    "security": 0.7241339087486267,
+    "type": "player"
+  },
+  {
+    "stationID": "1046653912126",
+    "locationName": "Arant - Advanced Shipyard",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004994,
+    "systemName": "Arant",
+    "security": 0.6047534942626953,
+    "type": "player"
+  },
+  {
+    "stationID": "1048359777342",
+    "locationName": "Airaken - FREE HUGS",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000185,
+    "systemName": "Airaken",
+    "security": 0.5039919018745422,
+    "type": "player"
+  },
+  {
+    "stationID": "1049391270975",
+    "locationName": "Finanar - ICE Public 2,5% Tax",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003442,
+    "systemName": "Finanar",
+    "security": 0.5322368741035461,
+    "type": "player"
+  },
+  {
+    "stationID": "1050178552900",
+    "locationName": "Saheri - ROCK SHACK",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 30003518,
+    "systemName": "Unknown",
+    "security": null,
+    "type": "player"
+  },
+  {
+    "stationID": "1050061176110",
+    "locationName": "Gererique - Loot Fairy's Temple",
+    "regionID": 10000044,
+    "regionName": "Solitude",
+    "systemID": 30003586,
+    "systemName": "Gererique",
+    "security": 0.6646057367324829,
+    "type": "player"
+  },
+  {
+    "stationID": "1041349094705",
+    "locationName": "Mesybier - Research Laboratory",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004975,
+    "systemName": "Mesybier",
+    "security": 0.4703787565231323,
+    "type": "player"
+  },
+  {
+    "stationID": "1045498692914",
+    "locationName": "Anzalaisio - Confederate Production Center",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005252,
+    "systemName": "Anzalaisio",
+    "security": 0.4545564651489258,
+    "type": "player"
+  },
+  {
+    "stationID": "1045100225844",
+    "locationName": "Anbald - BPBL Research Labs",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003398,
+    "systemName": "Anbald",
+    "security": 0.7037965059280396,
+    "type": "player"
+  },
+  {
+    "stationID": "1040704957750",
+    "locationName": "Palas - Refinery and Moon",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003878,
+    "systemName": "Palas",
+    "security": 0.5059964656829834,
+    "type": "player"
+  },
+  {
+    "stationID": "1050387125562",
+    "locationName": "Stegette - Gus' Galaxy Grill",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002696,
+    "systemName": "Stegette",
+    "security": 0.45317283272743225,
+    "type": "player"
+  },
+  {
+    "stationID": "1047787300154",
+    "locationName": "Tsuguwa - B.R.U.C.E. FREEPORT",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001375,
+    "systemName": "Tsuguwa",
+    "security": 0.7693231105804443,
+    "type": "player"
+  },
+  {
+    "stationID": "1050289466690",
+    "locationName": "Hapala - The swallow's nest",
+    "regionID": 10000052,
+    "regionName": "Kador",
+    "systemID": 30004145,
+    "systemName": "Hapala",
+    "security": 0.8826743960380554,
+    "type": "player"
+  },
+  {
+    "stationID": "1050452200772",
+    "locationName": "Anjedin - HomeSweetHome",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001647,
+    "systemName": "Anjedin",
+    "security": 0.515754222869873,
+    "type": "player"
+  },
+  {
+    "stationID": "1049803785546",
+    "locationName": "Sileperer - SLTK Holding",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002689,
+    "systemName": "Sileperer",
+    "security": 0.6174616813659668,
+    "type": "player"
+  },
+  {
+    "stationID": "1044646569290",
+    "locationName": "Slays - Pit Pony Free Mine 4",
+    "regionID": 10000048,
+    "regionName": "Placid",
+    "systemID": 30003798,
+    "systemName": "Slays",
+    "security": 0.4871707856655121,
+    "type": "player"
+  },
+  {
+    "stationID": "1042185913676",
+    "locationName": "Hothomouh - Free Pitstop",
+    "regionID": 10000001,
+    "regionName": "Derelik",
+    "systemID": 30000111,
+    "systemName": "Hothomouh",
+    "security": 0.42298102378845215,
+    "type": "player"
+  },
+  {
+    "stationID": "1038989086029",
+    "locationName": "J104210 - Freeport ISBN 978-1936373437",
+    "regionID": 11000005,
+    "regionName": "B-R00005",
+    "systemID": 31000491,
+    "systemName": "J104210",
+    "security": -0.9900000095367432,
+    "type": "player"
+  },
+  {
+    "stationID": "1038083921230",
+    "locationName": "Anka - Faith and Fabrications",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003071,
+    "systemName": "Anka",
+    "security": 0.4145998954772949,
+    "type": "player"
+  },
+  {
+    "stationID": "1047103937872",
+    "locationName": "Lari - C.M.G-Eng-1",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001712,
+    "systemName": "Lari",
+    "security": 0.4930323362350464,
+    "type": "player"
+  },
+  {
+    "stationID": "1050120746321",
+    "locationName": "Yuhelia - Big Yellow Clone & Fab",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003545,
+    "systemName": "Yuhelia",
+    "security": 0.7996093034744263,
+    "type": "player"
+  },
+  {
+    "stationID": "1048138777945",
+    "locationName": "Eletta - Sanitarium +42% ME+Copy",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005315,
+    "systemName": "Eletta",
+    "security": 0.9435089826583862,
+    "type": "player"
+  },
+  {
+    "stationID": "1048543794526",
+    "locationName": "Barmalie - Science Center MDM.A",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002683,
+    "systemName": "Barmalie",
+    "security": 0.4764906167984009,
+    "type": "player"
+  },
+  {
+    "stationID": "1048777803104",
+    "locationName": "Ogoten - Manufacturing & Research",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003437,
+    "systemName": "Ogoten",
+    "security": 0.7110894322395325,
+    "type": "player"
+  },
+  {
+    "stationID": "1050277643413",
+    "locationName": "Deltole - MTU - Public Moon - Read Bio",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002681,
+    "systemName": "Deltole",
+    "security": 0.5404728055000305,
+    "type": "player"
+  },
+  {
+    "stationID": "1042667101333",
+    "locationName": "Latari - Open House",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005075,
+    "systemName": "Latari",
+    "security": 0.5620496273040771,
+    "type": "player"
+  },
+  {
+    "stationID": "1042885612697",
+    "locationName": "Yoma - Mining ink",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001427,
+    "systemName": "Yoma",
+    "security": 0.6474514603614807,
+    "type": "player"
+  },
+  {
+    "stationID": "1041340503195",
+    "locationName": "Mesybier - Public Refinery - P7M3 - Online",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004975,
+    "systemName": "Mesybier",
+    "security": 0.4703787565231323,
+    "type": "player"
+  },
+  {
+    "stationID": "1049391072416",
+    "locationName": "Scheenins - VDI Shipyard",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005310,
+    "systemName": "Scheenins",
+    "security": 0.5374285578727722,
+    "type": "player"
+  },
+  {
+    "stationID": "1046176601248",
+    "locationName": "Lari - Mooner",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001712,
+    "systemName": "Lari",
+    "security": 0.4930323362350464,
+    "type": "player"
+  },
+  {
+    "stationID": "1026756146338",
+    "locationName": "Gusandall - Waypoint Station",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002556,
+    "systemName": "Gusandall",
+    "security": 0.37658458948135376,
+    "type": "player"
+  },
+  {
+    "stationID": "1046626888869",
+    "locationName": "Arant - T1 All Ores Repro",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004994,
+    "systemName": "Arant",
+    "security": 0.6047534942626953,
+    "type": "player"
+  },
+  {
+    "stationID": "1039069179051",
+    "locationName": "Anbald - The Waiting Room",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003398,
+    "systemName": "Anbald",
+    "security": 0.7037965059280396,
+    "type": "player"
+  },
+  {
+    "stationID": "1027375934642",
+    "locationName": "Torrinos - FREEPORT MARKET AND CLONES",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001429,
+    "systemName": "Torrinos",
+    "security": 0.5196676850318909,
+    "type": "player"
+  },
+  {
+    "stationID": "1034822050995",
+    "locationName": "Mosson - Helius",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003021,
+    "systemName": "Mosson",
+    "security": 0.6565800905227661,
+    "type": "player"
+  },
+  {
+    "stationID": "1050448772277",
+    "locationName": "Hardbako - Free Overheat",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003418,
+    "systemName": "Hardbako",
+    "security": 0.727252721786499,
+    "type": "player"
+  },
+  {
+    "stationID": "1049519772855",
+    "locationName": "Inari - Manufacturing&Research",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002793,
+    "systemName": "Inari",
+    "security": 0.46249669790267944,
+    "type": "player"
+  },
+  {
+    "stationID": "1043343410361",
+    "locationName": "Lari - Reork Neros Memorial",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001712,
+    "systemName": "Lari",
+    "security": 0.4930323362350464,
+    "type": "player"
+  },
+  {
+    "stationID": "1044229741759",
+    "locationName": "Magiko - Tortuga",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002570,
+    "systemName": "Magiko",
+    "security": 0.9383020401000977,
+    "type": "player"
+  },
+  {
+    "stationID": "1044823954625",
+    "locationName": "Usi - Freeport & Reprocessing",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002755,
+    "systemName": "Usi",
+    "security": 0.5437586903572083,
+    "type": "player"
+  },
+  {
+    "stationID": "1049571935432",
+    "locationName": "Inari - B II",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002793,
+    "systemName": "Inari",
+    "security": 0.46249669790267944,
+    "type": "player"
+  },
+  {
+    "stationID": "1047801021641",
+    "locationName": "Amane - Public Manufactoring Plant",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004983,
+    "systemName": "Amane",
+    "security": 0.5528478622436523,
+    "type": "player"
+  },
+  {
+    "stationID": "1044910892233",
+    "locationName": "Ainsan - Neo's Home (Shits free rocks)",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003895,
+    "systemName": "Ainsan",
+    "security": 0.4730616509914398,
+    "type": "player"
+  },
+  {
+    "stationID": "1049809632458",
+    "locationName": "Hageken - Research",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 30001367,
+    "systemName": "Unknown",
+    "security": null,
+    "type": "player"
+  },
+  {
+    "stationID": "1048217389947",
+    "locationName": "Junsoraert - Rock bottom",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003016,
+    "systemName": "Junsoraert",
+    "security": 0.5241832137107849,
+    "type": "player"
+  },
+  {
+    "stationID": "1048444699516",
+    "locationName": "Frarn - FUEGO Market - Lowest Tax - 0.2%",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002526,
+    "systemName": "Frarn",
+    "security": 0.8389708995819092,
+    "type": "player"
+  },
+  {
+    "stationID": "1044164309897",
+    "locationName": "Mora - MlNER NEEDs - The Rings of Mora",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005037,
+    "systemName": "Mora",
+    "security": 0.9325241446495056,
+    "type": "player"
+  },
+  {
+    "stationID": "1046071450507",
+    "locationName": "Nuzair - Public refinery 2.0% Tax",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001665,
+    "systemName": "Nuzair",
+    "security": 0.535057008266449,
+    "type": "player"
+  },
+  {
+    "stationID": "1042223782798",
+    "locationName": "Teonusude - Nexus Galactic Heathens Market",
+    "regionID": 10000028,
+    "regionName": "Molden Heath",
+    "systemID": 30002385,
+    "systemName": "Teonusude",
+    "security": 0.5863137245178223,
+    "type": "player"
+  },
+  {
+    "stationID": "1043447911311",
+    "locationName": "Huola - Freeport Manufacturing Nexus",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003067,
+    "systemName": "Huola",
+    "security": 0.37024858593940735,
+    "type": "player"
+  },
+  {
+    "stationID": "1049988385678",
+    "locationName": "Uplingur - Ammatar Chemical Center",
+    "regionID": 10000001,
+    "regionName": "Derelik",
+    "systemID": 30000037,
+    "systemName": "Uplingur",
+    "security": 0.4220693111419678,
+    "type": "player"
+  },
+  {
+    "stationID": "1049100499855",
+    "locationName": "Arraron - New Eden Watch Mining Division",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005330,
+    "systemName": "Arraron",
+    "security": 0.471987247467041,
+    "type": "player"
+  },
+  {
+    "stationID": "1050113788815",
+    "locationName": "Dimoohan - Onlycrabs",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003924,
+    "systemName": "Dimoohan",
+    "security": 0.2159339338541031,
+    "type": "player"
+  },
+  {
+    "stationID": "1040348052374",
+    "locationName": "Bashyam - May the FORGE be with you",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003908,
+    "systemName": "Bashyam",
+    "security": 0.4711262285709381,
+    "type": "player"
+  },
+  {
+    "stationID": "1025589930902",
+    "locationName": "Matyas - BPRM-Stank Tank",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001654,
+    "systemName": "Matyas",
+    "security": 0.5541377663612366,
+    "type": "player"
+  },
+  {
+    "stationID": "1037313799064",
+    "locationName": "T6T-BQ - VIII - Moon 2",
+    "regionID": 10000018,
+    "regionName": "The Spire",
+    "systemID": 30001548,
+    "systemName": "T6T-BQ",
+    "security": -0.6726597547531128,
+    "type": "player"
+  },
+  {
+    "stationID": "1049729411996",
+    "locationName": "J171813 - Freeport Ant Farm",
+    "regionID": 11000012,
+    "regionName": "C-R00012",
+    "systemID": 31001081,
+    "systemName": "J171813",
+    "security": -0.9900000095367432,
+    "type": "player"
+  },
+  {
+    "stationID": "1049259697056",
+    "locationName": "Augnais - Project Cat. Testing Facility",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002680,
+    "systemName": "Augnais",
+    "security": 0.5398107767105103,
+    "type": "player"
+  },
+  {
+    "stationID": "1049552552872",
+    "locationName": "Atier - Refining",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002701,
+    "systemName": "Atier",
+    "security": 0.626695454120636,
+    "type": "player"
+  },
+  {
+    "stationID": "1047146738603",
+    "locationName": "Frarolle - Fuelstation",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003036,
+    "systemName": "Frarolle",
+    "security": 0.7904602885246277,
+    "type": "player"
+  },
+  {
+    "stationID": "1049514361775",
+    "locationName": "Aurejet - A.M.E.L.I.E",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003915,
+    "systemName": "Aurejet",
+    "security": 0.5006721615791321,
+    "type": "player"
+  },
+  {
+    "stationID": "1049982731184",
+    "locationName": "Perimeter - JITA REFINERY 1% TAX",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000144,
+    "systemName": "Perimeter",
+    "security": 0.9531232118606567,
+    "type": "player"
+  },
+  {
+    "stationID": "1043528575927",
+    "locationName": "Asgeir - Cosmic Refinery & Compression",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 30003384,
+    "systemName": "Unknown",
+    "security": null,
+    "type": "player"
+  }
+]
