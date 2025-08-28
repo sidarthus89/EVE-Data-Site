@@ -36,7 +36,8 @@ export const FILTER_OPTIONS = {
     NONE: 'none',
     MILD: 'mild',      // 5th to 95th percentile (1.5 IQR)
     MODERATE: 'moderate', // 10th to 90th percentile (1.0 IQR)
-    STRICT: 'strict'   // 25th to 75th percentile (0.5 IQR)
+    STRICT: 'strict',   // 25th to 75th percentile (0.5 IQR)
+    ULTRA: 'ultra'   // 37.5th to 62.5th percentile (0.25 IQR)
 };
 
 export function applyOutlierFilter(orders, filterType = FILTER_OPTIONS.NONE) {
@@ -70,8 +71,6 @@ export function applyOutlierFilter(orders, filterType = FILTER_OPTIONS.NONE) {
         default:
             return orders;
     }
-
-    <option value="ultra">37.5th to 62.5th percentile (0.25 IQR)</option>
 
     const q1Index = Math.floor(sorted.length * lowerPercentile);
     const q3Index = Math.floor(sorted.length * upperPercentile);
