@@ -427,6 +427,7 @@ export default function Market() {
                                             <option value="mild">5th to 95th percentile (1.5 IQR)</option>
                                             <option value="moderate">10th to 90th percentile (1.0 IQR)</option>
                                             <option value="strict">25th to 75th percentile (0.5 IQR)</option>
+                                            <option value="ultra">37.5th to 62.5th percentile (0.25 IQR)</option>
                                         </select>
                                     </div>
                                 </div>
