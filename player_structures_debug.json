@@ -1,0 +1,3902 @@
+[
+  {
+    "stationID": "1035768592387",
+    "locationName": "Muvolailen - Golden Mom's Structure Factory",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002780,
+    "systemName": "Muvolailen",
+    "security": 0.7080867290496826,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98675787,
+    "_debug_position": {
+      "x": -193810504896.0,
+      "y": -4432966889720.0,
+      "z": -1161937975641.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049552760837",
+    "locationName": "Atier - Azurite Industries",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002701,
+    "systemName": "Atier",
+    "security": 0.626695454120636,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98774246,
+    "_debug_position": {
+      "x": -2239331354158.174,
+      "y": 188817342593.2863,
+      "z": 1166710306640.1372
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1043878365194",
+    "locationName": "Inghenges - CREDE Industries",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002672,
+    "systemName": "Inghenges",
+    "security": 0.7157557606697083,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98243020,
+    "_debug_position": {
+      "x": -733989404024.3782,
+      "y": 127209984543.26404,
+      "z": 2183496978518.3958
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047820613644",
+    "locationName": "Actee - Public Reprocessing Facility",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004981,
+    "systemName": "Actee",
+    "security": 0.5014649033546448,
+    "type": "player",
+    "_debug_type_id": 35836,
+    "_debug_owner_id": 98790947,
+    "_debug_position": {
+      "x": -1477746757109.0,
+      "y": 112690655779.0,
+      "z": 1289317018508.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046368262165",
+    "locationName": "Yasud - Nostromo",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001713,
+    "systemName": "Yasud",
+    "security": 0.6283124089241028,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98775410,
+    "_debug_position": {
+      "x": -217658409478.0,
+      "y": 36188287843.0,
+      "z": 226380245439.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046043963414",
+    "locationName": "Chesiette - CREDE - Ultima Porta Inferorum",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005327,
+    "systemName": "Chesiette",
+    "security": 0.5727048516273499,
+    "type": "player",
+    "_debug_type_id": 35833,
+    "_debug_owner_id": 98243020,
+    "_debug_position": {
+      "x": 1925369806066.0,
+      "y": 227344792835.0,
+      "z": 3933226795350.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (74 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050186534934",
+    "locationName": "Ney - Rockwell Endevor Refinery",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002650,
+    "systemName": "Ney",
+    "security": 0.4567548930644989,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98735707,
+    "_debug_position": {
+      "x": 1235760640699.3643,
+      "y": 10956989008.078125,
+      "z": -98202762.88708815
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048973232152",
+    "locationName": "Meves - BioCore One",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003032,
+    "systemName": "Meves",
+    "security": 0.9791473746299744,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98800968,
+    "_debug_position": {
+      "x": -3312196785303.0,
+      "y": 543444260736.0,
+      "z": -4857001262597.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (27 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1026192451609",
+    "locationName": "Matyas - Matyas Refinery",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001654,
+    "systemName": "Matyas",
+    "security": 0.5541377663612366,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98793913,
+    "_debug_position": {
+      "x": 3205112776215.0,
+      "y": -366143795638.0,
+      "z": -5156341306572.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048015775771",
+    "locationName": "Yeder - Aitch-Aitch",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001710,
+    "systemName": "Yeder",
+    "security": 0.6314091086387634,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98607450,
+    "_debug_position": {
+      "x": -2460265978467.454,
+      "y": 82093919889.09741,
+      "z": 3081098721337.588
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044873875483",
+    "locationName": "Usi - Kisumii's Pleasure Palace",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002755,
+    "systemName": "Usi",
+    "security": 0.5437586903572083,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98718344,
+    "_debug_position": {
+      "x": -468039806082.0,
+      "y": 56648050870.0,
+      "z": 413549023343.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1045554501666",
+    "locationName": "Ohmahailen - Freeport Refining",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000136,
+    "systemName": "Ohmahailen",
+    "security": 0.6638108491897583,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 372246426,
+    "_debug_position": {
+      "x": 233169141757.0,
+      "y": -7485584021.0,
+      "z": 302748885497.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1041354471460",
+    "locationName": "Mesybier - Ship Manufacturing",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004975,
+    "systemName": "Mesybier",
+    "security": 0.4703787565231323,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": -968492105498.0,
+      "y": -195997868581.0,
+      "z": 165788412627.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048013631527",
+    "locationName": "Derririntel - INDUSTRY INC'S",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30005025,
+    "systemName": "Derririntel",
+    "security": 0.8188007473945618,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98794877,
+    "_debug_position": {
+      "x": 103139714305.0,
+      "y": 9634087876.0,
+      "z": -202028621020.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048446040103",
+    "locationName": "Sarum Prime - Domain Market Freeport",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003522,
+    "systemName": "Sarum Prime",
+    "security": 1.0,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98322733,
+    "_debug_position": {
+      "x": -2917467881391.0,
+      "y": -3064500037511.0,
+      "z": 1633844339161.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (80 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050444740652",
+    "locationName": "Ethernity - Uber Refiner",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003033,
+    "systemName": "Ethernity",
+    "security": 0.9356340765953064,
+    "type": "player",
+    "_debug_type_id": 35836,
+    "_debug_owner_id": 791571262,
+    "_debug_position": {
+      "x": 1456743175003.7969,
+      "y": -118731313131.52225,
+      "z": -167007496546.25128
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (16 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046009497646",
+    "locationName": "Chesiette - CREDE - Fossores Lascivitis",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005327,
+    "systemName": "Chesiette",
+    "security": 0.5727048516273499,
+    "type": "player",
+    "_debug_type_id": 35836,
+    "_debug_owner_id": 98243020,
+    "_debug_position": {
+      "x": 1953951173924.0,
+      "y": 230653870475.0,
+      "z": 3908210374389.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046167760944",
+    "locationName": "Manatirid - Seraphim",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005230,
+    "systemName": "Manatirid",
+    "security": 0.5485262870788574,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98699830,
+    "_debug_position": {
+      "x": -127781183614.0,
+      "y": -5337812091.0,
+      "z": -922254978681.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047756617779",
+    "locationName": "Ervekam - 1111",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003867,
+    "systemName": "Ervekam",
+    "security": 0.6869200468063354,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98134066,
+    "_debug_position": {
+      "x": 708374025490.0,
+      "y": 1557500239037.0,
+      "z": 4441227449146.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044140443705",
+    "locationName": "Aurejet - MISRIAH MOON REFINERY",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003915,
+    "systemName": "Aurejet",
+    "security": 0.5006721615791321,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98763136,
+    "_debug_position": {
+      "x": 367886100972.0,
+      "y": -3878521944.0,
+      "z": -377809713363.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044140648520",
+    "locationName": "Aurejet - MISRIAH MOON DRILL 02",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003915,
+    "systemName": "Aurejet",
+    "security": 0.5006721615791321,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98763136,
+    "_debug_position": {
+      "x": 368794745519.0,
+      "y": -3888104132.0,
+      "z": -380930173936.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049759683151",
+    "locationName": "Sotrentaira - Builders Square",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001369,
+    "systemName": "Sotrentaira",
+    "security": 0.5125696063041687,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98807449,
+    "_debug_position": {
+      "x": 6383452323.481298,
+      "y": 1189569876.1301851,
+      "z": -59052834417.3607
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046987709010",
+    "locationName": "Perimeter - Sanitarium",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000144,
+    "systemName": "Perimeter",
+    "security": 0.9531232118606567,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98747703,
+    "_debug_position": {
+      "x": 88475879537.0,
+      "y": 5987488060.0,
+      "z": 102822102482.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044361986646",
+    "locationName": "Itamo - Production Center",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000119,
+    "systemName": "Itamo",
+    "security": 0.67173832654953,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98763491,
+    "_debug_position": {
+      "x": -1541266016221.0,
+      "y": 1216103386804.0,
+      "z": -223840126677.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049502095959",
+    "locationName": "Nakri - Platform 747SY Quartz",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003496,
+    "systemName": "Nakri",
+    "security": 0.805291473865509,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98797344,
+    "_debug_position": {
+      "x": -5391449874756.386,
+      "y": 434250922667.2582,
+      "z": 281405166142.8652
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046489078364",
+    "locationName": "Usi - Gildii's Padded Cell",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002755,
+    "systemName": "Usi",
+    "security": 0.5437586903572083,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98718344,
+    "_debug_position": {
+      "x": -11789350976.0,
+      "y": 1426901463.0,
+      "z": 315019736136.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049983201885",
+    "locationName": "Stayme - VI - Moon 3 - Noxis Verge",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002675,
+    "systemName": "Stayme",
+    "security": 0.5829538106918335,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98629963,
+    "_debug_position": {
+      "x": 28427284921.88373,
+      "y": 550956092.095811,
+      "z": 702369538954.7572
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047245625949",
+    "locationName": "Earwik - Apollyon Bay",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003441,
+    "systemName": "Earwik",
+    "security": 0.5992996096611023,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98780080,
+    "_debug_position": {
+      "x": -179356541256.0,
+      "y": 31080163800.0,
+      "z": 18205282825.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047602899554",
+    "locationName": "Direrie - S+M+L Standard ship production",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002646,
+    "systemName": "Direrie",
+    "security": 0.5015194416046143,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98789354,
+    "_debug_position": {
+      "x": -64309210344.80774,
+      "y": -11714301681.912952,
+      "z": -41921473210.74059
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042092309091",
+    "locationName": "Parses - D'oh Sunday-12-twice-mth",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003909,
+    "systemName": "Parses",
+    "security": 0.49869126081466675,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98741034,
+    "_debug_position": {
+      "x": 341947039380.0,
+      "y": 47658360107.0,
+      "z": -416212603345.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049590035043",
+    "locationName": "Illuin - Cosmic Refinery & Compression",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003377,
+    "systemName": "Illuin",
+    "security": 0.9133498668670654,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98673685,
+    "_debug_position": {
+      "x": 218044313878.87424,
+      "y": 27525028088.275826,
+      "z": -1162991148582.6062
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048600373863",
+    "locationName": "Avada - Lorzsa Inc",
+    "regionID": 10000054,
+    "regionName": "Aridia",
+    "systemID": 30004249,
+    "systemName": "Avada",
+    "security": 0.6893498301506042,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98418659,
+    "_debug_position": {
+      "x": 77475861879.61147,
+      "y": 13001153635.545588,
+      "z": 34774371659.10687
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047584885352",
+    "locationName": "Litiura - Babylon 4.5",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001400,
+    "systemName": "Litiura",
+    "security": 0.48940494656562805,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98790984,
+    "_debug_position": {
+      "x": 2648311574055.0,
+      "y": 401189865382.0,
+      "z": -2228451478591.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049116871272",
+    "locationName": "Isaziwa - MURU Central Hub",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002739,
+    "systemName": "Isaziwa",
+    "security": 0.720814049243927,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98521526,
+    "_debug_position": {
+      "x": -421794234228.0,
+      "y": -15956299246.0,
+      "z": 139407263385.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042284880490",
+    "locationName": "Oshaima - Soup Maker",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002795,
+    "systemName": "Oshaima",
+    "security": 0.4531283676624298,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98673613,
+    "_debug_position": {
+      "x": 914382452673.0,
+      "y": 10703614996.0,
+      "z": 303848276064.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1045561080427",
+    "locationName": "Hek - Refinery",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30002053,
+    "systemName": "Hek",
+    "security": 0.800000011920929,
+    "type": "player",
+    "_debug_type_id": 35836,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": -188084942945.0,
+      "y": -37471713721.0,
+      "z": 1213891779466.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050038596199",
+    "locationName": "Odotte - SHIPYARD",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30012715,
+    "systemName": "Odotte",
+    "security": 0.8716466426849365,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98758017,
+    "_debug_position": {
+      "x": -70799734995.0,
+      "y": -11670597545.0,
+      "z": 110714358431.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044354888302",
+    "locationName": "Saisio - Freeport Forge Cartel",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000146,
+    "systemName": "Saisio",
+    "security": 0.6524402499198914,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98625427,
+    "_debug_position": {
+      "x": -119224906599.0,
+      "y": 2258465985512.0,
+      "z": -1437708457690.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1035768580719",
+    "locationName": "Muvolailen - Golden Mom's Shipyard & Factory",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002780,
+    "systemName": "Muvolailen",
+    "security": 0.7080867290496826,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98675787,
+    "_debug_position": {
+      "x": -193809830389.0,
+      "y": -4432966890295.0,
+      "z": -1161937115441.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048069587569",
+    "locationName": "Jolia - ZALEE'S POP SHOPPE",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002679,
+    "systemName": "Jolia",
+    "security": 0.507774293422699,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98773864,
+    "_debug_position": {
+      "x": -137213150134.30103,
+      "y": -5082326032.904103,
+      "z": 1683653037753.694
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1041471081074",
+    "locationName": "Otitoh - T1 Shipyard Freeport",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000171,
+    "systemName": "Otitoh",
+    "security": 0.4816668927669525,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98763247,
+    "_debug_position": {
+      "x": -141781320336.0,
+      "y": 20994539012.0,
+      "z": 27326854164.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1035768656499",
+    "locationName": "Muvolailen - Golden Mom's Forge",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002780,
+    "systemName": "Muvolailen",
+    "security": 0.7080867290496826,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98675787,
+    "_debug_position": {
+      "x": -193808038873.0,
+      "y": -4432966902080.0,
+      "z": -1161934846900.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048092080588",
+    "locationName": "Boranai - Capsuckers R Us",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002188,
+    "systemName": "Boranai",
+    "security": 0.8937723636627197,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98756451,
+    "_debug_position": {
+      "x": -679548877.0,
+      "y": -38544915.0,
+      "z": -361582823.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (22 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047243567570",
+    "locationName": "Villore - Dancing Around The Stars",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004993,
+    "systemName": "Villore",
+    "security": 0.8999999761581421,
+    "type": "player",
+    "_debug_type_id": 35833,
+    "_debug_owner_id": 98781132,
+    "_debug_position": {
+      "x": 1623589311815.0,
+      "y": -324621976600.0,
+      "z": -3494511579663.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050129078739",
+    "locationName": "Yuhelia - Little Red Refinery",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003545,
+    "systemName": "Yuhelia",
+    "security": 0.7996093034744263,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": 68411229804.93594,
+      "y": 12436387402.642174,
+      "z": -254244044352.5711
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042187618773",
+    "locationName": "Emolgranlan - Nexus Galactic MOON & ICE Refi",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002548,
+    "systemName": "Emolgranlan",
+    "security": 0.5302433967590332,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98742692,
+    "_debug_position": {
+      "x": 88287872993.0,
+      "y": 11165107800.0,
+      "z": 65564662278.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044793850329",
+    "locationName": "Torvi - Deild Lillian",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003020,
+    "systemName": "Torvi",
+    "security": 0.5303086042404175,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98773160,
+    "_debug_position": {
+      "x": 338029873931.0,
+      "y": 13998668486.0,
+      "z": 722306814482.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049494385116",
+    "locationName": "Ivih - MM2",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001656,
+    "systemName": "Ivih",
+    "security": 0.5485958456993103,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98686779,
+    "_debug_position": {
+      "x": 163085222497.2347,
+      "y": 12318988796.930912,
+      "z": -471474676940.2107
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1034494312928",
+    "locationName": "Col - Freeport",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003904,
+    "systemName": "Col",
+    "security": 0.5267899632453918,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98663618,
+    "_debug_position": {
+      "x": 1733052333588.0,
+      "y": -298439017402.0,
+      "z": -187460690609.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050393149922",
+    "locationName": "Tintoh - Ironworks Foundry",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002784,
+    "systemName": "Tintoh",
+    "security": 0.8133149147033691,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98811063,
+    "_debug_position": {
+      "x": -270221830007.55112,
+      "y": 18171984308.376995,
+      "z": -410845037401.58136
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1041739766245",
+    "locationName": "Nahol - Baumarkt II",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005069,
+    "systemName": "Nahol",
+    "security": 0.5542736649513245,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98790830,
+    "_debug_position": {
+      "x": -1426633196837.0,
+      "y": -1848046314612.0,
+      "z": -707371953865.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049494499813",
+    "locationName": "Ivih - tionscail agus acmhainni",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001656,
+    "systemName": "Ivih",
+    "security": 0.5485958456993103,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98686779,
+    "_debug_position": {
+      "x": 2465862087391.0,
+      "y": 186264061887.0,
+      "z": -826909240397.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1038688705006",
+    "locationName": "Amygnon - Mission City - Reprocessing",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005311,
+    "systemName": "Amygnon",
+    "security": 0.6375686526298523,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98748878,
+    "_debug_position": {
+      "x": -217800095060.0,
+      "y": 31686562584.0,
+      "z": -3994495575113.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050419442165",
+    "locationName": "Boillair - Moon Moon You",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002649,
+    "systemName": "Boillair",
+    "security": 0.5232297778129578,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98735707,
+    "_debug_position": {
+      "x": -37915675099.80015,
+      "y": 6425417485.971854,
+      "z": -137027329363.19072
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1036626948602",
+    "locationName": "Gamis - Tet Hedu Nochard",
+    "regionID": 10000001,
+    "regionName": "Derelik",
+    "systemID": 30000107,
+    "systemName": "Gamis",
+    "security": 0.47390615940093994,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98774797,
+    "_debug_position": {
+      "x": -26347204009.0,
+      "y": 581625649.0,
+      "z": 273928194020.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1028750993915",
+    "locationName": "Kakakela - Brisc Rubal's C.S.M Headquarters",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001405,
+    "systemName": "Kakakela",
+    "security": 0.9722908735275269,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98349609,
+    "_debug_position": {
+      "x": 715742482395.0,
+      "y": -134337908829.0,
+      "z": 283853372107.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1043676142082",
+    "locationName": "Jarkkolen - Structure Construction",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003080,
+    "systemName": "Jarkkolen",
+    "security": 0.8206006288528442,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98732150,
+    "_debug_position": {
+      "x": -3093414113396.0,
+      "y": -30062035933.0,
+      "z": -1125841809031.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050095925764",
+    "locationName": "Heydieles - FREEPORT Components & Equipment",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004979,
+    "systemName": "Heydieles",
+    "security": 0.3066251873970032,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98769010,
+    "_debug_position": {
+      "x": -551164153537.7399,
+      "y": -111170578446.04164,
+      "z": 129281483586.3673
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042292048391",
+    "locationName": "Boystin - 5.5",
+    "regionID": 10000044,
+    "regionName": "Solitude",
+    "systemID": 30003574,
+    "systemName": "Boystin",
+    "security": 0.5230190753936768,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98003267,
+    "_debug_position": {
+      "x": -299792413110.8845,
+      "y": 51884753261.01985,
+      "z": -732588979277.034
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048877429256",
+    "locationName": "57-YRU - FREE ROACH",
+    "regionID": 10000041,
+    "regionName": "Unknown",
+    "systemID": 30003350,
+    "systemName": "57-YRU",
+    "security": -0.005675402004271746,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98792850,
+    "_debug_position": {
+      "x": 1417694166160.2922,
+      "y": 185564717749.43036,
+      "z": 156150678477.2023
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1045193582746",
+    "locationName": "Ekura - MlNER NEEDs - Darkside of a Moon",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001378,
+    "systemName": "Ekura",
+    "security": 0.8764173984527588,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98715264,
+    "_debug_position": {
+      "x": 127544089306.0,
+      "y": 3463117403.0,
+      "z": 2833221366703.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (6 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044140392605",
+    "locationName": "Aurejet - MISRIAH ICE REFINERY",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003915,
+    "systemName": "Aurejet",
+    "security": 0.5006721615791321,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98763136,
+    "_debug_position": {
+      "x": -1363387842517.6934,
+      "y": 14373818500.272444,
+      "z": 89236218367.56415
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047590912164",
+    "locationName": "Junsoraert - Floppy Rocks",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003016,
+    "systemName": "Junsoraert",
+    "security": 0.5241832137107849,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98790436,
+    "_debug_position": {
+      "x": -2267356504.261571,
+      "y": -199526873.64679152,
+      "z": -103026635449.96689
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048717035688",
+    "locationName": "Osoggur - Frontline Haven Logistics",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002506,
+    "systemName": "Osoggur",
+    "security": 0.5315682888031006,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98800037,
+    "_debug_position": {
+      "x": -106242245401.0,
+      "y": 19805690540.0,
+      "z": 239461740922.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044026273960",
+    "locationName": "Villore - Clone Bay",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004993,
+    "systemName": "Villore",
+    "security": 0.8999999761581421,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": 272385496421.0,
+      "y": -53753169470.0,
+      "z": 86122323130.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1039376930993",
+    "locationName": "Yona - Industrial Processing",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30005017,
+    "systemName": "Yona",
+    "security": 0.8251904845237732,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98716365,
+    "_debug_position": {
+      "x": 3957671929892.0,
+      "y": 710540805249.0,
+      "z": -2257645366024.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046327961777",
+    "locationName": "Lari - C.M.G-Minner-5",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001712,
+    "systemName": "Lari",
+    "security": 0.4930323362350464,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98152316,
+    "_debug_position": {
+      "x": 1114139237257.2751,
+      "y": -56355948177.07125,
+      "z": -360012764681.12427
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042017835187",
+    "locationName": "Slays - Pit Pony Free Mine 3",
+    "regionID": 10000048,
+    "regionName": "Placid",
+    "systemID": 30003798,
+    "systemName": "Slays",
+    "security": 0.4871707856655121,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98663091,
+    "_debug_position": {
+      "x": -1027887627619.6017,
+      "y": -54086820151.72551,
+      "z": 3316222696736.2134
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047623024827",
+    "locationName": "Waira - Bby Baller",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002787,
+    "systemName": "Waira",
+    "security": 0.5346838235855103,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98663915,
+    "_debug_position": {
+      "x": -89346913895.69113,
+      "y": 13629349887.18038,
+      "z": 49548200228.401955
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050164527298",
+    "locationName": "Gammel - Sleigh Grove INC R&D public",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003076,
+    "systemName": "Gammel",
+    "security": 0.4655892848968506,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98812032,
+    "_debug_position": {
+      "x": -1560442492661.0,
+      "y": -272857352492.0,
+      "z": -2175177017428.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046642352324",
+    "locationName": "Kemerk - Blueprints Forge",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005206,
+    "systemName": "Kemerk",
+    "security": 0.7669895887374878,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98079655,
+    "_debug_position": {
+      "x": 2670413513449.0,
+      "y": 1890208457986.0,
+      "z": 7378459458220.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047131132102",
+    "locationName": "Sobaseki - Cheapest Market BE SMART",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001363,
+    "systemName": "Sobaseki",
+    "security": 0.8410254716873169,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98788211,
+    "_debug_position": {
+      "x": 1826992524923.0,
+      "y": -2393946431395.0,
+      "z": -1338695417294.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (1000 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1030539397321",
+    "locationName": "Colelie - YC115 Battle of Colelie Memorial",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002682,
+    "systemName": "Colelie",
+    "security": 0.5123888254165649,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98124783,
+    "_debug_position": {
+      "x": 390677866268.0,
+      "y": 78438814480.0,
+      "z": -199544517721.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049659183306",
+    "locationName": "Tarta - NB2-Trotters Grove Moon",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005205,
+    "systemName": "Tarta",
+    "security": 0.49836358428001404,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98771312,
+    "_debug_position": {
+      "x": 819307208088.0,
+      "y": 135432391338.0,
+      "z": -1118200772164.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044752365771",
+    "locationName": "Perimeter - 0.0% Neutral States HQ",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000144,
+    "systemName": "Perimeter",
+    "security": 0.9531232118606567,
+    "type": "player",
+    "_debug_type_id": 35833,
+    "_debug_owner_id": 1639878825,
+    "_debug_position": {
+      "x": 660602910875.0,
+      "y": 44692313578.0,
+      "z": 2112967572473.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (1000 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048291956947",
+    "locationName": "Kamokor - HHI Mother of Invention",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001406,
+    "systemName": "Kamokor",
+    "security": 0.6876963376998901,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98794173,
+    "_debug_position": {
+      "x": 56861013776.0,
+      "y": -7256496389.0,
+      "z": 104324642373.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1045477853396",
+    "locationName": "J154606 - iBeast PUB",
+    "regionID": 11000005,
+    "regionName": "B-R00005",
+    "systemID": 31000528,
+    "systemName": "J154606",
+    "security": -0.9900000095367432,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98250674,
+    "_debug_position": {
+      "x": 1915376678066.8281,
+      "y": 138123017616.18613,
+      "z": 248913302249.9042
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042990573784",
+    "locationName": "Friggi - R&D Division",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000168,
+    "systemName": "Friggi",
+    "security": 0.5091529488563538,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98739542,
+    "_debug_position": {
+      "x": -2645057916156.0,
+      "y": -372416798155.0,
+      "z": 2216007908891.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1045093839064",
+    "locationName": "Hykkota - Ridiculous-House",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000134,
+    "systemName": "Hykkota",
+    "security": 0.8236534595489502,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": -86836366253.0,
+      "y": -5016481032.0,
+      "z": -17945815659.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049130604856",
+    "locationName": "Inari - KMC#2(Refine ICE Perfect)",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002793,
+    "systemName": "Inari",
+    "security": 0.46249669790267944,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98794861,
+    "_debug_position": {
+      "x": -550375222698.3649,
+      "y": -7529714016.170846,
+      "z": 788341110.0166082
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049715364156",
+    "locationName": "Abagawa - The Workshop - Public",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000147,
+    "systemName": "Abagawa",
+    "security": 0.6252975463867188,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98807428,
+    "_debug_position": {
+      "x": 1634939238709.7258,
+      "y": -189621808371.46133,
+      "z": -1385004533415.8223
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042193660223",
+    "locationName": "Mesybier - Sanctuary - Clonebay",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004975,
+    "systemName": "Mesybier",
+    "security": 0.4703787565231323,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": -2111341075579.0,
+      "y": -1065441384240.0,
+      "z": 1689082051745.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046489053514",
+    "locationName": "Usi - Carlos' Hiding Place",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002755,
+    "systemName": "Usi",
+    "security": 0.5437586903572083,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98718344,
+    "_debug_position": {
+      "x": -469605123499.6889,
+      "y": 56837513494.02761,
+      "z": 414371032171.7912
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049979179339",
+    "locationName": "Manatirid - Ice & asteroid refinery",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005230,
+    "systemName": "Manatirid",
+    "security": 0.5485262870788574,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98808950,
+    "_debug_position": {
+      "x": -1895656401239.5203,
+      "y": -79028842058.31427,
+      "z": -2717472806893.3286
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050075500876",
+    "locationName": "Tuomuta - Imperial Refinery P5M2",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003064,
+    "systemName": "Tuomuta",
+    "security": 0.4537486732006073,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98807853,
+    "_debug_position": {
+      "x": -322954915523.22107,
+      "y": -16623566484.214598,
+      "z": 245911444527.47464
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049972789581",
+    "locationName": "Direrie - Ammo and Fuel Production",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002646,
+    "systemName": "Direrie",
+    "security": 0.5015194416046143,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98685597,
+    "_debug_position": {
+      "x": 2921851366.826081,
+      "y": 533542702.12061507,
+      "z": -38244971197.59243
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042569705813",
+    "locationName": "Siyi - Dark Knight Station",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001699,
+    "systemName": "Siyi",
+    "security": 0.5099367499351501,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98054425,
+    "_debug_position": {
+      "x": 1981017800615.9502,
+      "y": -249734268130.91202,
+      "z": 1162875580797.2134
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1022719887708",
+    "locationName": "Matyas - Matyas Labs",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001654,
+    "systemName": "Matyas",
+    "security": 0.5541377663612366,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98793913,
+    "_debug_position": {
+      "x": 4104321055116.0,
+      "y": -466564910887.0,
+      "z": -6394408022398.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047057973596",
+    "locationName": "Javrendei - Compress",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002564,
+    "systemName": "Javrendei",
+    "security": 0.8786523938179016,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98770714,
+    "_debug_position": {
+      "x": 2498222394947.5825,
+      "y": -312379747873.26227,
+      "z": 3220861966127.049
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1022979469662",
+    "locationName": "Ohmahailen - Freeport Industrie",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000136,
+    "systemName": "Ohmahailen",
+    "security": 0.6638108491897583,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 372246426,
+    "_debug_position": {
+      "x": -1209134267850.0,
+      "y": 38874190649.0,
+      "z": -632186710562.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1038983086433",
+    "locationName": "Jan - Open Source React & Repro",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001385,
+    "systemName": "Jan",
+    "security": 0.4169539213180542,
+    "type": "player",
+    "_debug_type_id": 35836,
+    "_debug_owner_id": 98712003,
+    "_debug_position": {
+      "x": -3177841707826.0,
+      "y": 242700933282.0,
+      "z": -891666879712.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049313444193",
+    "locationName": "Niballe - Knohaus",
+    "regionID": 10000044,
+    "regionName": "Solitude",
+    "systemID": 30003580,
+    "systemName": "Niballe",
+    "security": 0.62018883228302,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98760078,
+    "_debug_position": {
+      "x": 53667422943.88094,
+      "y": 4090645270.3189397,
+      "z": -65296345864.309296
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050049438054",
+    "locationName": "Uminas - Swigity",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000184,
+    "systemName": "Uminas",
+    "security": 0.48390915989875793,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98802636,
+    "_debug_position": {
+      "x": -1165278798474.152,
+      "y": 149708047024.8922,
+      "z": 477717430805.82684
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048963324266",
+    "locationName": "J124837 - Countryside Freeport",
+    "regionID": 11000016,
+    "regionName": "D-R00016",
+    "systemID": 31001399,
+    "systemName": "J124837",
+    "security": -0.9900000095367432,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98795104,
+    "_debug_position": {
+      "x": -503560066703.0267,
+      "y": 143046514476.83542,
+      "z": -384139906548.60516
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1021346851184",
+    "locationName": "Eletta - CAS Cloning Center",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005315,
+    "systemName": "Eletta",
+    "security": 0.9435089826583862,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98785374,
+    "_debug_position": {
+      "x": -4031427663695.0,
+      "y": 1906450049662.0,
+      "z": -2567092602781.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1023804021106",
+    "locationName": "Jinkah - Neu Aincrad",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005046,
+    "systemName": "Jinkah",
+    "security": 0.8475490808486938,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 1591583163,
+    "_debug_position": {
+      "x": -278070670116.0,
+      "y": 2239085841528.0,
+      "z": -540943328247.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1035617681782",
+    "locationName": "Nourvukaiken - Project Rigless",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001376,
+    "systemName": "Nourvukaiken",
+    "security": 0.8165567517280579,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98619877,
+    "_debug_position": {
+      "x": -136331772838.0,
+      "y": -1568534630722.0,
+      "z": -607167313045.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1045993707896",
+    "locationName": "Venilen - Pirate Sextoy Factory Memorial",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 30002798,
+    "systemName": "Unknown",
+    "security": null,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98764381,
+    "_debug_position": {
+      "x": -746998736200.162,
+      "y": -110091750917.91115,
+      "z": 249518155959.24323
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049960733415",
+    "locationName": "Shastal - Freeport",
+    "regionID": 10000036,
+    "regionName": "Devoid",
+    "systemID": 30002999,
+    "systemName": "Shastal",
+    "security": 0.4950195252895355,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 1946417895,
+    "_debug_position": {
+      "x": 773605078779.7834,
+      "y": 129488258245.80542,
+      "z": 227370692048.67496
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046653612780",
+    "locationName": "Arant - Cap parts, Components, Structure",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004994,
+    "systemName": "Arant",
+    "security": 0.6047534942626953,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98079655,
+    "_debug_position": {
+      "x": -283960620582.7491,
+      "y": 31216206115.511723,
+      "z": -33080574760.98582
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1040876100335",
+    "locationName": "Slays - Pit Pony Free Mine 2",
+    "regionID": 10000048,
+    "regionName": "Placid",
+    "systemID": 30003798,
+    "systemName": "Slays",
+    "security": 0.4871707856655121,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98663091,
+    "_debug_position": {
+      "x": 4706390010234.0,
+      "y": 247647395555.0,
+      "z": -1329352687369.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050185499376",
+    "locationName": "Tarta - MC rockhard station 2",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005205,
+    "systemName": "Tarta",
+    "security": 0.49836358428001404,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98801931,
+    "_debug_position": {
+      "x": 819261495846.0322,
+      "y": 135424830574.60568,
+      "z": -1119194881575.846
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042833494769",
+    "locationName": "Vay - MlNER NEEDs - we buy ORE",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005318,
+    "systemName": "Vay",
+    "security": 0.758522093296051,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98715264,
+    "_debug_position": {
+      "x": -1786122581326.0,
+      "y": -177429249995.0,
+      "z": 2248261431684.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (199 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049117033201",
+    "locationName": "Vaurent - Forge of Iskareth",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003027,
+    "systemName": "Vaurent",
+    "security": 0.584309995174408,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98802100,
+    "_debug_position": {
+      "x": 627975260518.0,
+      "y": -106425584637.0,
+      "z": 64317483164.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049369156351",
+    "locationName": "Diaderi - Tavdek Manufacturing",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005229,
+    "systemName": "Diaderi",
+    "security": 0.7713307738304138,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98805687,
+    "_debug_position": {
+      "x": -785901559897.0,
+      "y": -31378228211.0,
+      "z": -458617381133.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046902813441",
+    "locationName": "PF-346 - 222",
+    "regionID": 10000041,
+    "regionName": "Syndicate",
+    "systemID": 30003277,
+    "systemName": "PF-346",
+    "security": -0.3520785868167877,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98777549,
+    "_debug_position": {
+      "x": -3165143169118.0,
+      "y": 247503542725.0,
+      "z": -1187739084453.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050225455875",
+    "locationName": "J215431 - Arke Freeport",
+    "regionID": 11000002,
+    "regionName": "A-R00002",
+    "systemID": 31000233,
+    "systemName": "J215431",
+    "security": -0.9900000095367432,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98792854,
+    "_debug_position": {
+      "x": 2447238967453.9814,
+      "y": 16619708223.278349,
+      "z": 24222887128.48401
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048341132035",
+    "locationName": "Nalu - Xeno Manufacturing",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002262,
+    "systemName": "Nalu",
+    "security": 0.5813248753547668,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98797401,
+    "_debug_position": {
+      "x": -801600466750.478,
+      "y": -129179447583.4445,
+      "z": -1428451221398.119
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050377059077",
+    "locationName": "Odebeinn - Orbit City",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003470,
+    "systemName": "Odebeinn",
+    "security": 0.30779996514320374,
+    "type": "player",
+    "_debug_type_id": 35833,
+    "_debug_owner_id": 98628595,
+    "_debug_position": {
+      "x": 489373498263.4433,
+      "y": -7753778213.693971,
+      "z": 915664741517.783
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1039371774728",
+    "locationName": "Stoure - The Stourehouse",
+    "regionID": 10000044,
+    "regionName": "Solitude",
+    "systemID": 30003593,
+    "systemName": "Stoure",
+    "security": 0.722419261932373,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98003267,
+    "_debug_position": {
+      "x": 1657174361226.0,
+      "y": 230744027848.0,
+      "z": -4389159432098.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050392800010",
+    "locationName": "Kaimon - Fine refining",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002751,
+    "systemName": "Kaimon",
+    "security": 0.6860520243644714,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98796845,
+    "_debug_position": {
+      "x": -2574206745548.7075,
+      "y": 400134478809.81354,
+      "z": -4157656104191.955
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1035266839311",
+    "locationName": "Alakgur - Fin's Place",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002512,
+    "systemName": "Alakgur",
+    "security": 0.5588356852531433,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98740317,
+    "_debug_position": {
+      "x": 141540597207.0,
+      "y": -6399291298.0,
+      "z": 144804189266.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050464944913",
+    "locationName": "Raneilles - Port Creo",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005319,
+    "systemName": "Raneilles",
+    "security": 0.5502352118492126,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98489786,
+    "_debug_position": {
+      "x": 1177538927862.2075,
+      "y": 195361162183.6033,
+      "z": -326263320498.9027
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049769403154",
+    "locationName": "Aokannitoh - EVE GURU Industry",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30021407,
+    "systemName": "Aokannitoh",
+    "security": 0.9709233641624451,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98807503,
+    "_debug_position": {
+      "x": 1337325674761.0,
+      "y": 62470597989.0,
+      "z": -415169756197.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048923693850",
+    "locationName": "Seiradih - Cheese's bday station",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002243,
+    "systemName": "Seiradih",
+    "security": 0.5587485432624817,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98733942,
+    "_debug_position": {
+      "x": -50204872768.0,
+      "y": -7989496374.0,
+      "z": 10544465963.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1038515628827",
+    "locationName": "Talidal - Niflheim Station (All Services)",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003889,
+    "systemName": "Talidal",
+    "security": 0.509783148765564,
+    "type": "player",
+    "_debug_type_id": 35833,
+    "_debug_owner_id": 98737865,
+    "_debug_position": {
+      "x": -811704128.0,
+      "y": 489327528.0,
+      "z": -161886632.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (49 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1041937058588",
+    "locationName": "J151045 - Hydra Cordatus",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 31001238,
+    "systemName": "J151045",
+    "security": -0.9900000095367432,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98666242,
+    "_debug_position": {
+      "x": -633194921877.0,
+      "y": -248662898.0,
+      "z": -1844623401580.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049187259408",
+    "locationName": "Eitu - MURU Mining Refinery",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002740,
+    "systemName": "Eitu",
+    "security": 0.5380359292030334,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98521526,
+    "_debug_position": {
+      "x": -728221366095.0,
+      "y": 80370324419.0,
+      "z": 730273950226.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046111775765",
+    "locationName": "Misha - Purple Freeport",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005059,
+    "systemName": "Misha",
+    "security": 0.4948945641517639,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98318413,
+    "_debug_position": {
+      "x": 1074226185453.0,
+      "y": -143045863606.0,
+      "z": -5168281618405.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049380135958",
+    "locationName": "Gamis - Thena's Fractaral Practice",
+    "regionID": 10000001,
+    "regionName": "Derelik",
+    "systemID": 30000107,
+    "systemName": "Gamis",
+    "security": 0.47390615940093994,
+    "type": "player",
+    "_debug_type_id": 35836,
+    "_debug_owner_id": 98802340,
+    "_debug_position": {
+      "x": 32149520187.200115,
+      "y": -709716538.1068606,
+      "z": -111939250232.22873
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1045571230745",
+    "locationName": "Mani - Oh Mani",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001658,
+    "systemName": "Mani",
+    "security": 0.822144627571106,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98771388,
+    "_debug_position": {
+      "x": -71634571625.0,
+      "y": -644404514.0,
+      "z": -905519733105.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050452636698",
+    "locationName": "Danyana - 0.3% Tax",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005044,
+    "systemName": "Danyana",
+    "security": 0.7735881209373474,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98810098,
+    "_debug_position": {
+      "x": 7764035941220.09,
+      "y": -5330738130.862081,
+      "z": -1797914912775.7498
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1037315920925",
+    "locationName": "GZM-KB - VI - Moon 23",
+    "regionID": 10000018,
+    "regionName": "The Spire",
+    "systemID": 30001531,
+    "systemName": "GZM-KB",
+    "security": -0.18591897189617157,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98764948,
+    "_debug_position": {
+      "x": -748057354233.0,
+      "y": -144521964384.0,
+      "z": 868189404084.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048217867294",
+    "locationName": "Amattens - Aurora Research Lab",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003012,
+    "systemName": "Amattens",
+    "security": 0.590050220489502,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98796411,
+    "_debug_position": {
+      "x": 2282508227170.0,
+      "y": -1522992787129.0,
+      "z": 757720835903.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049653699616",
+    "locationName": "Seil - PUBLIC ICE Refinery & Clone",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001657,
+    "systemName": "Seil",
+    "security": 0.5878499746322632,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": -316105877710.0,
+      "y": -62408249036.0,
+      "z": -531259798209.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049497074722",
+    "locationName": "Inari - B I",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002793,
+    "systemName": "Inari",
+    "security": 0.46249669790267944,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98502474,
+    "_debug_position": {
+      "x": 1552678798044.1846,
+      "y": 21242307313.492374,
+      "z": 1434155394308.8928
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050277555236",
+    "locationName": "Balle - MTU - Public Moon - Read Bio",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002634,
+    "systemName": "Balle",
+    "security": 0.4608891010284424,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98749594,
+    "_debug_position": {
+      "x": -5746148885708.665,
+      "y": 310435334969.9767,
+      "z": 2169325863576.4846
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050079960101",
+    "locationName": "Scheenins - BEEDL's Backwater Business",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005310,
+    "systemName": "Scheenins",
+    "security": 0.5374285578727722,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98809356,
+    "_debug_position": {
+      "x": 1759175649025.0,
+      "y": -165674738919.0,
+      "z": 931782093969.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1043667213354",
+    "locationName": "Faktun - Faktunafun",
+    "regionID": 10000036,
+    "regionName": "Devoid",
+    "systemID": 30003002,
+    "systemName": "Faktun",
+    "security": 0.6263664960861206,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": 854116004.0,
+      "y": 170340532.0,
+      "z": 12927592697.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048652710954",
+    "locationName": "Armala - Aegis Labs",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002205,
+    "systemName": "Armala",
+    "security": 0.782163143157959,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98791588,
+    "_debug_position": {
+      "x": -120946947131.0,
+      "y": 23711725786.0,
+      "z": 1408477179107.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048742609973",
+    "locationName": "Otalieto - Candy Rose",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001421,
+    "systemName": "Otalieto",
+    "security": 0.5134408473968506,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98735393,
+    "_debug_position": {
+      "x": -11712329.0,
+      "y": 62329388.0,
+      "z": -312882505.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047793763383",
+    "locationName": "Bashakru - Ice Compress and Refine",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002199,
+    "systemName": "Bashakru",
+    "security": 0.6445600986480713,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": -267190468967.0,
+      "y": -39706578864.0,
+      "z": -8080004353.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049830720572",
+    "locationName": "Ronne - Builders Paradise Public R&D",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003081,
+    "systemName": "Ronne",
+    "security": 0.7241339087486267,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98805208,
+    "_debug_position": {
+      "x": 4744281567.709864,
+      "y": -223061434.08759946,
+      "z": -108397558019.40242
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046653912126",
+    "locationName": "Arant - Advanced Shipyard",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004994,
+    "systemName": "Arant",
+    "security": 0.6047534942626953,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98079655,
+    "_debug_position": {
+      "x": -283960959599.0,
+      "y": 31216239243.0,
+      "z": -33081698603.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048359777342",
+    "locationName": "Airaken - FREE HUGS",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000185,
+    "systemName": "Airaken",
+    "security": 0.5039919018745422,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98797160,
+    "_debug_position": {
+      "x": 1364586952814.0,
+      "y": 157156510726.0,
+      "z": -3627089312586.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049391270975",
+    "locationName": "Finanar - ICE Public 2,5% Tax",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003442,
+    "systemName": "Finanar",
+    "security": 0.5322368741035461,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98811506,
+    "_debug_position": {
+      "x": 80491349925.0,
+      "y": -7919380395.0,
+      "z": -174987945899.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050178552900",
+    "locationName": "Saheri - ROCK SHACK",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 30003518,
+    "systemName": "Unknown",
+    "security": null,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98800607,
+    "_debug_position": {
+      "x": -279208345482.77124,
+      "y": -34213062887.615444,
+      "z": -178177963458.97333
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050061176110",
+    "locationName": "Gererique - Loot Fairy's Temple",
+    "regionID": 10000044,
+    "regionName": "Solitude",
+    "systemID": 30003586,
+    "systemName": "Gererique",
+    "security": 0.6646057367324829,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98676950,
+    "_debug_position": {
+      "x": -1536080481306.0713,
+      "y": -226771619619.75568,
+      "z": -1386122794793.8948
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1041349094705",
+    "locationName": "Mesybier - Research Laboratory",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004975,
+    "systemName": "Mesybier",
+    "security": 0.4703787565231323,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": -968492788104.0,
+      "y": -195997861256.0,
+      "z": 165789345483.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1045498692914",
+    "locationName": "Anzalaisio - Confederate Production Center",
+    "regionID": 10000067,
+    "regionName": "Genesis",
+    "systemID": 30005252,
+    "systemName": "Anzalaisio",
+    "security": 0.4545564651489258,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98742402,
+    "_debug_position": {
+      "x": 1371349643108.44,
+      "y": -112875225106.87535,
+      "z": 4088546048774.8022
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1045100225844",
+    "locationName": "Anbald - BPBL Research Labs",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003398,
+    "systemName": "Anbald",
+    "security": 0.7037965059280396,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98345858,
+    "_debug_position": {
+      "x": 44597309760.45575,
+      "y": -7294423208.271274,
+      "z": -70545816170.56412
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1040704957750",
+    "locationName": "Palas - Refinery and Moon",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003878,
+    "systemName": "Palas",
+    "security": 0.5059964656829834,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98738098,
+    "_debug_position": {
+      "x": 1266232266035.0,
+      "y": 38107424049.0,
+      "z": -1322727175208.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050387125562",
+    "locationName": "Stegette - Gus' Galaxy Grill",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002696,
+    "systemName": "Stegette",
+    "security": 0.45317283272743225,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98810642,
+    "_debug_position": {
+      "x": 374010419607.63617,
+      "y": -3378696361.0933304,
+      "z": 329602307553.2525
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047787300154",
+    "locationName": "Tsuguwa - B.R.U.C.E. FREEPORT",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001375,
+    "systemName": "Tsuguwa",
+    "security": 0.7693231105804443,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98723297,
+    "_debug_position": {
+      "x": -5116697558368.0,
+      "y": 901132244862.0,
+      "z": 367411822541.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050289466690",
+    "locationName": "Hapala - The swallow's nest",
+    "regionID": 10000052,
+    "regionName": "Kador",
+    "systemID": 30004145,
+    "systemName": "Hapala",
+    "security": 0.8826743960380554,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98546639,
+    "_debug_position": {
+      "x": 901383412.0,
+      "y": 111075080.0,
+      "z": -233333196765.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050452200772",
+    "locationName": "Anjedin - HomeSweetHome",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001647,
+    "systemName": "Anjedin",
+    "security": 0.515754222869873,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98734691,
+    "_debug_position": {
+      "x": 977366835018.479,
+      "y": 114868533767.82014,
+      "z": 7752563286991.002
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049803785546",
+    "locationName": "Sileperer - SLTK Holding",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002689,
+    "systemName": "Sileperer",
+    "security": 0.6174616813659668,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98807727,
+    "_debug_position": {
+      "x": -767759741704.0,
+      "y": 132355871403.0,
+      "z": -823319930669.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044646569290",
+    "locationName": "Slays - Pit Pony Free Mine 4",
+    "regionID": 10000048,
+    "regionName": "Placid",
+    "systemID": 30003798,
+    "systemName": "Slays",
+    "security": 0.4871707856655121,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98663091,
+    "_debug_position": {
+      "x": -932812587055.0,
+      "y": -49084031127.0,
+      "z": 690859057940.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042185913676",
+    "locationName": "Hothomouh - Free Pitstop",
+    "regionID": 10000001,
+    "regionName": "Derelik",
+    "systemID": 30000111,
+    "systemName": "Hothomouh",
+    "security": 0.42298102378845215,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98670807,
+    "_debug_position": {
+      "x": 638839262106.0,
+      "y": -89218986859.0,
+      "z": -1131056437170.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1038989086029",
+    "locationName": "J104210 - Freeport ISBN 978-1936373437",
+    "regionID": 11000005,
+    "regionName": "B-R00005",
+    "systemID": 31000491,
+    "systemName": "J104210",
+    "security": -0.9900000095367432,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98762292,
+    "_debug_position": {
+      "x": -3806123988783.0,
+      "y": -49537797868.0,
+      "z": -316718569530.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1038083921230",
+    "locationName": "Anka - Faith and Fabrications",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003071,
+    "systemName": "Anka",
+    "security": 0.4145998954772949,
+    "type": "player",
+    "_debug_type_id": 35827,
+    "_debug_owner_id": 813681025,
+    "_debug_position": {
+      "x": 556310364806.0,
+      "y": 92026050862.0,
+      "z": -3592103745887.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047103937872",
+    "locationName": "Lari - C.M.G-Eng-1",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001712,
+    "systemName": "Lari",
+    "security": 0.4930323362350464,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98152316,
+    "_debug_position": {
+      "x": 1638148224881.0,
+      "y": -82860561283.0,
+      "z": -5700025415426.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050120746321",
+    "locationName": "Yuhelia - Big Yellow Clone & Fab",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003545,
+    "systemName": "Yuhelia",
+    "security": 0.7996093034744263,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": 68411204097.42144,
+      "y": 12436408691.1482,
+      "z": -254242894687.19962
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048138777945",
+    "locationName": "Eletta - Sanitarium +42% ME+Copy",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005315,
+    "systemName": "Eletta",
+    "security": 0.9435089826583862,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98747703,
+    "_debug_position": {
+      "x": -1449087118495.0,
+      "y": 278743448587.0,
+      "z": 4438985394029.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048543794526",
+    "locationName": "Barmalie - Science Center MDM.A",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002683,
+    "systemName": "Barmalie",
+    "security": 0.4764906167984009,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98636218,
+    "_debug_position": {
+      "x": -260887198222.73492,
+      "y": 379952822019.2543,
+      "z": 591164887309.7958
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048777803104",
+    "locationName": "Ogoten - Manufacturing & Research",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003437,
+    "systemName": "Ogoten",
+    "security": 0.7110894322395325,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98739429,
+    "_debug_position": {
+      "x": 1624175660064.0,
+      "y": -163052789552.0,
+      "z": 202420742288.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050277643413",
+    "locationName": "Deltole - MTU - Public Moon - Read Bio",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002681,
+    "systemName": "Deltole",
+    "security": 0.5404728055000305,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98749594,
+    "_debug_position": {
+      "x": 1965656032826.0,
+      "y": 192228386211.0,
+      "z": 1368329956727.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042667101333",
+    "locationName": "Latari - Open House",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005075,
+    "systemName": "Latari",
+    "security": 0.5620496273040771,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98150239,
+    "_debug_position": {
+      "x": -6904332814.0,
+      "y": 802294331.0,
+      "z": -3116599527444.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042885612697",
+    "locationName": "Yoma - Mining ink",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001427,
+    "systemName": "Yoma",
+    "security": 0.6474514603614807,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 184505725,
+    "_debug_position": {
+      "x": -1990242725125.0,
+      "y": 260383441179.0,
+      "z": 761694201766.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1041340503195",
+    "locationName": "Mesybier - Public Refinery - P7M3 - Online",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004975,
+    "systemName": "Mesybier",
+    "security": 0.4703787565231323,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": -968495151616.0,
+      "y": -195997870789.0,
+      "z": 165792640163.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049391072416",
+    "locationName": "Scheenins - VDI Shipyard",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005310,
+    "systemName": "Scheenins",
+    "security": 0.5374285578727722,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98804791,
+    "_debug_position": {
+      "x": 4032767518869.0,
+      "y": 12079468911.0,
+      "z": 3865016202302.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046176601248",
+    "locationName": "Lari - Mooner",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001712,
+    "systemName": "Lari",
+    "security": 0.4930323362350464,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98775410,
+    "_debug_position": {
+      "x": 1116135470417.0,
+      "y": -56456928234.0,
+      "z": -349830580630.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1026756146338",
+    "locationName": "Gusandall - Waypoint Station",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002556,
+    "systemName": "Gusandall",
+    "security": 0.37658458948135376,
+    "type": "player",
+    "_debug_type_id": 35833,
+    "_debug_owner_id": 98467237,
+    "_debug_position": {
+      "x": -3440061641.0,
+      "y": -268281621.0,
+      "z": -1157309468293.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046626888869",
+    "locationName": "Arant - T1 All Ores Repro",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004994,
+    "systemName": "Arant",
+    "security": 0.6047534942626953,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98079655,
+    "_debug_position": {
+      "x": -283959679871.26373,
+      "y": 31216112958.09107,
+      "z": -33077320470.031986
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1039069179051",
+    "locationName": "Anbald - The Waiting Room",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003398,
+    "systemName": "Anbald",
+    "security": 0.7037965059280396,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98671032,
+    "_debug_position": {
+      "x": 165188392246.0,
+      "y": 73704347515.0,
+      "z": 1885762026082.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1027375934642",
+    "locationName": "Torrinos - FREEPORT MARKET AND CLONES",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001429,
+    "systemName": "Torrinos",
+    "security": 0.5196676850318909,
+    "type": "player",
+    "_debug_type_id": 35833,
+    "_debug_owner_id": 98349609,
+    "_debug_position": {
+      "x": 25213017674.0,
+      "y": 998974944.0,
+      "z": 72882914033.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (16 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1034822050995",
+    "locationName": "Mosson - Helius",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003021,
+    "systemName": "Mosson",
+    "security": 0.6565800905227661,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98651378,
+    "_debug_position": {
+      "x": -703056594051.0,
+      "y": -136135471497.0,
+      "z": -121954117097.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050448772277",
+    "locationName": "Hardbako - Free Overheat",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003418,
+    "systemName": "Hardbako",
+    "security": 0.727252721786499,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98812102,
+    "_debug_position": {
+      "x": -1613073450.2419894,
+      "y": 59178149.27920189,
+      "z": -2144678522.55858
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049519772855",
+    "locationName": "Inari - Manufacturing&Research",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002793,
+    "systemName": "Inari",
+    "security": 0.46249669790267944,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98802420,
+    "_debug_position": {
+      "x": -549605669269.0,
+      "y": -7519184724.0,
+      "z": 3062192524.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1043343410361",
+    "locationName": "Lari - Reork Neros Memorial",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001712,
+    "systemName": "Lari",
+    "security": 0.4930323362350464,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 144245199,
+    "_debug_position": {
+      "x": 443104157945.0,
+      "y": -22413314279.0,
+      "z": 133689857455.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044229741759",
+    "locationName": "Magiko - Tortuga",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002570,
+    "systemName": "Magiko",
+    "security": 0.9383020401000977,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98762306,
+    "_debug_position": {
+      "x": 174711264556.0,
+      "y": 18710810109.0,
+      "z": 71121074725.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044823954625",
+    "locationName": "Usi - Freeport & Reprocessing",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002755,
+    "systemName": "Usi",
+    "security": 0.5437586903572083,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98718344,
+    "_debug_position": {
+      "x": -469550767156.0,
+      "y": 56830930173.0,
+      "z": 414011104565.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049571935432",
+    "locationName": "Inari - B II",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002793,
+    "systemName": "Inari",
+    "security": 0.46249669790267944,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98502474,
+    "_debug_position": {
+      "x": 16525501292.133656,
+      "y": 226085227.76054937,
+      "z": -214696242095.68515
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047801021641",
+    "locationName": "Amane - Public Manufactoring Plant",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004983,
+    "systemName": "Amane",
+    "security": 0.5528478622436523,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98790947,
+    "_debug_position": {
+      "x": -1439383345635.0,
+      "y": -118865193984.0,
+      "z": 993290111386.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044910892233",
+    "locationName": "Ainsan - Neo's Home (Shits free rocks)",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003895,
+    "systemName": "Ainsan",
+    "security": 0.4730616509914398,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98723633,
+    "_debug_position": {
+      "x": -3133954650814.0,
+      "y": 275878510675.0,
+      "z": -303602910703.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049809632458",
+    "locationName": "Hageken - Research",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 30001367,
+    "systemName": "Unknown",
+    "security": null,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98796902,
+    "_debug_position": {
+      "x": -1375945338377.084,
+      "y": 70208719655.89442,
+      "z": -2083899171379.7961
+    },
+    "_debug_services": [],
+    "_debug_market_status": "HTTP 420",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048217389947",
+    "locationName": "Junsoraert - Rock bottom",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003016,
+    "systemName": "Junsoraert",
+    "security": 0.5241832137107849,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98796411,
+    "_debug_position": {
+      "x": 2304287481065.4424,
+      "y": 202779247342.3875,
+      "z": -2213091454487.202
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1048444699516",
+    "locationName": "Frarn - FUEGO Market - Lowest Tax - 0.2%",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002526,
+    "systemName": "Frarn",
+    "security": 0.8389708995819092,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98721593,
+    "_debug_position": {
+      "x": -462872815914.5963,
+      "y": -63999319072.64977,
+      "z": -4570181211635.681
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (1000 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1044164309897",
+    "locationName": "Mora - MlNER NEEDs - The Rings of Mora",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005037,
+    "systemName": "Mora",
+    "security": 0.9325241446495056,
+    "type": "player",
+    "_debug_type_id": 35826,
+    "_debug_owner_id": 98715264,
+    "_debug_position": {
+      "x": 515262561104.0,
+      "y": -60183794860.0,
+      "z": 327479374866.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (5 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1046071450507",
+    "locationName": "Nuzair - Public refinery 2.0% Tax",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001665,
+    "systemName": "Nuzair",
+    "security": 0.535057008266449,
+    "type": "player",
+    "_debug_type_id": 35836,
+    "_debug_owner_id": 98765053,
+    "_debug_position": {
+      "x": 109466076907.0,
+      "y": -17610803426.0,
+      "z": 45456072856.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1042223782798",
+    "locationName": "Teonusude - Nexus Galactic Heathens Market",
+    "regionID": 10000028,
+    "regionName": "Molden Heath",
+    "systemID": 30002385,
+    "systemName": "Teonusude",
+    "security": 0.5863137245178223,
+    "type": "player",
+    "_debug_type_id": 35833,
+    "_debug_owner_id": 98742692,
+    "_debug_position": {
+      "x": 12496696622560.0,
+      "y": 918990907585.0,
+      "z": -1738790286207.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Public market confirmed (6 orders)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1043447911311",
+    "locationName": "Huola - Freeport Manufacturing Nexus",
+    "regionID": 10000038,
+    "regionName": "The Bleak Lands",
+    "systemID": 30003067,
+    "systemName": "Huola",
+    "security": 0.37024858593940735,
+    "type": "player",
+    "_debug_type_id": 35827,
+    "_debug_owner_id": 98743927,
+    "_debug_position": {
+      "x": -1764827502928.0,
+      "y": -228636306180.0,
+      "z": -3296063498788.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049988385678",
+    "locationName": "Uplingur - Ammatar Chemical Center",
+    "regionID": 10000001,
+    "regionName": "Derelik",
+    "systemID": 30000037,
+    "systemName": "Uplingur",
+    "security": 0.4220693111419678,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98808845,
+    "_debug_position": {
+      "x": -4242128113228.0,
+      "y": 1730047953948.0,
+      "z": 3929240372635.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049100499855",
+    "locationName": "Arraron - New Eden Watch Mining Division",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005330,
+    "systemName": "Arraron",
+    "security": 0.471987247467041,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98802679,
+    "_debug_position": {
+      "x": -1077345359443.8795,
+      "y": 109157617230.38272,
+      "z": -436082332362.53125
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1050113788815",
+    "locationName": "Dimoohan - Onlycrabs",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003924,
+    "systemName": "Dimoohan",
+    "security": 0.2159339338541031,
+    "type": "player",
+    "_debug_type_id": 35832,
+    "_debug_owner_id": 98564796,
+    "_debug_position": {
+      "x": -132703510429.0,
+      "y": -10358592945.0,
+      "z": -90347107399.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1040348052374",
+    "locationName": "Bashyam - May the FORGE be with you",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003908,
+    "systemName": "Bashyam",
+    "security": 0.4711262285709381,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98746229,
+    "_debug_position": {
+      "x": 4954231583931.0,
+      "y": -69582123008.0,
+      "z": 134997053996.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1025589930902",
+    "locationName": "Matyas - BPRM-Stank Tank",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001654,
+    "systemName": "Matyas",
+    "security": 0.5541377663612366,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98793913,
+    "_debug_position": {
+      "x": 3967328253370.0,
+      "y": -457064868692.0,
+      "z": -6364621318740.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1037313799064",
+    "locationName": "T6T-BQ - VIII - Moon 2",
+    "regionID": 10000018,
+    "regionName": "The Spire",
+    "systemID": 30001548,
+    "systemName": "T6T-BQ",
+    "security": -0.6726597547531128,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98764948,
+    "_debug_position": {
+      "x": 1372464524467.0,
+      "y": -26488257181.0,
+      "z": 1122695071616.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049729411996",
+    "locationName": "J171813 - Freeport Ant Farm",
+    "regionID": 11000012,
+    "regionName": "C-R00012",
+    "systemID": 31001081,
+    "systemName": "J171813",
+    "security": -0.9900000095367432,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98803366,
+    "_debug_position": {
+      "x": -257325415686.0,
+      "y": -16419108884.0,
+      "z": -52909713846.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049259697056",
+    "locationName": "Augnais - Project Cat. Testing Facility",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002680,
+    "systemName": "Augnais",
+    "security": 0.5398107767105103,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98788096,
+    "_debug_position": {
+      "x": 3993705935656.0,
+      "y": 209745872669.0,
+      "z": -1531586797919.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049552552872",
+    "locationName": "Atier - Refining",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002701,
+    "systemName": "Atier",
+    "security": 0.626695454120636,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98774246,
+    "_debug_position": {
+      "x": -2239331360688.5273,
+      "y": 188817343580.22784,
+      "z": 1166708181691.1604
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1047146738603",
+    "locationName": "Frarolle - Fuelstation",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003036,
+    "systemName": "Frarolle",
+    "security": 0.7904602885246277,
+    "type": "player",
+    "_debug_type_id": 35825,
+    "_debug_owner_id": 98744679,
+    "_debug_position": {
+      "x": -108164518128.0,
+      "y": -16078868397.0,
+      "z": 3899188283204.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049514361775",
+    "locationName": "Aurejet - A.M.E.L.I.E",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003915,
+    "systemName": "Aurejet",
+    "security": 0.5006721615791321,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98762828,
+    "_debug_position": {
+      "x": 181896136106.46478,
+      "y": -1917680327.458312,
+      "z": 16931617390.209417
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1049982731184",
+    "locationName": "Perimeter - JITA REFINERY 1% TAX",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000144,
+    "systemName": "Perimeter",
+    "security": 0.9531232118606567,
+    "type": "player",
+    "_debug_type_id": 35836,
+    "_debug_owner_id": 98053031,
+    "_debug_position": {
+      "x": 660603292973.0,
+      "y": 44692416169.0,
+      "z": 2112956847099.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "Access forbidden (private market or no access)",
+    "_debug_has_market_service": true
+  },
+  {
+    "stationID": "1043528575927",
+    "locationName": "Asgeir - Cosmic Refinery & Compression",
+    "regionID": null,
+    "regionName": "Unknown",
+    "systemID": 30003384,
+    "systemName": "Unknown",
+    "security": null,
+    "type": "player",
+    "_debug_type_id": 35835,
+    "_debug_owner_id": 98673685,
+    "_debug_position": {
+      "x": 63665932853.0,
+      "y": 8057036898.0,
+      "z": -108919813354.0
+    },
+    "_debug_services": [],
+    "_debug_market_status": "HTTP 420",
+    "_debug_has_market_service": true
+  }
+]
