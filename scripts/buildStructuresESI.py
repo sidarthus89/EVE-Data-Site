@@ -521,6 +521,50 @@ class EVEStructureScraper:
             print(f"  - {status}: {count}")
         print(f"================================")
 
+        print(f"\nPost-processing: Resolving unknown names...")
+
+        # Collect all IDs that need name resolution
+        unknown_structure_ids = []
+        unknown_system_ids = []
+        unknown_region_ids = []
+
+        for structure in all_structures:
+            if structure['locationName'] == 'Unknown':
+                # Extract structure ID from stationID string
+                structure_id = int(structure['stationID'])
+                unknown_structure_ids.append(structure_id)
+
+            if structure['systemName'] == 'Unknown' and structure['systemID']:
+                unknown_system_ids.append(structure['systemID'])
+
+            if structure['regionName'] == 'Unknown' and structure['regionID']:
+                unknown_region_ids.append(structure['regionID'])
+
+        # Batch resolve names
+        all_unknown_ids = unknown_structure_ids + \
+            unknown_system_ids + unknown_region_ids
+        if all_unknown_ids:
+            print(f"Resolving {len(all_unknown_ids)} unknown names...")
+            resolved_names = self.get_names_from_ids(all_unknown_ids)
+
+            # Update structures with resolved names
+            for structure in all_structures:
+                structure_id = int(structure['stationID'])
+
+                # Update structure names
+                if structure['locationName'] == 'Unknown' and structure_id in resolved_names:
+                    structure['locationName'] = resolved_names[structure_id]
+
+                # Update system names
+                if structure['systemName'] == 'Unknown' and structure['systemID'] in resolved_names:
+                    structure['systemName'] = resolved_names[structure['systemID']]
+
+                # Update region names
+                if structure['regionName'] == 'Unknown' and structure['regionID'] in resolved_names:
+                    structure['regionName'] = resolved_names[structure['regionID']]
+
+            print(f"Resolved names for {len(resolved_names)} items")
+
         print(
             f"\nFound {len(all_structures)} structures with markets or market services")
         return all_structures

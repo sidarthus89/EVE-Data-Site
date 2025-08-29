@@ -1,197 +1,112 @@
 // azure-function-deploy/market_history/index.js
-let sql;
-try {
-    sql = require('mssql');
-} catch (err) {
-    module.exports = async function (context, req) {
-        context.log.error('❌ Failed to load mssql module:', err.message);
-        context.res = {
-            status: 500,
-            body: { error: 'Module load failure', message: err.message }
-        };
-    };
-    return;
-}
+// Minimal test version to isolate the module loading issue
 
-
-// Helper function to set consistent CORS headers
-function setCorsHeaders() {
-    return {
+module.exports = async function (context, req) {
+    const headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': 'https://sidarthus89.github.io',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Max-Age': '86400'
     };
-}
 
-module.exports = async function (context, req) {
     try {
-        context.log('🚀 Function started');
+        context.log('Function started - Basic test');
 
-        // Handle CORS preflight requests
+        // Handle CORS preflight
         if (req.method === 'OPTIONS') {
-            context.log('✅ CORS preflight request handled');
-            context.res = {
-                status: 200,
-                headers: setCorsHeaders()
-            };
+            context.log('CORS preflight handled');
+            context.res = { status: 200, headers: headers };
             return;
         }
 
-        context.log('📋 Request details:', {
-            method: req.method,
-            query: req.query,
-            url: req.url
-        });
+        // Test 1: Basic function works
+        context.log('Test 1: Basic function execution');
 
-        // Parse query parameters
-        const typeId = req.query.type_id;
-        const regionId = req.query.region_id;
-        const days = req.query.days ? parseInt(req.query.days) : 30;
-
-        context.log('🔍 Parsed parameters:', { typeId, regionId, days });
-
-        if (!typeId || !regionId) {
-            context.log('❌ Missing parameters');
-            context.res = {
-                status: 400,
-                headers: setCorsHeaders(),
-                body: {
-                    error: 'Missing type_id or region_id query parameter.',
-                    received: { type_id: typeId, region_id: regionId }
-                }
-            };
-            return;
-        }
-
-        // Check environment variables first
-        context.log('🔐 Environment variables check:', {
+        // Test 2: Environment variables
+        const envTest = {
+            NODE_VERSION: process.version,
+            NODE_ENV: process.env.NODE_ENV || 'not set',
             DB_SERVER: process.env.DB_SERVER ? 'SET' : 'NOT SET',
             DB_NAME: process.env.DB_NAME ? 'SET' : 'NOT SET',
             DB_USER: process.env.DB_USER ? 'SET' : 'NOT SET',
             DB_PASSWORD: process.env.DB_PASSWORD ? 'SET' : 'NOT SET'
-        });
+        };
+        context.log('Environment test:', envTest);
 
-        if (!process.env.DB_SERVER || !process.env.DB_NAME || !process.env.DB_USER || !process.env.DB_PASSWORD) {
-            context.log('❌ Missing required environment variables');
-            context.res = {
-                status: 500,
-                headers: setCorsHeaders(),
-                body: {
-                    error: 'Server configuration error',
-                    message: 'Missing database connection parameters'
-                }
+        // Test 3: Try to require mssql
+        let msqlTest = { status: 'not_attempted', error: null, version: null };
+        try {
+            context.log('Attempting to require mssql...');
+            const sql = require('mssql');
+            msqlTest.status = 'success';
+            msqlTest.version = sql.version || 'version_unknown';
+            context.log('mssql module loaded successfully');
+        } catch (requireError) {
+            msqlTest.status = 'failed';
+            msqlTest.error = {
+                message: requireError.message,
+                code: requireError.code,
+                stack: requireError.stack
             };
-            return;
+            context.log.error('Failed to require mssql:', requireError);
         }
 
-        // Database configuration
-        const config = {
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            server: process.env.DB_SERVER,
-            database: process.env.DB_NAME,
-            options: {
-                encrypt: true,
-                enableArithAbort: true,
-                trustServerCertificate: false
-            },
-            pool: {
-                max: 10,
-                min: 0,
-                idleTimeoutMillis: 30000
-            },
-            connectionTimeout: 30000,
-            requestTimeout: 30000
+        // Test 4: File system check (if possible)
+        let fsTest = { status: 'not_attempted', error: null };
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const currentDir = process.cwd();
+            const files = fs.readdirSync(currentDir);
+            fsTest.status = 'success';
+            fsTest.currentDir = currentDir;
+            fsTest.files = files;
+            context.log('File system check:', { currentDir, files });
+        } catch (fsError) {
+            fsTest.status = 'failed';
+            fsTest.error = fsError.message;
+            context.log.error('File system check failed:', fsError);
+        }
+
+        // Return comprehensive test results
+        context.res = {
+            status: 200,
+            headers: headers,
+            body: {
+                success: true,
+                timestamp: new Date().toISOString(),
+                tests: {
+                    basic_function: 'passed',
+                    environment: envTest,
+                    mssql_module: msqlTest,
+                    file_system: fsTest
+                },
+                query_params: req.query || {},
+                function_info: {
+                    invocation_id: context.invocationId,
+                    function_name: context.functionName,
+                    execution_context: typeof context.executionContext !== 'undefined' ? 'available' : 'not_available'
+                }
+            }
         };
 
-        context.log('🔌 Attempting database connection...');
-
-        try {
-            // Test basic connection
-            const pool = new sql.ConnectionPool(config);
-            await pool.connect();
-
-            context.log('✅ Database connected successfully');
-
-            const request = pool.request();
-            request.input('typeId', sql.Int, parseInt(typeId));
-            request.input('regionId', sql.Int, parseInt(regionId));
-            request.input('days', sql.Int, days);
-
-            context.log('📊 Executing query...');
-
-            const query = `
-                SELECT TOP 10
-                    region_id,
-                    type_id,
-                    date,
-                    average,
-                    highest,
-                    lowest,
-                    order_count,
-                    volume
-                FROM price_history
-                WHERE type_id = @typeId
-                    AND region_id = @regionId
-                    AND date >= DATEADD(day, -@days, CAST(GETDATE() AS DATE))
-                ORDER BY date DESC;
-            `;
-
-            const result = await request.query(query);
-
-            context.log('✅ Query executed. Records found:', result.recordset.length);
-
-            await pool.close();
-
-            context.res = {
-                status: 200,
-                headers: setCorsHeaders(),
-                body: {
-                    success: true,
-                    data: result.recordset,
-                    meta: {
-                        type_id: parseInt(typeId),
-                        region_id: parseInt(regionId),
-                        days: days,
-                        record_count: result.recordset.length
-                    }
-                }
-            };
-
-        } catch (dbError) {
-            context.log.error('❌ Database connection/query error:', {
-                message: dbError.message,
-                code: dbError.code,
-                number: dbError.number,
-                state: dbError.state,
-                originalError: dbError.originalError
-            });
-
-            context.res = {
-                status: 500,
-                headers: setCorsHeaders(),
-                body: {
-                    error: 'Database error',
-                    message: dbError.message,
-                    code: dbError.code
-                }
-            };
-        }
-
     } catch (generalError) {
-        context.log.error('💥 General function error:', {
+        context.log.error('General function error:', {
             message: generalError.message,
-            stack: generalError.stack
+            stack: generalError.stack,
+            name: generalError.name
         });
 
         context.res = {
             status: 500,
-            headers: setCorsHeaders(),
+            headers: headers,
             body: {
                 error: 'Function execution error',
-                message: generalError.message
+                message: generalError.message,
+                name: generalError.name,
+                stack: generalError.stack,
+                timestamp: new Date().toISOString()
             }
         };
     }
