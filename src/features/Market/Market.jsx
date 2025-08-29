@@ -377,6 +377,11 @@ export default function Market() {
         }, 100);
     };
 
+    useEffect(() => {
+        console.log('Debug: selectedItem', selectedItem);
+        console.log('Debug: selectedRegion', selectedRegion);
+    }, [selectedItem, selectedRegion]);
+
     return (
         <div className="market">
             {marketTreeError && (

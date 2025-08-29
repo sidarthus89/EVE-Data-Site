@@ -70,14 +70,28 @@ export async function fetchMarketSummary(typeId, regionId = null) {
 
 export async function fetchMarketHistory(type_id, region_id, days = 30) {
     const url = `https://evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net/api/market/history?type_id=${type_id}&region_id=${region_id}&days=${days}`;
+    console.log(`📈 Fetching market history: type_id=${type_id}, region_id=${region_id}, days=${days}`);
+    console.log(`📈 URL: ${url}`);
+
     try {
         const response = await fetch(url);
+        console.log(`📈 Response status: ${response.status} ${response.statusText}`);
+
         if (!response.ok) {
-            throw new Error(`Failed to fetch market history: ${response.statusText}`);
+            throw new Error(`Failed to fetch market history: ${response.statusText} (${response.status})`);
         }
-        return await response.json();
+
+        const data = await response.json();
+        console.log(`📈 Received data:`, {
+            isArray: Array.isArray(data),
+            length: Array.isArray(data) ? data.length : 'not array',
+            type: typeof data,
+            sample: Array.isArray(data) && data.length > 0 ? data[0] : data
+        });
+
+        return data;
     } catch (error) {
-        console.error('Error in fetchMarketHistory:', error);
+        console.error(`📈 Error in fetchMarketHistory for type_id=${type_id}, region_id=${region_id}:`, error);
         throw error;
     }
 }
@@ -88,11 +102,32 @@ export async function fetchAggregatedOrders(typeId, regionId) {
 }
 
 export async function fetchUniverseMarketHistory(typeId) {
+    console.log('🌍 fetchUniverseMarketHistory called with typeID:', typeId, typeof typeId);
+
     const hubs = [10000002, 10000043, 10000032, 10000030, 10000042]; // major trade hub regions
-    const historyLists = await Promise.all(hubs.map(rid => fetchMarketHistory(typeId, rid)));
+    console.log('🌍 Fetching from hubs:', hubs);
+
+    const historyLists = await Promise.all(hubs.map(async (rid) => {
+        try {
+            console.log(`🌍 Fetching hub ${rid} for typeID ${typeId}`);
+            const result = await fetchMarketHistory(typeId, rid);
+            console.log(`🌍 Hub ${rid} returned:`, result ? result.length : 'null', 'items');
+            if (result && result.length > 0) {
+                console.log(`🌍 Sample data from hub ${rid}:`, result[0]);
+            }
+            return result;
+        } catch (error) {
+            console.error(`🌍 Hub ${rid} failed:`, error);
+            return [];
+        }
+    }));
+
+    console.log('🌍 All hub responses:', historyLists.map(list => Array.isArray(list) ? list.length : 'not array'));
+
     // Aggregate by date across all regions
     const dateMap = new Map();
-    historyLists.forEach(list => {
+    historyLists.forEach((list, index) => {
+        console.log(`🌍 Processing hub ${hubs[index]} with ${Array.isArray(list) ? list.length : 'not array'} items`);
         if (Array.isArray(list)) {
             list.forEach(entry => {
                 const date = entry.date;
@@ -117,6 +152,9 @@ export async function fetchUniverseMarketHistory(typeId) {
             });
         }
     });
+
+    console.log('🌍 Date map size:', dateMap.size);
+
     // Convert to array with weighted average
     const aggregated = Array.from(dateMap.values())
         .map(item => ({
@@ -128,6 +166,12 @@ export async function fetchUniverseMarketHistory(typeId) {
             order_count: item.orderCount
         }))
         .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    console.log('🌍 Final aggregated result:', aggregated.length, 'items');
+    if (aggregated.length > 0) {
+        console.log('🌍 Sample aggregated item:', aggregated[0]);
+    }
+
     return aggregated;
 }
 

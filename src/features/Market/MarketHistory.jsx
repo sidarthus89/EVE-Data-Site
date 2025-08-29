@@ -1,3 +1,5 @@
+// Enhanced MarketHistory component with comprehensive debugging
+
 import React, { useEffect, useState, useRef } from 'react';
 import {
     ComposedChart,
@@ -16,9 +18,10 @@ import { fetchMarketHistory, fetchUniverseMarketHistory } from '../../utils/mark
 export default function MarketHistory({ selectedItem, selectedRegion, setActiveTab }) {
     const [historyData, setHistoryData] = useState([]);
     const [startIndex, setStartIndex] = useState(0);
-    const [endIndex, setEndIndex] = useState(30); // Changed: Set to 30 initially instead of 0
+    const [endIndex, setEndIndex] = useState(30);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [debugInfo, setDebugInfo] = useState({}); // Add debug state
 
     const sliderRef = useRef(null);
     const viewportRef = useRef(null);
@@ -29,51 +32,94 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
         initialEndIndex: 0,
     });
 
+    // Enhanced debugging function
+    const logDebugInfo = (stage, data) => {
+        const info = {
+            stage,
+            timestamp: new Date().toISOString(),
+            selectedItem: selectedItem ? {
+                typeID: selectedItem.typeID,
+                typeName: selectedItem.typeName
+            } : null,
+            selectedRegion: selectedRegion ? {
+                regionID: selectedRegion.regionID,
+                regionName: selectedRegion.regionName
+            } : null,
+            dataLength: Array.isArray(data) ? data.length : 0,
+            firstItem: Array.isArray(data) && data.length > 0 ? data[0] : null,
+            lastItem: Array.isArray(data) && data.length > 0 ? data[data.length - 1] : null
+        };
+
+        console.log(`🔍 [MarketHistory Debug] ${stage}:`, info);
+        setDebugInfo(prev => ({ ...prev, [stage]: info }));
+        return info;
+    };
+
     // Load market history when component mounts or item/region changes
     useEffect(() => {
         if (!selectedItem) {
             setHistoryData([]);
             setError('No item selected');
+            logDebugInfo('NO_ITEM', []);
             return;
         }
 
         let cancelled = false;
         setLoading(true);
         setError(null);
+        setDebugInfo({}); // Clear previous debug info
 
         async function loadMarketHistory() {
             try {
+                logDebugInfo('LOADING_START', []);
+
                 let data;
                 const isAllRegions = !selectedRegion || selectedRegion.regionID === 'all';
 
                 if (isAllRegions) {
-                    // Use Azure Functions to get aggregated universe history
                     console.log('📊 Loading universe market history for:', selectedItem.typeName);
                     data = await fetchUniverseMarketHistory(selectedItem.typeID);
                 } else {
-                    // Get specific region history
                     console.log('📊 Loading region market history for:', selectedItem.typeName, 'Region:', selectedRegion.regionName);
                     data = await fetchMarketHistory(selectedItem.typeID, selectedRegion.regionID);
                 }
 
                 if (cancelled) return;
 
-                setHistoryData(data || []);
-                console.log('📊 Market history loaded:', {
-                    dataLength: data?.length || 0,
-                    isAllRegions,
-                    region: selectedRegion?.regionName || 'All Regions'
-                });
+                // Enhanced data validation and logging
+                const validatedData = Array.isArray(data) ? data : [];
+                logDebugInfo('DATA_RECEIVED', validatedData);
+
+                // Check data structure
+                if (validatedData.length > 0) {
+                    const firstItem = validatedData[0];
+                    console.log('📊 Sample data structure:', firstItem);
+
+                    // Check required fields
+                    const requiredFields = ['date', 'average', 'totalVolume'];
+                    const missingFields = requiredFields.filter(field => !(field in firstItem));
+                    if (missingFields.length > 0) {
+                        console.warn('⚠️ Missing required fields:', missingFields);
+                        setError(`Data missing required fields: ${missingFields.join(', ')}`);
+                        return;
+                    }
+                }
+
+                setHistoryData(validatedData);
 
                 // Set default to show all data
                 const defaultStart = 0;
-                const defaultEnd = data?.length || 0;
+                const defaultEnd = validatedData.length || 0;
 
                 setStartIndex(defaultStart);
                 setEndIndex(defaultEnd);
+
+                logDebugInfo('DATA_SET', validatedData);
+
             } catch (error) {
                 if (cancelled) return;
                 console.error('❌ Failed to load market history:', error);
+                logDebugInfo('ERROR', []);
                 setError(error.message || 'Failed to load market history');
             } finally {
                 if (!cancelled) {
@@ -89,8 +135,18 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
         };
     }, [selectedItem, selectedRegion]);
 
+    // Debug data changes
+    useEffect(() => {
+        console.log('📊 historyData updated:', {
+            length: historyData.length,
+            sample: historyData.slice(0, 3),
+            startIndex,
+            endIndex
+        });
+    }, [historyData, startIndex, endIndex]);
+
     function handleDragStart(e, type) {
-        e.preventDefault(); // Added: Prevent default behavior
+        e.preventDefault();
         e.stopPropagation();
         dragState.current = {
             type,
@@ -99,7 +155,6 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
             initialEndIndex: endIndex,
         };
 
-        // Added: Set cursor styles
         document.body.style.cursor = type === 'move' ? 'grabbing' : 'ew-resize';
 
         window.addEventListener('mousemove', handleDragging);
@@ -117,21 +172,16 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
         let newEnd = dragState.current.initialEndIndex;
 
         if (dragState.current.type === 'move') {
-            // Move the entire selection window
             const windowSize = newEnd - newStart;
             newStart = Math.max(0, Math.min(historyData.length - windowSize, newStart + deltaDays));
             newEnd = newStart + windowSize;
         } else if (dragState.current.type === 'resize-left') {
-            // Resize from the left edge - ensure minimum window of 1 day, maximum of 365 days
             newStart = Math.max(0, Math.min(newEnd - 1, newStart + deltaDays));
-            // Ensure the window doesn't exceed 365 days
             if (newEnd - newStart > 365) {
                 newStart = newEnd - 365;
             }
         } else if (dragState.current.type === 'resize-right') {
-            // Resize from the right edge - ensure minimum window of 1 day, maximum of 365 days
             newEnd = Math.min(historyData.length, Math.max(newStart + 1, newEnd + deltaDays));
-            // Ensure the window doesn't exceed 365 days
             if (newEnd - newStart > 365) {
                 newEnd = newStart + 365;
             }
@@ -142,15 +192,13 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
     }
 
     function handleDragEnd() {
-        // Reset cursor
         document.body.style.cursor = '';
-
         window.removeEventListener('mousemove', handleDragging);
         window.removeEventListener('mouseup', handleDragEnd);
         dragState.current = { type: null, startX: 0, initialStartIndex: 0, initialEndIndex: 0 };
     }
 
-    // Loading state
+    // Loading state with enhanced debug info
     if (loading) {
         return (
             <div style={{
@@ -164,68 +212,101 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                 border: '1px solid #333'
             }}>
                 <div style={{ textAlign: 'center' }}>
-                    <div>Loading universe market history...</div>
+                    <div>Loading market history...</div>
                     <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '10px' }}>
                         Item: {selectedItem?.typeName || 'Unknown'}
+                    </div>
+                    <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '5px' }}>
+                        Region: {selectedRegion?.regionName || 'All Regions'}
                     </div>
                 </div>
             </div>
         );
     }
 
-    // Error state
+    // Error state with enhanced debug info
     if (error) {
         return (
             <div style={{
                 width: '100%',
                 height: 500,
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 background: '#1a1a1a',
                 color: '#fff',
-                border: '1px solid #333'
+                border: '1px solid #333',
+                padding: '20px'
             }}>
-                <div style={{ textAlign: 'center' }}>
-                    <div style={{ color: '#ff6b6b' }}>Error loading universe market history</div>
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                    <div style={{ color: '#ff6b6b' }}>Error loading market history</div>
                     <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '10px' }}>
                         {error}
                     </div>
-                    <div style={{ fontSize: '12px', opacity: 0.5, marginTop: '10px' }}>
-                        Debug: Item={selectedItem?.typeName}
-                    </div>
+                </div>
+
+                {/* Debug information display */}
+                <div style={{
+                    background: '#2a2a2a',
+                    padding: '15px',
+                    borderRadius: '5px',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    maxWidth: '600px',
+                    overflow: 'auto'
+                }}>
+                    <div style={{ color: '#ffa500', marginBottom: '10px' }}>Debug Information:</div>
+                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                        {JSON.stringify(debugInfo, null, 2)}
+                    </pre>
                 </div>
             </div>
         );
     }
 
-    // No data state
+    // No data state with debug info
     if (!historyData.length) {
         return (
             <div style={{
                 width: '100%',
                 height: 500,
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 background: '#1a1a1a',
                 color: '#fff',
-                border: '1px solid #333'
+                border: '1px solid #333',
+                padding: '20px'
             }}>
-                <div style={{ textAlign: 'center' }}>
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                     <div>No market history available</div>
                     <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '10px' }}>
                         This could be due to:
                     </div>
                     <ul style={{ fontSize: '12px', opacity: 0.7, textAlign: 'left', marginTop: '5px' }}>
                         <li>Item not actively traded</li>
-                        <li>API service unavailable</li>
+                        <li>API service returned empty data</li>
+                        <li>Data format mismatch</li>
                         <li>Network connectivity issues</li>
-                        <li>Invalid item data</li>
                     </ul>
-                    <div style={{ fontSize: '12px', opacity: 0.5, marginTop: '10px' }}>
-                        Debug: Item={selectedItem?.typeName}
-                    </div>
+                </div>
+
+                {/* Debug information display */}
+                <div style={{
+                    background: '#2a2a2a',
+                    padding: '15px',
+                    borderRadius: '5px',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    maxWidth: '600px',
+                    overflow: 'auto'
+                }}>
+                    <div style={{ color: '#ffa500', marginBottom: '10px' }}>Debug Information:</div>
+                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                        {JSON.stringify(debugInfo, null, 2)}
+                    </pre>
                 </div>
             </div>
         );
@@ -234,7 +315,6 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
     // Fixed: Ensure indices are valid before slicing
     const safeStartIndex = Math.max(0, Math.min(startIndex, historyData.length - 1));
     const safeEndIndex = Math.max(safeStartIndex + 1, Math.min(endIndex, historyData.length));
-
     const visibleData = historyData.slice(safeStartIndex, safeEndIndex);
 
     const isAllRegions = !selectedRegion || selectedRegion.regionID === 'all';
@@ -278,18 +358,20 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                 Market History: {selectedItem?.typeName} - {regionDisplayName} |
                 Showing {visibleData.length} of {historyData.length} days |
                 Range: {safeStartIndex}-{safeEndIndex}
+
+                {/* Debug indicator */}
+                <span style={{ color: '#00ff00', marginLeft: '20px' }}>
+                    [Debug: Chart should render with {visibleData.length} data points]
+                </span>
+
                 {historyData.length < 7 && historyData.length > 0 && (
                     <span style={{ color: '#ffa500', marginLeft: '10px' }}>
                         ⚠️ Limited market data available ({historyData.length} day{historyData.length === 1 ? '' : 's'})
                     </span>
                 )}
-                {historyData.length === 0 && (
-                    <span style={{ color: '#ff6b6b', marginLeft: '10px' }}>
-                        ❌ No market history data available
-                    </span>
-                )}
             </div>
 
+            {/* Enhanced chart with debugging */}
             <ResponsiveContainer width="100%" height={380}>
                 <ComposedChart
                     data={visibleData}
@@ -312,7 +394,7 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                             position: 'insideLeft',
                             style: { textAnchor: 'middle' }
                         }}
-                        tickFormatter={(value) => value ? value.toLocaleString() : ''}
+                        tickFormatter={(value) => value ? value.toLocaleString() : '0'}
                         domain={['auto', 'auto']}
                         stroke="#1f77b4"
                         fontSize={10}
@@ -326,7 +408,7 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                             position: 'insideRight',
                             style: { textAnchor: 'middle' }
                         }}
-                        tickFormatter={(value) => value ? value.toLocaleString() : ''}
+                        tickFormatter={(value) => value ? value.toLocaleString() : '0'}
                         domain={[0, 'auto']}
                         stroke="#8884d8"
                         fontSize={10}
