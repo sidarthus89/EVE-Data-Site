@@ -152,7 +152,7 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
 
                 // Set default to show all data
                 const defaultStart = 0;
-                const defaultEnd = transformedData.length || 0;
+                const defaultEnd = Math.min(30, transformedData.length); // Default to 30 days or less if data is shorter
 
                 setStartIndex(defaultStart);
                 setEndIndex(defaultEnd);
