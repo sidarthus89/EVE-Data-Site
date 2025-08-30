@@ -177,6 +177,7 @@ export default function MarketDistribution({
         return null;
     };
 
+    // Swapped the order so Supply (green) appears first (left) and Demand (orange) appears second (right)
     const legendPayload = [
         { value: 'Seller Volume (Supply)', type: 'rect', color: '#2ca02c', id: 'sellerVolume' },
         { value: 'Buyer Volume (Demand)', type: 'line', color: '#ff7f0e', id: 'buyerVolume' }
@@ -247,24 +248,12 @@ export default function MarketDistribution({
                         orientation="left"
                         stroke="#2ca02c"
                         fontSize={10}
-                        label={{
-                            value: 'Seller Volume (Supply)',
-                            angle: -90,
-                            position: 'insideLeft',
-                            style: { textAnchor: 'middle' }
-                        }}
                     />
                     <YAxis
                         yAxisId="right"
                         orientation="right"
                         stroke="#ff7f0e"
                         fontSize={10}
-                        label={{
-                            value: 'Buyer Volume (Demand)',
-                            angle: 90,
-                            position: 'insideRight',
-                            style: { textAnchor: 'middle' }
-                        }}
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend
@@ -272,16 +261,6 @@ export default function MarketDistribution({
                         verticalAlign="top"
                         height={36}
                         wrapperStyle={{ color: '#fff', fontSize: '12px' }}
-                    />
-
-                    {/* Seller volume as green bars */}
-                    <Bar
-                        yAxisId="left"
-                        dataKey="sellerVolume"
-                        fill="#2ca02c"
-                        name="Seller Volume (Supply)"
-                        onClick={handleBarClick}
-                        cursor="pointer"
                     />
 
                     {/* Buyer volume as orange line */}
@@ -294,6 +273,16 @@ export default function MarketDistribution({
                         name="Buyer Volume (Demand)"
                         dot={{ r: 3, fill: '#ff7f0e' }}
                         activeDot={{ r: 5, fill: '#ff7f0e' }}
+                    />
+
+                    {/* Seller volume as green bars */}
+                    <Bar
+                        yAxisId="left"
+                        dataKey="sellerVolume"
+                        fill="#2ca02c"
+                        name="Seller Volume (Supply)"
+                        onClick={handleBarClick}
+                        cursor="pointer"
                     />
                 </ComposedChart>
             </ResponsiveContainer>

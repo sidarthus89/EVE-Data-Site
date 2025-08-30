@@ -8,32 +8,28 @@ const ESI_BASE = 'https://esi.evetech.net/latest';
 /**
  * Fetch with retry logic and exponential backoff
  */
-export async function fetchWithRetry(url, options = {}, retries = 3) {
-    for (let i = 0; i < retries; i++) {
+export const fetchWithRetry = async (url, options = {}, maxRetries = 3) => {
+    for (let i = 0; i < maxRetries; i++) {
         try {
             const response = await fetch(url, options);
 
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`❌ HTTP ${response.status}: ${response.statusText}`, errorText);
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                return await response.json();
-            } else {
-                const text = await response.text();
-                console.error('❌ Non-JSON response:', text);
-                throw new Error('Response is not JSON');
+            // Parse JSON once here
+            const data = await response.json();
+            return data; // This will be a JavaScript object
+
+        } catch (error) {
+            if (i === maxRetries - 1) {
+                throw error;
             }
-        } catch (err) {
-            console.error(`❌ Fetch attempt ${i + 1} failed:`, err.message);
-            if (i === retries - 1) throw err;
-            await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
         }
     }
-}
+};
 
 export { AZURE_BASE, ESI_BASE };
 

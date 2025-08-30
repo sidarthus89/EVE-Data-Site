@@ -340,30 +340,37 @@ export async function fetchTradeRouteData(fromId, toId, types = [34, 44992]) {
     return opportunities.sort((a, b) => b.profit_percentage - a.profit_percentage);
 }
 
-export async function fetchRegionHaulingData(originRegionId, destinationRegionId = null) {
-    const params = new URLSearchParams({ origin_region_id: originRegionId });
-    if (destinationRegionId) {
-        params.append('destination_region_id', destinationRegionId);
-    }
-
-    const url = `${AZURE_BASE}/region_hauling?${params}`;
-
+export const fetchRegionHaulingData = async (fromRegionId, toRegionId) => {
     try {
-        const response = await fetchWithRetry(url, {}, 3);
-        return response.routes || [];
-    } catch (error) {
-        console.error('❌ Azure region hauling failed, attempting fallback method:', error);
+        // Use BASE_URL and correct function name (underscore, not hyphen)
+        const url = `${BASE_URL}/region_hauling?origin_region_id=${fromRegionId}&destination_region_id=${toRegionId}`;
+        console.log('🚛 Fetching region hauling data from:', url);
 
-        // Fallback: Use live market data to generate basic trade routes
-        try {
-            const tradeRoutes = await generateBasicTradeRoutes(originRegionId, destinationRegionId);
-            return tradeRoutes;
-        } catch (fallbackError) {
-            console.error('❌ Fallback method also failed:', fallbackError);
-            throw new Error(`Azure Functions unavailable (${error.message}). Fallback failed: ${fallbackError.message}`);
+        const response = await fetchWithRetry(url);
+
+        console.log('Raw response:', response);
+
+        // The response is already a JavaScript object, no need to parse
+        if (response && typeof response === 'object') {
+            console.log('Response is already an object:', response);
+
+            // Extract the routes array from the response
+            if (response.routes && Array.isArray(response.routes)) {
+                return response.routes;
+            } else {
+                console.warn('No routes found in response:', response);
+                return [];
+            }
+        } else {
+            console.error('Unexpected response format:', response);
+            return [];
         }
+
+    } catch (error) {
+        console.error('🚛 Error fetching region hauling data:', error);
+        throw new Error(`Failed to fetch region hauling data: ${error.message}`);
     }
-}
+};
 
 // Fallback function to generate basic trade routes using live market data
 async function generateBasicTradeRoutes(originRegionId, destinationRegionId = null) {

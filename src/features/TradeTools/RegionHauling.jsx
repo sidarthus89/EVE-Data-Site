@@ -329,6 +329,16 @@ export default function RegionHauling() {
             const toRegionId = formData.toRegion.regionID;
             let tradesData = await fetchRegionHaulingData(fromRegionId, toRegionId);
 
+            console.log('Debugging tradesData:', tradesData);
+
+            // Ensure tradesData is an array
+            if (!Array.isArray(tradesData)) {
+                console.error('Unexpected tradesData format:', tradesData);
+                setError('Invalid data format received from the server.');
+                setLoading(false);
+                return;
+            }
+
             // Apply user filters to the results
             if (formData.minProfit) {
                 const minProfitValue = parseFloat(formData.minProfit);
