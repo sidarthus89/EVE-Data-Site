@@ -456,13 +456,6 @@ export default function RegionHauling() {
 
             {/* Form section with collapse toggle */}
             <div className={`hauling-form ${isFormSticky ? 'sticky' : ''} ${formCollapsed ? 'collapsed' : ''}`}>
-                <button
-                    type="button"
-                    className="toggle-form-btn"
-                    onClick={() => setFormCollapsed(prev => !prev)}
-                >
-                    {formCollapsed ? 'Show Filters' : 'Hide Filters'}
-                </button>
                 <form onSubmit={handleSubmit}>
                     <div className="form-container">
                         <div className="form-row form-row-top">
@@ -706,6 +699,28 @@ export default function RegionHauling() {
                             </div>
                         )}
                     </div>
+                </div>
+            )}
+
+            {/* Return to Top button */}
+            {results.length > 0 && (
+                <div
+                    className="return-to-top"
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    style={{
+                        position: 'fixed',
+                        bottom: '50px',
+                        right: '30px',
+                        background: '#0066cc',
+                        color: '#fff',
+                        padding: '10px',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                        zIndex: 1000,
+                    }}
+                >
+                    ↑
                 </div>
             )}
         </div>

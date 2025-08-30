@@ -25,6 +25,9 @@
     margin: 0 auto;
     padding: 20px;
     color: #ffffff;
+    overflow-y: auto;
+    height: calc(100vh - var(--navbar-height) - var(--footer-height));
+    padding-bottom: var(--footer-height);
 }
 
 .page-header {
@@ -440,6 +443,42 @@ select.form-control {
 }
 
 /* Jumps */
+
+/* Make the page scrollable */
+.region-hauling {
+    overflow-y: auto;
+    height: calc(100vh - var(--navbar-height) - var(--footer-height));
+    padding-bottom: var(--footer-height);
+}
+
+/* Keep navbar and footer static */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+/* Return to Top Button */
+.return-to-top {
+    position: fixed;
+    bottom: 50px;
+    right: 30px;
+    background: #0066cc;
+    color: #fff;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
 
 /* Responsive Design */
 @media (max-width: 1600px) {
