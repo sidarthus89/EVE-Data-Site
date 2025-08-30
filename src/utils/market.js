@@ -3,18 +3,15 @@
 
 import { fetchWithRetry, AZURE_BASE, ESI_BASE, fetchMarketTree } from './api.js';
 
-const BASE_URL = AZURE_BASE || 'https://evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net'; // Define BASE_URL fallback
+const BASE_URL = AZURE_BASE || 'https://evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net';
 
 function extractHistoryArray(responseData) {
-    console.log('🔧 Extracting history array from:', responseData);
 
     if (Array.isArray(responseData)) {
-        console.log('✅ Data is already an array');
         return responseData;
     }
 
     if (responseData && typeof responseData === 'object') {
-        // Try common property names for the history data
         const possibleKeys = [
             'history',
             'data',
@@ -27,49 +24,35 @@ function extractHistoryArray(responseData) {
 
         for (const key of possibleKeys) {
             if (responseData[key] && Array.isArray(responseData[key])) {
-                console.log(`✅ Found history array in property: ${key}`);
                 return responseData[key];
             }
         }
-
-        // If no array found in common properties, check all properties
         const allKeys = Object.keys(responseData);
-        console.log('🔍 Available properties:', allKeys);
 
         for (const key of allKeys) {
             if (Array.isArray(responseData[key])) {
-                console.log(`✅ Found array in property: ${key}`);
                 return responseData[key];
             }
         }
 
-        console.log('❌ No array found in response object');
         return [];
     }
 
-    console.log('❌ Response is not an object or array');
     return [];
 }
 
 // Update your fetchMarketHistory function
 export async function fetchMarketHistory(typeID, regionID, days = 365) {
-    console.log(`📈 Fetching market history: type_id=${typeID}, region_id=${regionID}, days=${days}`);
     const url = `${BASE_URL}/market/history?type_id=${typeID}&region_id=${regionID}&days=${days}`;
-    console.log(`📈 URL: ${url}`);
-    console.log('🔍 Verifying URL and parameters:', { url, typeID, regionID, days }); // Log the URL and parameters
-    console.log(`🔍 Debugging fetchMarketHistory: Constructed URL: ${url}`);
-    console.log(`🔍 Parameters: typeID=${typeID}, regionID=${regionID}, days=${days}`);
 
     try {
         const response = await fetch(url);
-        console.log(`📈 Response status: ${response.status} ${response.statusText}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('📈 Raw response data:', data);
 
         // Extract the history array from the response
         const historyArray = extractHistoryArray(data);
@@ -88,14 +71,11 @@ export async function fetchMarketHistory(typeID, regionID, days = 365) {
 
 // Update your fetchUniverseMarketHistory function
 export async function fetchUniverseMarketHistory(typeID) {
-    console.log(`🌍 fetchUniverseMarketHistory called with typeID: ${typeID}`, typeof typeID);
 
     const hubRegions = [10000002, 10000043, 10000032, 10000030, 10000042];
-    console.log('🌍 Fetching from hubs:', hubRegions);
 
     try {
         const promises = hubRegions.map(async regionID => {
-            console.log(`🌍 Fetching hub ${regionID} for typeID ${typeID}`);
             try {
                 const data = await fetchMarketHistory(typeID, regionID);
                 console.log(`🌍 Hub ${regionID} returned:`, {
@@ -111,14 +91,12 @@ export async function fetchUniverseMarketHistory(typeID) {
         });
 
         const results = await Promise.all(promises);
-        console.log('🌍 All hub responses:', results.map(r => Array.isArray(r) ? r.length + ' items' : 'not array'));
 
         // Aggregate all history data by date
         const dateMap = new Map();
 
         results.forEach((hubData, index) => {
             const regionID = hubRegions[index];
-            console.log(`🌍 Processing hub ${regionID} with ${Array.isArray(hubData) ? hubData.length : 'not array'} items`);
 
             if (Array.isArray(hubData)) {
                 hubData.forEach(item => {
@@ -145,8 +123,6 @@ export async function fetchUniverseMarketHistory(typeID) {
             }
         });
 
-        console.log('🌍 Date map size:', dateMap.size);
-
         // Convert to final format
         const aggregated = Array.from(dateMap.values()).map(entry => ({
             date: entry.date,
@@ -160,9 +136,6 @@ export async function fetchUniverseMarketHistory(typeID) {
             if (a.date > b.date) return 1;
             return 0;
         });
-
-        console.log('🌍 Final aggregated result:', aggregated.length, 'items');
-        console.log('🌍 Sample aggregated data:', aggregated.slice(0, 3));
 
         return aggregated;
     } catch (error) {
@@ -178,11 +151,9 @@ export async function fetchMarketOrders(typeId, regionId = null, locationId = nu
     if (isBuyOrder !== null) params.append('is_buy_order', isBuyOrder);
 
     const url = `${AZURE_BASE}/market/orders?${params}`;
-    console.log(`🎯 Fetching market orders for type_id: ${typeId}, region_id: ${regionId}`);
 
     try {
         const response = await fetchWithRetry(url, {}, 1);
-        console.log('✅ Azure response received:', response);
 
         // Validate response structure
         if (!response || typeof response !== 'object') {
@@ -195,8 +166,6 @@ export async function fetchMarketOrders(typeId, regionId = null, locationId = nu
             sellOrders: response.sellOrders || [],
             meta: response.meta || {}
         };
-
-        console.log(`📊 Azure orders: ${result.buyOrders.length} buy, ${result.sellOrders.length} sell`);
         return result;
 
     } catch (azureError) {
@@ -206,19 +175,16 @@ export async function fetchMarketOrders(typeId, regionId = null, locationId = nu
         const esiUrl = `${ESI_BASE}/markets/${regionId}/orders/?type_id=${typeId}`;
         try {
             const orders = await fetchWithRetry(esiUrl, {}, 1);
-            console.log(`✅ ESI response received: ${orders.length} orders`);
 
             // ESI orders need to be enriched with location metadata
             const enrichedOrders = orders.map(order => ({
                 ...order,
-                name: 'Unknown', // Will be resolved via locationInfoMap
+                name: 'Unknown',
                 region_name: `Region ${regionId}`,
-                security: null, // Will be resolved via locationInfoMap
+                security: null,
                 location_type: 'Unknown',
-                is_npc: false // Default to player structure, will be resolved
+                is_npc: false
             }));
-
-            console.log('📊 ESI enriched orders:', enrichedOrders.length);
             return {
                 buyOrders: enrichedOrders.filter(o => o.is_buy_order),
                 sellOrders: enrichedOrders.filter(o => !o.is_buy_order)
@@ -381,18 +347,15 @@ export async function fetchRegionHaulingData(originRegionId, destinationRegionId
     }
 
     const url = `${AZURE_BASE}/region_hauling?${params}`;
-    console.log(`🚛 Fetching region hauling data: ${url}`);
 
     try {
         const response = await fetchWithRetry(url, {}, 3);
-        console.log('🚛 Region hauling response:', response);
         return response.routes || [];
     } catch (error) {
         console.error('❌ Azure region hauling failed, attempting fallback method:', error);
 
         // Fallback: Use live market data to generate basic trade routes
         try {
-            console.log('🚛 Using fallback trade route analysis...');
             const tradeRoutes = await generateBasicTradeRoutes(originRegionId, destinationRegionId);
             return tradeRoutes;
         } catch (fallbackError) {
@@ -404,7 +367,6 @@ export async function fetchRegionHaulingData(originRegionId, destinationRegionId
 
 // Fallback function to generate basic trade routes using live market data
 async function generateBasicTradeRoutes(originRegionId, destinationRegionId = null) {
-    console.log('🚛 Generating basic trade routes using live market data...');
 
     // Load full set of tradeable items from market.json
     const marketTree = await fetchMarketTree();
@@ -494,6 +456,5 @@ async function generateBasicTradeRoutes(originRegionId, destinationRegionId = nu
         .sort((a, b) => b.profit_margin - a.profit_margin)
         .slice(0, 50); // Top 50 routes
 
-    console.log(`🚛 Generated ${sortedRoutes.length} fallback trade routes`);
     return sortedRoutes;
 }

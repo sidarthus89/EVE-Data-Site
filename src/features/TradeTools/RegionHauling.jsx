@@ -99,19 +99,14 @@ export default function RegionHauling() {
     const copyToClipboard = async (text) => {
         try {
             await navigator.clipboard.writeText(text);
-            // Could add a toast notification here
-            console.log('Copied to clipboard:', text);
         } catch (err) {
-            console.error('Failed to copy to clipboard:', err);
         }
     };
 
     // Fast region loading using same system as Market.jsx
     useEffect(() => {
-        console.log('🚛 Loading regions...');
         fetchRegions()
             .then(regions => {
-                console.log('🚛 ✅ Regions loaded:', regions.length);
                 setRegionsData(regions);
             })
             .catch(err => {
@@ -135,9 +130,6 @@ export default function RegionHauling() {
     // Calculate nearby regions when fromRegion changes (simplified without EVE-Trade data)
     useEffect(() => {
         if (formData.fromRegion && regions.length > 0) {
-            // For now, we'll disable nearby regions feature since we removed EVE-Trade dependency
-            // Could be enhanced later with static nearby region data
-            console.log('🚛 Nearby regions feature disabled (EVE-Trade dependency removed)');
             setNearbyRegions([]);
         } else {
             setNearbyRegions([]);
@@ -164,7 +156,6 @@ export default function RegionHauling() {
 
     // Data transformation function to convert API/market data to display format
     const transformApiResponseToDisplayFormat = async (apiData, formData) => {
-        console.log('🚛 Transforming API data:', apiData);
         // Load static structure data for mapping
         const structures = await fetch(`${import.meta.env.BASE_URL}data/structures.json`)
             .then(res => res.ok ? res.json() : []);
@@ -172,7 +163,6 @@ export default function RegionHauling() {
         const structMap = new Map(structures.map(s => [Number(s.stationID), s]));
 
         if (!apiData || !Array.isArray(apiData)) {
-            console.log('🚛 Invalid API data for transformation');
             return [];
         }
 
@@ -182,7 +172,6 @@ export default function RegionHauling() {
         const transformedTrades = [];
 
         for (const trade of apiData) {
-            console.log(`🚛 Transforming trade:`, trade);
 
             // Get item details (volume and name) from ESI
             const itemDetails = await fetchItemDetails(trade.type_id);
@@ -259,7 +248,6 @@ export default function RegionHauling() {
                 const yOffset = -60; // Offset for any fixed headers
                 const y = resultsElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
                 window.scrollTo({ top: y, behavior: 'smooth' });
-                console.log('🚛 Scrolling to results section');
             } else {
                 console.warn('🚛 Results section not found for scrolling');
             }
@@ -323,19 +311,11 @@ export default function RegionHauling() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('🚛 Form submitted - starting fresh search');
-
-        // Reset state for new search
         setResults([]);
         setCurrentPage(1);
         setLoading(true);
         setError(null);
         setUsingFallback(false);
-
-        // Debug form data
-        console.log('🚛 Current form data:', formData);
-        console.log('🚛 From region:', formData.fromRegion);
-        console.log('🚛 To region:', formData.toRegion);
 
         if (!formData.fromRegion?.regionID || !formData.toRegion?.regionID) {
             setError('Please select both source and destination regions');
@@ -344,17 +324,10 @@ export default function RegionHauling() {
         }
 
         try {
-            console.log('🚛 Fetching region hauling data from Azure Functions...');
 
             const fromRegionId = formData.fromRegion.regionID;
             const toRegionId = formData.toRegion.regionID;
-
-            console.log(`🚛 Analyzing trade routes from region ${fromRegionId} to ${toRegionId}`);
-
-            // Use Azure Function for region hauling data
             let tradesData = await fetchRegionHaulingData(fromRegionId, toRegionId);
-
-            console.log('🚛 Azure Function result:', tradesData);
 
             // Apply user filters to the results
             if (formData.minProfit) {
@@ -367,26 +340,20 @@ export default function RegionHauling() {
                 tradesData = tradesData.filter(trade => trade.profit_margin >= minROIValue);
             }
 
-            console.log('🚛 Filtered trade data:', tradesData);
-
             // Check if we're using fallback data
             const isFallback = tradesData.length > 0 && tradesData[0]._fallback;
             setUsingFallback(isFallback);
 
             if (isFallback) {
-                console.log('🚛 Using fallback data due to Azure Functions unavailability');
             }
 
             // Transform API data to display format
             const transformedData = await transformApiResponseToDisplayFormat(tradesData, formData);
-            console.log('🚛 Transformed data for display:', transformedData);
 
             if (transformedData && transformedData.length > 0) {
                 setResults(transformedData);
                 setError(null);
-                console.log('🚛 Results set successfully, count:', transformedData.length);
             } else {
-                console.log('🚛 No valid data after transformation');
                 setResults([]);
                 setError('No trade routes found for the selected criteria');
             }
@@ -394,18 +361,14 @@ export default function RegionHauling() {
 
             // Scroll to results with better timing
             setTimeout(() => {
-                console.log('🚛 Attempting to scroll to results...');
                 const resultsElement = document.getElementById('results-section');
                 if (resultsElement) {
                     const rect = resultsElement.getBoundingClientRect();
                     const scrollTop = window.pageYOffset + rect.top - 100;
-                    console.log('🚛 Scrolling to position:', scrollTop);
                     window.scrollTo({ top: scrollTop, behavior: 'smooth' });
                 } else {
-                    console.log('🚛 Results element not found - looking for alternative...');
                     const alternative = document.querySelector('.results-container');
                     if (alternative) {
-                        console.log('🚛 Using alternative selector');
                         alternative.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 }
@@ -619,8 +582,6 @@ export default function RegionHauling() {
                                         return paginatedResults.map((result, index) => {
                                             // Debug: Log the structure of each result object
                                             if (index === 0 && currentPage === 1) {
-                                                console.log('🚛 First result object keys:', Object.keys(result));
-                                                console.log('🚛 First result object:', result);
                                             }
 
                                             // Extract values from the new data structure

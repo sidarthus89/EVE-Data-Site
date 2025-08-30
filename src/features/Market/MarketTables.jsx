@@ -41,12 +41,6 @@ export default function MarketTables({
     setActiveTab,
     itemName
 }) {
-    // Debug logging
-    console.log(`🎯 MarketTables received: ${sellers?.length || 0} sellers, ${buyers?.length || 0} buyers`);
-    console.log('🎯 Location info map size:', Object.keys(locationInfoMap || {}).length);
-    console.log('🎯 Sample sellers:', sellers?.slice(0, 2));
-    console.log('🎯 Sample buyers:', buyers?.slice(0, 2));
-    console.log('🎯 Sample locationInfoMap entries:', Object.entries(locationInfoMap || {}).slice(0, 5));
 
     // Filter/UX state
     const [activeFilterColumns, setActiveFilterColumns] = useState({ seller: null, buyer: null });
@@ -57,8 +51,8 @@ export default function MarketTables({
 
     // Table state (sorting, sizing, filters)
     const [tableState, setTableState] = useState({
-        sellerSorting: [{ id: 'price', desc: false }],  // seller: price ascending
-        buyerSorting: [{ id: 'price', desc: true }],    // buyer: price descending
+        sellerSorting: [{ id: 'price', desc: false }],
+        buyerSorting: [{ id: 'price', desc: true }], 
         sellerSizing: {},
         buyerSizing: {},
         sellerColumnFilters: [],

@@ -27,7 +27,6 @@ export async function getPLEXTickerStats(regionsData, applyOutliers = true) {
         try {
             const result = await fetchMarketOrders(PLEX_TYPE_ID, PLEX_REGION_ID);
             allOrders = [...(result.sellOrders || []), ...(result.buyOrders || [])];
-            console.log('📊 PLEX orders fetched:', allOrders.length, 'total from PLEX region');
         } catch (err) {
             console.warn(`Failed to fetch PLEX orders from region ${PLEX_REGION_ID}:`, err);
             return { name: "PLEX", highestBuy: null, lowestSell: null, averageSell: null };
@@ -41,14 +40,10 @@ export async function getPLEXTickerStats(regionsData, applyOutliers = true) {
         const filteredSellOrders = applyFilter(sellOrders, applyOutliers);
         const filteredBuyOrders = applyFilter(buyOrders, applyOutliers);
 
-        console.log('📈 PLEX filtered orders:', filteredBuyOrders.length, 'buy,', filteredSellOrders.length, 'sell');
-
         // Calculate stats using the same methods as MarketTables.jsx
         const averageSell = computeVolumeWeightedAverage(filteredSellOrders);
         const highestBuy = filteredBuyOrders.length > 0 ? Math.max(...filteredBuyOrders.map(o => o.price)) : null;
         const lowestSell = filteredSellOrders.length > 0 ? Math.min(...filteredSellOrders.map(o => o.price)) : null;
-
-        console.log('💰 PLEX stats calculated:', { highestBuy, lowestSell, averageSell });
 
         return { name: "PLEX", highestBuy, lowestSell, averageSell };
     } catch (err) {
@@ -66,7 +61,6 @@ export default function PLEXMarketTicker({ regionsData, filterOutliers }) {
 
         getPLEXTickerStats(regionsData, filterOutliers)
             .then(data => {
-                console.log("✅ PLEX ticker stats:", data);
                 setStats(data);
             })
             .catch(err => console.error("❌ PLEX ticker fetch failed:", err));

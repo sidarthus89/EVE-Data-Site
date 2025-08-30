@@ -51,7 +51,6 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
             lastItem: Array.isArray(data) && data.length > 0 ? data[data.length - 1] : null
         };
 
-        console.log(`[MarketHistory Debug] ${stage}:`, info);
         setDebugInfo(prev => ({ ...prev, [stage]: info }));
         return info;
     };
@@ -59,11 +58,8 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
     // Data transformation function to handle field name variations
     const transformData = (rawData) => {
         if (!Array.isArray(rawData) || rawData.length === 0) {
-            console.log('[Transform] No data to transform');
             return [];
         }
-
-        console.log('[Transform] Raw data sample:', rawData.slice(0, 3));
 
         return rawData.map((item, index) => {
             // Handle common field name variations
@@ -120,10 +116,8 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                 const isAllRegions = !selectedRegion || selectedRegion.regionID === 'all';
 
                 if (isAllRegions) {
-                    console.log('[API] Loading universe market history for:', selectedItem.typeName);
                     data = await fetchUniverseMarketHistory(selectedItem.typeID);
                 } else {
-                    console.log('[API] Loading region market history for:', selectedItem.typeName, 'Region:', selectedRegion.regionName);
                     data = await fetchMarketHistory(selectedItem.typeID, selectedRegion.regionID);
                 }
 
@@ -139,7 +133,6 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
 
                 if (transformedData.length > 0) {
                     const firstItem = transformedData[0];
-                    console.log('[Validation] Sample transformed data structure:', firstItem);
 
                     // Validate transformed data
                     const isValid = firstItem.date &&
@@ -219,7 +212,6 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
         if (historyData.length > 0) {
             const firstItem = historyData[0];
             const possibleFields = Object.keys(firstItem);
-            console.log('[Field Analysis] AVAILABLE FIELDS:', possibleFields);
 
             // Check for common variations
             const dateFields = possibleFields.filter(field =>
@@ -464,16 +456,6 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                     Market History: {selectedItem?.typeName} - {regionDisplayName} |
                     Showing {visibleData.length} of {historyData.length} days |
                     Range: {safeStartIndex}-{safeEndIndex}
-
-                    <span style={{ color: '#00ff00', marginLeft: '20px' }}>
-                        [Debug: Chart should render with {visibleData.length} data points]
-                    </span>
-
-                    {historyData.length < 7 && historyData.length > 0 && (
-                        <span style={{ color: '#ffa500', marginLeft: '10px' }}>
-                            Limited market data available ({historyData.length} day{historyData.length === 1 ? '' : 's'})
-                        </span>
-                    )}
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>

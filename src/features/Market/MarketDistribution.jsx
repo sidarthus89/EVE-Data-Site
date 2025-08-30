@@ -11,21 +11,11 @@ import {
 } from 'recharts';
 
 export default function MarketDistribution({
-    orders = [], // Default to empty array
-    regions = [], // Default to empty array
+    orders = [],
+    regions = [],
     onRegionClick,
     selectedRegion
 }) {
-    // Enhanced debugging
-    console.log('=== MarketDistribution Debug ===');
-    console.log('- selectedRegion:', selectedRegion);
-    console.log('- orders count:', orders?.length || 0);
-    console.log('- regions count:', regions?.length || 0);
-    console.log('- First 3 orders:', orders?.slice(0, 3));
-    console.log('- First 3 regions:', regions?.slice(0, 3));
-    console.log('- Order properties sample:', orders?.[0] ? Object.keys(orders[0]) : 'No orders');
-
-    // Only show distribution chart when "All Regions" is selected
     if (selectedRegion?.regionID !== 'all') {
         return (
             <div style={{
@@ -51,9 +41,7 @@ export default function MarketDistribution({
     }
 
     const filteredOrders = useMemo(() => {
-        console.log('🔍 Filtering orders...');
         if (!orders || orders.length === 0) {
-            console.log('❌ No orders to filter');
             return [];
         }
 
@@ -61,26 +49,18 @@ export default function MarketDistribution({
             .map(order => order.price)
             .filter(price => price > 0 && !isNaN(price));
 
-        console.log('💰 Valid prices found:', prices.length);
-
         if (prices.length === 0) {
-            console.log('❌ No valid prices found');
             return [];
         }
 
         prices.sort((a, b) => a - b);
 
-        // Calculate 1st percentile (bottom 1%) and 99th percentile (top 1%)
         const p1Index = Math.floor(prices.length * 0.01);
         const p99Index = Math.floor(prices.length * 0.99);
-
         const lowerBoundIndex = Math.max(0, p1Index);
         const upperBoundIndex = Math.min(prices.length - 1, p99Index);
-
         const lowerBound = prices[lowerBoundIndex];
         const upperBound = prices[upperBoundIndex];
-
-        console.log('📊 Price bounds:', { lowerBound, upperBound, totalPrices: prices.length });
 
         const filtered = orders.filter(order => {
             const price = order.price;
@@ -92,21 +72,15 @@ export default function MarketDistribution({
             return hasValidPrice && hasValidVolume && hasRegion;
         });
 
-        console.log('✅ Filtered orders:', filtered.length);
-        console.log('📋 Sample filtered order:', filtered[0]);
-
         return filtered;
     }, [orders]);
 
     const data = useMemo(() => {
-        console.log('📈 Processing chart data...');
 
         if (!regions || regions.length === 0) {
-            console.log('❌ No regions available');
             return [];
         }
 
-        // Initialize region map
         const regionMap = {};
         regions.forEach(region => {
             const regionName = region.regionName || region.name;
@@ -121,15 +95,10 @@ export default function MarketDistribution({
             }
         });
 
-        console.log('🗺️ Initialized regions:', Object.keys(regionMap));
-
-        // Process filtered orders
         filteredOrders.forEach(order => {
             const regionName = order.regionName;
 
             if (!regionMap[regionName]) {
-                console.log('⚠️ Order region not in map:', regionName);
-                // Create entry for unknown region
                 regionMap[regionName] = {
                     region: regionName,
                     buyerVolume: 0,
@@ -154,21 +123,10 @@ export default function MarketDistribution({
             return a.region.localeCompare(b.region);
         });
 
-        console.log('📊 Final chart data:', chartData.length, 'regions');
-        console.log('📊 Regions with activity:', chartData.filter(r => r.buyerVolume + r.sellerVolume > 0).length);
-        console.log('📊 Sample data:', chartData.slice(0, 3));
-
         return chartData;
     }, [filteredOrders, regions]);
 
-    // Enhanced debugging for data flow
     useEffect(() => {
-        console.log('=== Data Flow Debug ===');
-        console.log('📊 Raw orders count:', orders?.length || 0);
-        console.log('📊 Filtered orders count:', filteredOrders.length);
-        console.log('📊 Regions available:', regions?.length || 0);
-        console.log('📊 Chart data points:', data.length);
-
         if (data.length > 0) {
             console.log('📊 Top 3 regions by volume:',
                 data.slice(0, 3).map(d => ({
@@ -182,8 +140,6 @@ export default function MarketDistribution({
 
         // Check for common issues
         if (orders.length > 0 && filteredOrders.length === 0) {
-            console.log('⚠️ ISSUE: Orders exist but all filtered out');
-            console.log('Sample order structure:', orders[0]);
         }
 
         if (filteredOrders.length > 0 && data.length === 0) {
@@ -227,7 +183,6 @@ export default function MarketDistribution({
     ];
 
     const handleBarClick = (data) => {
-        console.log('🖱️ Bar clicked:', data);
         if (onRegionClick && data?.region) {
             onRegionClick(data.region);
         }

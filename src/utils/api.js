@@ -11,7 +11,6 @@ const ESI_BASE = 'https://esi.evetech.net/latest';
 export async function fetchWithRetry(url, options = {}, retries = 3) {
     for (let i = 0; i < retries; i++) {
         try {
-            console.log(`🌐 Fetching: ${url} (attempt ${i + 1}/${retries})`);
             const response = await fetch(url, options);
 
             if (!response.ok) {

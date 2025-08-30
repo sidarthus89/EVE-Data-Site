@@ -20,9 +20,6 @@ export default function RegionSelector({ selectedRegion, onRegionChange, allowAl
     useEffect(() => {
         async function loadRegions() {
             try {
-                console.log('RegionSelector: Loading regions from static data...');
-
-                // 🚀 ONLY USE STATIC REGIONS.JSON - No fallback to market data
                 const response = await fetch('./data/regions.json');
                 if (!response.ok) {
                     throw new Error(`Failed to fetch regions.json: ${response.status}`);
@@ -33,11 +30,9 @@ export default function RegionSelector({ selectedRegion, onRegionChange, allowAl
                     throw new Error('Invalid regions.json format');
                 }
 
-                // 🚫 FILTER OUT PLEX REGION from user selection (but keep it available programmatically)
                 const PLEX_REGION_ID = 19000001;
                 const userSelectableRegions = staticData.regions.filter(region => region.regionID !== PLEX_REGION_ID);
 
-                console.log('📊 RegionSelector: Filtered to', userSelectableRegions.length, 'user-selectable regions (PLEX region hidden)');
                 setRegions(userSelectableRegions);
                 setError(null);
                 setIsLoadingFast(false);
@@ -51,17 +46,14 @@ export default function RegionSelector({ selectedRegion, onRegionChange, allowAl
         }
 
         loadRegions();
-    }, []); // ← only run once on mount
+    }, []);
 
     useEffect(() => {
-        // Auto-select "All Regions" only if allowAllRegions is true and no region is selected
         if (allowAllRegions && (!selectedRegion || !selectedRegion.regionID) && regions.length > 0) {
-            console.log('[RegionSelector] No selectedRegion, defaulting to All Regions');
             onRegionChange?.({ regionName: 'All Regions', regionID: 'all' });
         }
     }, [selectedRegion, regions, onRegionChange, allowAllRegions]);
 
-    // Group regions into popular and others, both sorted alphabetically
     const { popularRegionsList, otherRegionsList, allRegionsList } = useMemo(() => {
         const popular = regions.filter(r => popularRegions.includes(r.regionName))
             .sort((a, b) => a.regionName.localeCompare(b.regionName));
@@ -82,14 +74,9 @@ export default function RegionSelector({ selectedRegion, onRegionChange, allowAl
     }
     if (regions.length === 0) {
         const loadingText = isLoadingFast ? 'Loading regions...' : 'Discovering regions from market data...';
-        console.log('⏳ RegionSelector loading:', loadingText);
         return <div style={{ padding: '1rem' }}>{loadingText}</div>;
     }
 
-    // Debug output for troubleshooting
-    console.log('[RegionSelector] Render', { selectedRegion, regions });
-
-    // Render dropdown UI with grouped options
     return (
         <div className="region-selector-container">
             <select
@@ -103,13 +90,11 @@ export default function RegionSelector({ selectedRegion, onRegionChange, allowAl
                         return;
                     }
                     if (regionID === 'all') {
-                        console.log('[RegionSelector] onRegionChange to All Regions');
                         onRegionChange?.({ regionName: 'All Regions', regionID: 'all' });
                         return;
                     }
                     const region = regions.find(r => String(r.regionID) === regionID);
                     if (region) {
-                        console.log('[RegionSelector] onRegionChange', region);
                         onRegionChange?.(region);
                     }
                 }}

@@ -14,7 +14,6 @@ import { applyOutlierFilter, flattenMarketTree } from '../../utils/common.js';
 import stations from '../../data/stations.json';
 import marketTreeStatic from '../../data/market.json';
 
-// If your regions.json is a raw array, this loader handles both raw and wrapped formats
 async function loadRegionsFile() {
     const url = `${import.meta.env.BASE_URL}data/regions.json`;
     const res = await fetch(url);
@@ -24,37 +23,25 @@ async function loadRegionsFile() {
 }
 
 export default function Market() {
-    // Core UI state
     const [marketTree, setMarketTree] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedRegion, setSelectedRegion] = useState({ regionID: 'all', regionName: 'All Regions' });
     const [activeTab, setActiveTab] = useState('orders');
     const [breadcrumbPath, setBreadcrumbPath] = useState(null);
-
-    // Market data state
     const [sellers, setSellers] = useState([]);
     const [buyers, setBuyers] = useState([]);
     const [filterOutliers, setFilterOutliers] = useState('none');
-
-    // Dynamic data sources
     const [regions, setRegions] = useState([]);         // loaded from /data/regions.json
     const [structures, setStructures] = useState([]);   // loaded from /data/structures.json
-
-    // Location metadata map (stations + structures)
     const [locationInfoMap, setLocationInfoMap] = useState({});
-
-    // Derived search params
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const selectedItemID = parseInt(queryParams.get('item') || '0', 10);
-
-    // Error state
     const [marketTreeError, setMarketTreeError] = useState(null);
 
-    // Load the static market tree locally (baked into src/data)
     useEffect(() => {
         try {
-            // Normalize to array for your MarketTree component expectations
+
             let treeArray = marketTreeStatic;
             if (treeArray && !Array.isArray(treeArray) && typeof treeArray === 'object') {
                 treeArray = Object.entries(treeArray).map(([name, node]) => ({ ...node, name }));
@@ -72,13 +59,11 @@ export default function Market() {
         }
     }, []);
 
-    // Flatten the tree for quick lookup and breadcrumbs
     const flattenedMarketTree = useMemo(() => {
         if (!marketTree) return { items: [], pathMap: {} };
         return flattenMarketTree(marketTree);
     }, [marketTree]);
 
-    // Load dynamic regions and structures
     useEffect(() => {
         loadRegionsFile()
             .then(setRegions)
@@ -86,14 +71,13 @@ export default function Market() {
     }, []);
 
     useEffect(() => {
-        if (!regions.length) return; // Wait for region metadata
+        if (!regions.length) return;
 
         const regionMap = new Map();
         regions.forEach(r => regionMap.set(Number(r.regionID), r.regionName));
 
         const mergedMap = {};
 
-        // 1. Baked-in NPC stations from stations.json
         stations.forEach(station => {
             const stationId = Number(station.station_id || station.stationID);
             mergedMap[stationId] = {
@@ -106,9 +90,6 @@ export default function Market() {
             };
         });
 
-        console.log(`📍 Loaded ${Object.keys(mergedMap).length} NPC stations`);
-
-        // 2. Player-owned structures from structures.json
         structures.forEach(structure => {
             const structureId = Number(structure.stationID);
             mergedMap[structureId] = {
@@ -116,11 +97,9 @@ export default function Market() {
                 security: typeof structure.security === 'number' ? structure.security : null,
                 regionName: structure.regionName || regionMap.get(Number(structure.regionID)) || 'Unknown',
                 type: 'structure',
-                isNPC: structure.type === 'npc' // Most structures are player-owned unless explicitly marked as NPC
+                isNPC: structure.type === 'npc'
             };
         });
-
-        console.log(`📍 Total locations (NPC + Structures): ${Object.keys(mergedMap).length}`);
         setLocationInfoMap(mergedMap);
     }, [regions, structures]);
 
@@ -320,8 +299,6 @@ export default function Market() {
         });
 
         if (newLocationsAdded > 0) {
-            console.log(`📍 Added ${newLocationsAdded} new locations from market orders`);
-            console.log('📍 Updated locationInfoMap size:', Object.keys(updatedMap).length);
             setLocationInfoMap(updatedMap);
         }
     }, [sellers, buyers]);
@@ -378,8 +355,6 @@ export default function Market() {
     };
 
     useEffect(() => {
-        console.log('Debug: selectedItem', selectedItem);
-        console.log('Debug: selectedRegion', selectedRegion);
     }, [selectedItem, selectedRegion]);
 
     return (

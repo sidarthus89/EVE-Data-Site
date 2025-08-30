@@ -45,7 +45,6 @@ async function main() {
             try {
                 const res = await sql.query(item.q);
                 const cnt = res && res.recordset && res.recordset[0] ? res.recordset[0].cnt : null;
-                console.log(`${item.name}: ${cnt}`);
             } catch (e) {
                 console.log(`${item.name}: ERROR - ${e.message}`);
             }
