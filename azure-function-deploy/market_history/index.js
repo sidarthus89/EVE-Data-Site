@@ -41,6 +41,10 @@ module.exports = async function (context, req) {
         const days = req.query.days ? parseInt(req.query.days) : 30;
 
         context.log('🔍 Parsed parameters:', { typeId, regionId, days });
+        context.log('🔍 Raw parameters received:', {
+            type_id: req.query.type_id,
+            region_id: req.query.region_id
+        });
 
         // Validate parameters
         if (!typeId || !regionId) {
@@ -80,6 +84,12 @@ module.exports = async function (context, req) {
             const response = await axios.get(esiUrl);
             const data = response.data;
 
+            context.log('🌐 Raw ESI API Response:', {
+                status: response.status,
+                statusText: response.statusText,
+                data: data
+            });
+
             context.log('✅ Data fetched successfully:', {
                 recordCount: data.length,
                 firstRecord: data[0] || 'No records'
@@ -97,6 +107,18 @@ module.exports = async function (context, req) {
                 region_id: regionIdNum,
                 type_id: typeIdNum
             }));
+
+            context.log('📤 Sending transformed data:', {
+                success: true,
+                data: transformedData,
+                meta: {
+                    type_id: typeIdNum,
+                    region_id: regionIdNum,
+                    days: days,
+                    record_count: transformedData.length,
+                    query_executed_at: new Date().toISOString()
+                }
+            });
 
             context.res = {
                 status: 200,

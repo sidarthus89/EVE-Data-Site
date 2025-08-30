@@ -3,6 +3,174 @@
 
 import { fetchWithRetry, AZURE_BASE, ESI_BASE, fetchMarketTree } from './api.js';
 
+const BASE_URL = AZURE_BASE || 'https://evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net'; // Define BASE_URL fallback
+
+function extractHistoryArray(responseData) {
+    console.log('🔧 Extracting history array from:', responseData);
+
+    if (Array.isArray(responseData)) {
+        console.log('✅ Data is already an array');
+        return responseData;
+    }
+
+    if (responseData && typeof responseData === 'object') {
+        // Try common property names for the history data
+        const possibleKeys = [
+            'history',
+            'data',
+            'items',
+            'marketHistory',
+            'results',
+            'historyData',
+            'records'
+        ];
+
+        for (const key of possibleKeys) {
+            if (responseData[key] && Array.isArray(responseData[key])) {
+                console.log(`✅ Found history array in property: ${key}`);
+                return responseData[key];
+            }
+        }
+
+        // If no array found in common properties, check all properties
+        const allKeys = Object.keys(responseData);
+        console.log('🔍 Available properties:', allKeys);
+
+        for (const key of allKeys) {
+            if (Array.isArray(responseData[key])) {
+                console.log(`✅ Found array in property: ${key}`);
+                return responseData[key];
+            }
+        }
+
+        console.log('❌ No array found in response object');
+        return [];
+    }
+
+    console.log('❌ Response is not an object or array');
+    return [];
+}
+
+// Update your fetchMarketHistory function
+export async function fetchMarketHistory(typeID, regionID, days = 365) {
+    console.log(`📈 Fetching market history: type_id=${typeID}, region_id=${regionID}, days=${days}`);
+    const url = `${BASE_URL}/market/history?type_id=${typeID}&region_id=${regionID}&days=${days}`;
+    console.log(`📈 URL: ${url}`);
+    console.log('🔍 Verifying URL and parameters:', { url, typeID, regionID, days }); // Log the URL and parameters
+    console.log(`🔍 Debugging fetchMarketHistory: Constructed URL: ${url}`);
+    console.log(`🔍 Parameters: typeID=${typeID}, regionID=${regionID}, days=${days}`);
+
+    try {
+        const response = await fetch(url);
+        console.log(`📈 Response status: ${response.status} ${response.statusText}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('📈 Raw response data:', data);
+
+        // Extract the history array from the response
+        const historyArray = extractHistoryArray(data);
+        console.log('📈 Extracted history array:', {
+            isArray: Array.isArray(historyArray),
+            length: historyArray.length,
+            sample: historyArray.slice(0, 2)
+        });
+
+        return historyArray;
+    } catch (error) {
+        console.error('❌ Error fetching market history:', error);
+        throw error;
+    }
+}
+
+// Update your fetchUniverseMarketHistory function
+export async function fetchUniverseMarketHistory(typeID) {
+    console.log(`🌍 fetchUniverseMarketHistory called with typeID: ${typeID}`, typeof typeID);
+
+    const hubRegions = [10000002, 10000043, 10000032, 10000030, 10000042];
+    console.log('🌍 Fetching from hubs:', hubRegions);
+
+    try {
+        const promises = hubRegions.map(async regionID => {
+            console.log(`🌍 Fetching hub ${regionID} for typeID ${typeID}`);
+            try {
+                const data = await fetchMarketHistory(typeID, regionID);
+                console.log(`🌍 Hub ${regionID} returned:`, {
+                    isArray: Array.isArray(data),
+                    length: data ? data.length : 0,
+                    sample: Array.isArray(data) ? data.slice(0, 2) : data
+                });
+                return data;
+            } catch (error) {
+                console.error(`❌ Error fetching hub ${regionID}:`, error);
+                return [];
+            }
+        });
+
+        const results = await Promise.all(promises);
+        console.log('🌍 All hub responses:', results.map(r => Array.isArray(r) ? r.length + ' items' : 'not array'));
+
+        // Aggregate all history data by date
+        const dateMap = new Map();
+
+        results.forEach((hubData, index) => {
+            const regionID = hubRegions[index];
+            console.log(`🌍 Processing hub ${regionID} with ${Array.isArray(hubData) ? hubData.length : 'not array'} items`);
+
+            if (Array.isArray(hubData)) {
+                hubData.forEach(item => {
+                    const date = item.date || item.Date || item.day;
+                    if (!date) return;
+
+                    const volume = Number(item.volume || item.totalVolume || item.quantity || 0);
+                    const average = Number(item.average || item.avg || item.price || item.averagePrice || 0);
+
+                    if (!dateMap.has(date)) {
+                        dateMap.set(date, {
+                            date,
+                            totalVolume: 0,
+                            weightedPriceSum: 0,
+                            totalWeight: 0
+                        });
+                    }
+
+                    const entry = dateMap.get(date);
+                    entry.totalVolume += volume;
+                    entry.weightedPriceSum += average * volume;
+                    entry.totalWeight += volume;
+                });
+            }
+        });
+
+        console.log('🌍 Date map size:', dateMap.size);
+
+        // Convert to final format
+        const aggregated = Array.from(dateMap.values()).map(entry => ({
+            date: entry.date,
+            totalVolume: entry.totalVolume,
+            average: entry.totalWeight > 0 ? entry.weightedPriceSum / entry.totalWeight : 0
+        }));
+
+        // Sort by date
+        aggregated.sort((a, b) => {
+            if (a.date < b.date) return -1;
+            if (a.date > b.date) return 1;
+            return 0;
+        });
+
+        console.log('🌍 Final aggregated result:', aggregated.length, 'items');
+        console.log('🌍 Sample aggregated data:', aggregated.slice(0, 3));
+
+        return aggregated;
+    } catch (error) {
+        console.error('❌ Error in fetchUniverseMarketHistory:', error);
+        throw error;
+    }
+}
+
 export async function fetchMarketOrders(typeId, regionId = null, locationId = null, isBuyOrder = null) {
     const params = new URLSearchParams({ type_id: typeId });
     if (regionId) params.append('region_id', regionId);
@@ -68,7 +236,7 @@ export async function fetchMarketSummary(typeId, regionId = null) {
     return fetchWithRetry(`${AZURE_BASE}/market/summary?${params}`, {}, 3);
 }
 
-export async function fetchMarketHistory(type_id, region_id, days = 30) {
+/*export async function fetchMarketHistory(type_id, region_id, days = 30) {
     const url = `https://evetradefunc01-hycngkbxfycke8cf.eastus2-01.azurewebsites.net/api/market/history?type_id=${type_id}&region_id=${region_id}&days=${days}`;
     console.log(`📈 Fetching market history: type_id=${type_id}, region_id=${region_id}, days=${days}`);
     console.log(`📈 URL: ${url}`);
@@ -94,14 +262,14 @@ export async function fetchMarketHistory(type_id, region_id, days = 30) {
         console.error(`📈 Error in fetchMarketHistory for type_id=${type_id}, region_id=${region_id}:`, error);
         throw error;
     }
-}
+} */
 
 export async function fetchAggregatedOrders(typeId, regionId) {
     const params = new URLSearchParams({ type_id: typeId, region_id: regionId });
     return fetchWithRetry(`${AZURE_BASE}/aggregated-orders?${params}`, {}, 3);
 }
 
-export async function fetchUniverseMarketHistory(typeId) {
+/*export async function fetchUniverseMarketHistory(typeId) {
     console.log('🌍 fetchUniverseMarketHistory called with typeID:', typeId, typeof typeId);
 
     const hubs = [10000002, 10000043, 10000032, 10000030, 10000042]; // major trade hub regions
@@ -173,7 +341,7 @@ export async function fetchUniverseMarketHistory(typeId) {
     }
 
     return aggregated;
-}
+}*/
 
 export async function fetchTradeRouteData(fromId, toId, types = [34, 44992]) {
     const opportunities = [];
