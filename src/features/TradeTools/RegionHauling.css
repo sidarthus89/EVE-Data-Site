@@ -24,7 +24,6 @@
     max-width: 95%;
     margin: 0 auto;
     padding: 20px;
-    background-color: #1a1a1a;
     color: #ffffff;
 }
 
@@ -36,7 +35,7 @@
 .page-header h1 {
     color: #e8e8e8;
     font-size: 2.5rem;
-    margin-bottom: 10px;
+    margin: 10px;
 }
 
 .page-header p {
@@ -62,8 +61,7 @@
 
 /* Form Styles */
 .hauling-form {
-    background: rgba(20, 20, 30, 0.95);
-    border: 1px solid #444;
+    background-color: #1a1a1a;
     border-radius: 8px;
     padding: 30px;
     margin-bottom: 30px;
@@ -176,7 +174,7 @@ select.form-control {
 
 /* Region Selector Integration */
 .form-group .region-selector-container {
-    width: 100%;
+    width: 256px;
 }
 
 .form-group .region-selector {

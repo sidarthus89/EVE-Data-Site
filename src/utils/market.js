@@ -374,14 +374,13 @@ export const fetchRegionHaulingData = async (fromRegionId, toRegionId) => {
 
 // Fallback function to generate basic trade routes using live market data
 async function generateBasicTradeRoutes(originRegionId, destinationRegionId = null) {
-
     // Load full set of tradeable items from market.json
     const marketTree = await fetchMarketTree();
-    const commonTradeItems = [];
+    const allTradeItems = [];
     const traverse = node => {
         if (node.items) {
             node.items.forEach(item => {
-                commonTradeItems.push({
+                allTradeItems.push({
                     typeId: Number(item.typeID),
                     name: item.typeName,
                     volume: item.volume || 0.01
@@ -408,7 +407,8 @@ async function generateBasicTradeRoutes(originRegionId, destinationRegionId = nu
             buyOrders: orders.filter(o => o.is_buy_order)
         };
     }
-    for (const item of commonTradeItems) {
+
+    for (const item of allTradeItems) {
         const { typeId } = item;
         try {
             // Fetch sell orders from origin region via ESI
@@ -457,11 +457,6 @@ async function generateBasicTradeRoutes(originRegionId, destinationRegionId = nu
         }
     }
 
-    // Sort by profit margin and return top results
-    const sortedRoutes = tradeOpportunities
-        .filter(route => route.profit_margin > 1) // Only routes with >1% profit
-        .sort((a, b) => b.profit_margin - a.profit_margin)
-        .slice(0, 50); // Top 50 routes
-
-    return sortedRoutes;
+    // Return all trade opportunities without limiting to top 50
+    return tradeOpportunities;
 }

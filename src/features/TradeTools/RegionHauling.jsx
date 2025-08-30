@@ -493,11 +493,11 @@ export default function RegionHauling() {
                         </div>
                         <div className="form-row form-row-bottom">
                             <div className="form-group">
-                                <label>Budget</label>
+                                <label>Max Budget</label>
                                 <input type="number" value={formData.maxBudget} onChange={e => handleInputChange('maxBudget', e.target.value)} placeholder="No Limit" className="form-control" />
                             </div>
                             <div className="form-group">
-                                <label>Capacity (m³)</label>
+                                <label>Max Capacity (m³)</label>
                                 <input type="number" value={formData.maxWeight} onChange={e => handleInputChange('maxWeight', e.target.value)} placeholder="No Limit" className="form-control" />
                             </div>
                             <div className="form-group">
@@ -509,7 +509,7 @@ export default function RegionHauling() {
                                 <input type="number" value={formData.minProfit} onChange={e => handleInputChange('minProfit', e.target.value)} placeholder="Default: 500,000" className="form-control" />
                             </div>
                             <div className="form-group">
-                                <label>ROI %</label>
+                                <label>Min ROI %</label>
                                 <input type="number" value={formData.minROI} onChange={e => handleInputChange('minROI', Number(e.target.value) || 0)} className="form-control" />
                             </div>
                         </div>
