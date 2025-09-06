@@ -21,7 +21,24 @@
 
   <!-- End Google Analytics Tracking Code -->
 
+  <!-- Handle route restoration from 404.html redirects -->
+  <script>
+    (function () {
+      // Check if a path was saved by the 404.html script
+      var redirectPath = sessionStorage.getItem('spa:path');
+      if (redirectPath) {
+        // Clear the stored path
+        sessionStorage.removeItem('spa:path');
 
+        // If the current page was loaded via the redirect script
+        // and we have a saved path, navigate to that path
+        if (window.location.pathname.endsWith('/EVE-Data-Site/') && !window.location.search) {
+          // Use History API to update the URL without reloading the page
+          history.replaceState(null, null, window.location.pathname + redirectPath);
+        }
+      }
+    })();
+  </script>
   <script type="module" crossorigin src="/EVE-Data-Site/assets/index-BmMlFENS.js"></script>
   <link rel="modulepreload" crossorigin href="/EVE-Data-Site/assets/react-vendor-qWGkjVPF.js">
   <link rel="stylesheet" crossorigin href="/EVE-Data-Site/assets/index-RmdW-5FJ.css">

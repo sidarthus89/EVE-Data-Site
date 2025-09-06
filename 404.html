@@ -5,23 +5,42 @@
     <meta charset="utf-8">
     <title>EVE Data Site - Page Not Found</title>
     <script>
-        // Single Page App redirect script for GitHub Pages
-        // Store the URL the user was trying to access
-        const pathname = window.location.pathname;
-        const searchParams = window.location.search || '';
-        const hash = window.location.hash || '';
+        // SPA redirect script for GitHub Pages with BrowserRouter
+        (function () {
+            // Save the segment of the URL path after /EVE-Data-Site/
+            var pathSegmentsToKeep = 0; // Don't keep any segments for root redirects
+            var repoName = "EVE-Data-Site";
 
-        // Handle routes correctly by redirecting to the root with the path as a parameter
-        if (pathname.indexOf('/EVE-Data-Site/') === 0) {
-            // Preserve the route portion of the URL after the basename
-            const path = pathname.replace('/EVE-Data-Site/', '');
+            var l = window.location;
+            var cleanPath = l.pathname.split('/').slice(1);
 
-            // Redirect to the root with the correct path
-            window.location.href = '/EVE-Data-Site/' + (path ? '?' + path + searchParams : '') + hash;
-        } else {
-            // Default fallback
-            window.location.href = '/EVE-Data-Site/';
-        }
+            // Extract the repo name from the path
+            if (cleanPath[0] === repoName) {
+                cleanPath.splice(0, 1);
+            }
+
+            // Only keep as many path segments as specified
+            cleanPath = cleanPath.slice(0, pathSegmentsToKeep);
+
+            // If path segments to keep is > 0, we'll add them to the URL
+            var redirectUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '');
+            redirectUrl += '/' + repoName + '/';
+
+            // If we have path segments to keep, append them
+            if (cleanPath.length > 0) {
+                redirectUrl += cleanPath.join('/') + '/';
+            }
+
+            // If we have a route in the path, store it in the browser's session history
+            var remainingPath = l.pathname.substr(('/' + repoName + '/').length);
+            if (remainingPath) {
+                // Save path to sessionStorage for rehydration
+                sessionStorage.setItem('spa:path', '/' + remainingPath);
+            }
+
+            // Redirect to the cleaned URL
+            window.location.replace(redirectUrl);
+        })();
     </script>
 </head>
 
