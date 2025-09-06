@@ -5,8 +5,23 @@
     <meta charset="utf-8">
     <title>EVE Data Site - Page Not Found</title>
     <script>
-        // With HashRouter we can simply redirect to the root
-        window.location.href = "/EVE-Data-Site/";
+        // Single Page App redirect script for GitHub Pages
+        // Store the URL the user was trying to access
+        const pathname = window.location.pathname;
+        const searchParams = window.location.search || '';
+        const hash = window.location.hash || '';
+
+        // Handle routes correctly by redirecting to the root with the path as a parameter
+        if (pathname.indexOf('/EVE-Data-Site/') === 0) {
+            // Preserve the route portion of the URL after the basename
+            const path = pathname.replace('/EVE-Data-Site/', '');
+
+            // Redirect to the root with the correct path
+            window.location.href = '/EVE-Data-Site/' + (path ? '?' + path + searchParams : '') + hash;
+        } else {
+            // Default fallback
+            window.location.href = '/EVE-Data-Site/';
+        }
     </script>
 </head>
 

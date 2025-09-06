@@ -1,4 +1,4 @@
-import{r as e}from"./react-vendor-BmSviu0-.js";
+import{r as e}from"./react-vendor-qWGkjVPF.js";
 /**
    * table-core
    *
