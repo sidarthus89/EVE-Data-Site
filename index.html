@@ -10,17 +10,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EVE Data Site</title>
 
-  <!-- Single Page App Redirect Script -->
+  <!-- Single Page App redirect script for GitHub Pages -->
   <script>
+    // Check if we have been redirected from 404.html
     (function () {
-      // Extract the 'path' parameter from the URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const path = urlParams.get('path');
+      const redirect = sessionStorage.getItem('redirect');
+      if (redirect) {
+        sessionStorage.removeItem('redirect');
+        const redirectData = JSON.parse(redirect);
+        const searchParams = new URLSearchParams(window.location.search);
+        const route = searchParams.get('route');
 
-      // If there's a path parameter, navigate to that path
-      if (path) {
-        // Remove the query string from the URL without reloading
-        window.history.replaceState(null, null, path);
+        if (route) {
+          history.replaceState(null, null, '/' + (window.location.pathname.split('/')[1] || '') + '/' + route + redirectData.search + redirectData.hash);
+        }
       }
     })();
   </script>

@@ -5,31 +5,43 @@
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script>
-        // Extract the path from the URL (everything after the domain)
-        const path = window.location.pathname.slice(1);
+        // Single Page App routing fix for GitHub Pages
+        // Stores the requested URL in sessionStorage and redirects to the root
+        // This allows client-side routing to work with GitHub Pages
+        const repoName = 'EVE-Data-Site';
+        const pathSegmentsToKeep = 1; // Change to 0 if not using custom domain and repository name is in path
+        const l = window.location;
+        const segments = l.pathname.split('/').filter(s => s !== '');
 
-        // Get the repository name from the path (first segment)
-        const segments = path.split('/');
-        const repo = segments[0] || '';
+        // Handle the case of repository being in the path
+        if (segments.length > 0 && segments[0] === repoName) {
+            segments.shift(); // Remove repo name if it's first segment
+        }
 
-        // Remove the repository name from the path
-        const remainingPath = segments.slice(1).join('/');
+        // Remove path segments that should be kept from redirectUrl calculation
+        const remainingSegments = segments.slice(pathSegmentsToKeep);
 
-        // Construct the redirect URL with query parameter containing the path
-        const redirectUrl =
-            window.location.origin +
-            (repo ? '/' + repo : '') +
-            '/?path=' +
-            encodeURIComponent('/' + remainingPath);
+        // Create the redirect URL with original query and hash
+        const redirectUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+            '/' + repoName + '/' +
+            (remainingSegments.length > 0 ? '?' : '') +
+            (remainingSegments.length > 0 ? 'route=' + remainingSegments.join('/') : '') +
+            (l.search ? '&' + l.search.slice(1) : '') +
+            l.hash;
 
-        // Redirect
+        sessionStorage.setItem('redirect', JSON.stringify({
+            pathname: '/' + remainingSegments.join('/'),
+            search: l.search,
+            hash: l.hash
+        }));
+
         window.location.replace(redirectUrl);
     </script>
 </head>
 
 <body>
     <h1>Redirecting...</h1>
-    <p>If you are not redirected automatically, <a href="/">click here to go to the homepage</a>.</p>
+    <p>If you are not redirected automatically, <a href="/">click here</a>.</p>
 </body>
 
 </html>
