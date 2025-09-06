@@ -1,0 +1,42 @@
+[
+    {
+        "stationID": "1035768592387",
+        "locationName": "Muvolailen - Golden Mom's Structure Factory",
+        "regionID": 10000033,
+        "regionName": "The Citadel",
+        "systemID": 30002780,
+        "systemName": "Muvolailen",
+        "security": 0.7080867290496826,
+        "type": "player"
+    },
+    {
+        "stationID": "1049552760837",
+        "locationName": "Atier - Azurite Industries",
+        "regionID": 10000032,
+        "regionName": "Sinq Laison",
+        "systemID": 30002701,
+        "systemName": "Atier",
+        "security": 0.626695454120636,
+        "type": "player"
+    },
+    {
+        "stationID": "1043878365194",
+        "locationName": "Inghenges - CREDE Industries",
+        "regionID": 10000032,
+        "regionName": "Sinq Laison",
+        "systemID": 30002672,
+        "systemName": "Inghenges",
+        "security": 0.7157557606697083,
+        "type": "player"
+    },
+    {
+        "stationID": "1047820613644",
+        "locationName": "Actee - Public Reprocessing Facility",
+        "regionID": 10000064,
+        "regionName": "Essence",
+        "systemID": 30004981,
+        "systemName": "Actee",
+        "security": 0.5014649033546448,
+        "type": "player"
+    }
+]

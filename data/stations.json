@@ -1,0 +1,54 @@
+[
+    {
+        "station_id": 60000004,
+        "name": "Muvolailen X - Moon 3 - CBD Corporation Storage",
+        "system_id": 30002780,
+        "system_name": "Muvolailen",
+        "region_id": 10000033,
+        "region_name": "The Citadel",
+        "security_status": 0.7080867290496826,
+        "services": [
+            "courier-missions",
+            "reprocessing-plant"
+        ]
+    },
+    {
+        "station_id": 60000007,
+        "name": "Muvolailen VII - Moon 3 - CBD Corporation Storage",
+        "system_id": 30002780,
+        "system_name": "Muvolailen",
+        "region_id": 10000033,
+        "region_name": "The Citadel",
+        "security_status": 0.7080867290496826,
+        "services": [
+            "courier-missions",
+            "reprocessing-plant"
+        ]
+    },
+    {
+        "station_id": 60000010,
+        "name": "Muvolailen VII - Moon 6 - CBD Corporation Storage",
+        "system_id": 30002780,
+        "system_name": "Muvolailen",
+        "region_id": 10000033,
+        "region_name": "The Citadel",
+        "security_status": 0.7080867290496826,
+        "services": [
+            "courier-missions",
+            "reprocessing-plant"
+        ]
+    },
+    {
+        "station_id": 60000016,
+        "name": "Jouvulen III - Moon 9 - CBD Corporation Storage",
+        "system_id": 30002782,
+        "system_name": "Jouvulen",
+        "region_id": 10000033,
+        "region_name": "The Citadel",
+        "security_status": 0.8602305054664612,
+        "services": [
+            "courier-missions",
+            "reprocessing-plant"
+        ]
+    }
+]
