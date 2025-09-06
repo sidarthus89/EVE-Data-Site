@@ -10,6 +10,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EVE Data Site</title>
 
+  <!-- Single Page App Redirect Script -->
+  <script>
+    (function () {
+      // Extract the 'path' parameter from the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const path = urlParams.get('path');
+
+      // If there's a path parameter, navigate to that path
+      if (path) {
+        // Remove the query string from the URL without reloading
+        window.history.replaceState(null, null, path);
+      }
+    })();
+  </script>
+
   <!-- Google Analytics Tracking Code -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DGNCY3H8X5"></script>
   <script>

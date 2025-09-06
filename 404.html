@@ -1,34 +1,35 @@
-<!-- index.html -->
-
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 
 <head>
-  <meta charset="UTF-8" />
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+        // Extract the path from the URL (everything after the domain)
+        const path = window.location.pathname.slice(1);
 
-  <link rel="icon" type="image/png" href="/EVE-Data-Site/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EVE Data Site</title>
+        // Get the repository name from the path (first segment)
+        const segments = path.split('/');
+        const repo = segments[0] || '';
 
-  <!-- Google Analytics Tracking Code -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DGNCY3H8X5"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-DGNCY3H8X5', { send_page_view: false });
-  </script>
+        // Remove the repository name from the path
+        const remainingPath = segments.slice(1).join('/');
 
-  <!-- End Google Analytics Tracking Code -->
+        // Construct the redirect URL with query parameter containing the path
+        const redirectUrl =
+            window.location.origin +
+            (repo ? '/' + repo : '') +
+            '/?path=' +
+            encodeURIComponent('/' + remainingPath);
 
-
-  <script type="module" crossorigin src="/EVE-Data-Site/assets/index-BmMlFENS.js"></script>
-  <link rel="modulepreload" crossorigin href="/EVE-Data-Site/assets/react-vendor-qWGkjVPF.js">
-  <link rel="stylesheet" crossorigin href="/EVE-Data-Site/assets/index-RmdW-5FJ.css">
+        // Redirect
+        window.location.replace(redirectUrl);
+    </script>
 </head>
 
 <body>
-  <div id="root"></div>
+    <h1>Redirecting...</h1>
+    <p>If you are not redirected automatically, <a href="/">click here to go to the homepage</a>.</p>
 </body>
 
 </html>
