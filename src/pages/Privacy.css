@@ -1,0 +1,9 @@
+.privacy {
+    height: 100vh;
+    overflow-y: auto;
+
+    padding-left: 2rem;
+    padding-right: 2rem;
+    box-sizing: border-box;
+    padding-bottom: 6rem;
+}

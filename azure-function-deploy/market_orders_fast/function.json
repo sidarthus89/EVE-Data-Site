@@ -1,0 +1,20 @@
+{
+    "bindings": [
+        {
+            "name": "req",
+            "type": "httpTrigger",
+            "direction": "in",
+            "authLevel": "anonymous",
+            "methods": [
+                "GET"
+            ],
+            "route": "market/orders"
+        },
+        {
+            "name": "res",
+            "type": "http",
+            "direction": "out"
+        }
+    ],
+    "scriptFile": "index.js"
+}

@@ -1,0 +1,37 @@
+/* src\features\Market\Market.css */
+
+@media (max-width: 768px) {
+    .market-body {
+        flex-direction: column;
+    }
+
+    .left-panel,
+    .right-panel {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+    }
+}
+
+.market-body {
+    display: flex;
+    align-items: flex-start;
+    /* optional, to prevent vertical centering */
+}
+
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    list-style: none;
+    background-color: transparent;
+}
+
+.right-panel {
+    flex: 2.5;
+    padding: 1rem;
+    padding-top: 0;
+    box-sizing: border-box;
+}

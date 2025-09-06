@@ -1,0 +1,45 @@
+/* src\features\Market\PLEXMarketTicker.css */
+.marquee {
+    display: flex;
+    width: 100%;
+    background: #444;
+    padding-bottom: 32px;
+    font-size: 18px;
+    font-weight: bold;
+    overflow: hidden;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    font-family: monospace;
+}
+
+.marquee__content {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.marquee__item {
+    display: inline-flex;
+    align-items: center;
+}
+
+.marquee__text {
+    display: inline-block;
+    margin: 0;
+    padding-right: 32px;
+    text-transform: uppercase;
+}
+
+.highest {
+    color: #ff4455;
+}
+
+.average {
+    color: #ffaa00;
+}
+
+.lowest {
+    color: #00ff99;
+}

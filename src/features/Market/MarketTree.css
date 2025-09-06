@@ -1,0 +1,121 @@
+/* src\features\Market\MarketTree.css */
+
+.menuList {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+
+.menuList,
+.menuList ul {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 0;
+    margin-top: 2px;
+}
+
+.menuList li {
+    list-style-type: none;
+    padding-left: 8px;
+    cursor: pointer;
+}
+
+.menuList ul {
+    padding-left: 1px;
+    margin-left: 0;
+    width: 384px;
+}
+
+.menuList .market-item {
+    padding-left: 24px;
+}
+
+details summary {
+    list-style: none;
+}
+
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+.market-item,
+details summary {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding-left: 12px;
+    border-radius: 4px;
+    /* transition: background-color 0.2s ease; */
+}
+
+.market-item:hover,
+details summary:hover {
+    background-color: #0e1f24;
+    color: #fff;
+}
+
+.market-item img,
+details summary img {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+}
+
+.market-item.active,
+details summary.active {
+    background-color: #0e1f24;
+    color: #fff;
+}
+
+.menuList summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.group-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+.market-item.with-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 4px;
+}
+
+.market-item .item-name {
+    flex-grow: 1;
+    cursor: pointer;
+}
+
+.quickbar-add-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    font-size: 14px;
+    padding: 2px 6px;
+    margin-left: 8px;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.2s, color 0.2s;
+}
+
+.market-item:hover .quickbar-add-btn {
+    visibility: visible;
+    opacity: 1;
+}
+
+.quickbar-add-btn:hover {
+    color: #1e90ff;
+}

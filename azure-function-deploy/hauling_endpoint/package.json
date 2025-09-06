@@ -1,0 +1,14 @@
+{
+    "name": "hauling_endpoint",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "start": "func start"
+    },
+    "dependencies": {
+        "mssql": "^9.1.1"
+    },
+    "devDependencies": {
+        "@azure/functions": "^4.0.0"
+    }
+}
