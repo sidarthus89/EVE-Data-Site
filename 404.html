@@ -3,45 +3,16 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Redirecting...</title>
+    <title>EVE Data Site - Page Not Found</title>
     <script>
-        // Single Page App routing fix for GitHub Pages
-        // Stores the requested URL in sessionStorage and redirects to the root
-        // This allows client-side routing to work with GitHub Pages
-        const repoName = 'EVE-Data-Site';
-        const pathSegmentsToKeep = 1; // Change to 0 if not using custom domain and repository name is in path
-        const l = window.location;
-        const segments = l.pathname.split('/').filter(s => s !== '');
-
-        // Handle the case of repository being in the path
-        if (segments.length > 0 && segments[0] === repoName) {
-            segments.shift(); // Remove repo name if it's first segment
-        }
-
-        // Remove path segments that should be kept from redirectUrl calculation
-        const remainingSegments = segments.slice(pathSegmentsToKeep);
-
-        // Create the redirect URL with original query and hash
-        const redirectUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-            '/' + repoName + '/' +
-            (remainingSegments.length > 0 ? '?' : '') +
-            (remainingSegments.length > 0 ? 'route=' + remainingSegments.join('/') : '') +
-            (l.search ? '&' + l.search.slice(1) : '') +
-            l.hash;
-
-        sessionStorage.setItem('redirect', JSON.stringify({
-            pathname: '/' + remainingSegments.join('/'),
-            search: l.search,
-            hash: l.hash
-        }));
-
-        window.location.replace(redirectUrl);
+        // With HashRouter we can simply redirect to the root
+        window.location.href = "/EVE-Data-Site/";
     </script>
 </head>
 
 <body>
     <h1>Redirecting...</h1>
-    <p>If you are not redirected automatically, <a href="/">click here</a>.</p>
+    <p>If you are not redirected automatically, <a href="/EVE-Data-Site/">click here</a>.</p>
 </body>
 
 </html>

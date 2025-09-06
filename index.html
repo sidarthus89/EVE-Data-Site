@@ -10,24 +10,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EVE Data Site</title>
 
-  <!-- Single Page App redirect script for GitHub Pages -->
-  <script>
-    // Check if we have been redirected from 404.html
-    (function () {
-      const redirect = sessionStorage.getItem('redirect');
-      if (redirect) {
-        sessionStorage.removeItem('redirect');
-        const redirectData = JSON.parse(redirect);
-        const searchParams = new URLSearchParams(window.location.search);
-        const route = searchParams.get('route');
-
-        if (route) {
-          history.replaceState(null, null, '/' + (window.location.pathname.split('/')[1] || '') + '/' + route + redirectData.search + redirectData.hash);
-        }
-      }
-    })();
-  </script>
-
   <!-- Google Analytics Tracking Code -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DGNCY3H8X5"></script>
   <script>
@@ -40,8 +22,8 @@
   <!-- End Google Analytics Tracking Code -->
 
 
-  <script type="module" crossorigin src="/EVE-Data-Site/assets/index-BmMlFENS.js"></script>
-  <link rel="modulepreload" crossorigin href="/EVE-Data-Site/assets/react-vendor-qWGkjVPF.js">
+  <script type="module" crossorigin src="/EVE-Data-Site/assets/index-DcAEGjlW.js"></script>
+  <link rel="modulepreload" crossorigin href="/EVE-Data-Site/assets/react-vendor-BmSviu0-.js">
   <link rel="stylesheet" crossorigin href="/EVE-Data-Site/assets/index-RmdW-5FJ.css">
 </head>
 
