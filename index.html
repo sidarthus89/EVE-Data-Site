@@ -24,22 +24,23 @@
   <!-- Handle route restoration from 404.html redirects -->
   <script>
     (function () {
-      // Check if a path was saved by the 404.html script
+      // Restore deep link after 404.html redirect for GH Pages (prod or dev repo)
       var redirectPath = sessionStorage.getItem('spa:path');
-      if (redirectPath) {
-        // Clear the stored path
-        sessionStorage.removeItem('spa:path');
+      if (!redirectPath) return;
+      sessionStorage.removeItem('spa:path');
 
-        // If the current page was loaded via the redirect script
-        // and we have a saved path, navigate to that path
-        if (window.location.pathname.endsWith('/EVE-Data-Site/') && !window.location.search) {
-          // Use History API to update the URL without reloading the page
-          history.replaceState(null, null, window.location.pathname + redirectPath);
-        }
+      var path = window.location.pathname;
+      // Extract repo segment (first non-empty segment)
+      var parts = path.split('/').filter(Boolean);
+      var repo = parts.length ? parts[0] : '';
+      // Only proceed if we're at the repo root (e.g., /<repo>/)
+      var atRepoRoot = path === '/' + repo + '/' || path === '/' + repo;
+      if (repo && atRepoRoot && !window.location.search) {
+        history.replaceState(null, null, '/' + repo + redirectPath);
       }
     })();
   </script>
-  <script type="module" crossorigin src="/EVE-Data-Site/assets/index-BmMlFENS.js"></script>
+  <script type="module" crossorigin src="/EVE-Data-Site/assets/index-BVWZRb2-.js"></script>
   <link rel="modulepreload" crossorigin href="/EVE-Data-Site/assets/react-vendor-qWGkjVPF.js">
   <link rel="stylesheet" crossorigin href="/EVE-Data-Site/assets/index-RmdW-5FJ.css">
 </head>

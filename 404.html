@@ -7,38 +7,19 @@
     <script>
         // SPA redirect script for GitHub Pages with BrowserRouter
         (function () {
-            // Save the segment of the URL path after /EVE-Data-Site/
-            var pathSegmentsToKeep = 0; // Don't keep any segments for root redirects
-            var repoName = "EVE-Data-Site";
-
+            // Detect the repo name from the path (supports prod and dev repos)
             var l = window.location;
-            var cleanPath = l.pathname.split('/').slice(1);
+            var parts = l.pathname.split('/').filter(Boolean);
+            var repoName = parts.length ? parts[0] : 'EVE-Data-Site';
 
-            // Extract the repo name from the path
-            if (cleanPath[0] === repoName) {
-                cleanPath.splice(0, 1);
+            // Save the remaining path after the repo segment for app to restore
+            var remainingPath = l.pathname.substring(('/' + repoName + '/').length);
+            if (remainingPath && remainingPath !== '/') {
+                sessionStorage.setItem('spa:path', '/' + remainingPath.replace(/^\/+/, ''));
             }
 
-            // Only keep as many path segments as specified
-            cleanPath = cleanPath.slice(0, pathSegmentsToKeep);
-
-            // If path segments to keep is > 0, we'll add them to the URL
-            var redirectUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '');
-            redirectUrl += '/' + repoName + '/';
-
-            // If we have path segments to keep, append them
-            if (cleanPath.length > 0) {
-                redirectUrl += cleanPath.join('/') + '/';
-            }
-
-            // If we have a route in the path, store it in the browser's session history
-            var remainingPath = l.pathname.substr(('/' + repoName + '/').length);
-            if (remainingPath) {
-                // Save path to sessionStorage for rehydration
-                sessionStorage.setItem('spa:path', '/' + remainingPath);
-            }
-
-            // Redirect to the cleaned URL
+            // Redirect to repo root so index.html can boot and restore route
+            var redirectUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + '/' + repoName + '/';
             window.location.replace(redirectUrl);
         })();
     </script>
