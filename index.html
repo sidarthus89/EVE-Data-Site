@@ -8,6 +8,10 @@
 
   <link rel="icon" type="image/png" href="/EVE-Data-Site/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Reduce caching of the HTML shell to avoid stale chunk references on GH Pages -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>EVE Data Site</title>
 
   <!-- Google Analytics Tracking Code -->
@@ -40,9 +44,28 @@
       }
     })();
   </script>
-  <script type="module" crossorigin src="/EVE-Data-Site/assets/index-CGeEUy5P.js"></script>
+  <!-- If a dynamic import fails due to stale chunk (HTML served as JS), do a one-time hard reload to bust cache -->
+  <script>
+    (function () {
+      const orig = window.__vite_is_modern_browser; // harmless read to keep after Vite runtime
+      window.addEventListener('error', function (e) {
+        const msg = String(e?.message || '');
+        const targetSrc = e?.target && (e.target.src || e.target.href);
+        const looksLikeChunk = targetSrc && /\/assets\//.test(targetSrc);
+        const already = sessionStorage.getItem('spa:reloaded');
+        if (!already && (msg.includes('dynamically imported module') || looksLikeChunk)) {
+          try { sessionStorage.setItem('spa:reloaded', '1'); } catch { }
+          // append a cache-busting query
+          const url = new URL(window.location.href);
+          url.searchParams.set('v', Date.now().toString());
+          window.location.replace(url.toString());
+        }
+      }, true);
+    })();
+  </script>
+  <script type="module" crossorigin src="/EVE-Data-Site/assets/index-Do_aO85v.js"></script>
   <link rel="modulepreload" crossorigin href="/EVE-Data-Site/assets/react-vendor-qWGkjVPF.js">
-  <link rel="stylesheet" crossorigin href="/EVE-Data-Site/assets/index-RmdW-5FJ.css">
+  <link rel="stylesheet" crossorigin href="/EVE-Data-Site/assets/index-B-JLY73A.css">
 </head>
 
 <body>
