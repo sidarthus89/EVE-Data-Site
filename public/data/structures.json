@@ -1,0 +1,432 @@
+[
+  {
+    "stationID": "1044961079041",
+    "locationName": "Botane - Cheapest Market BE SMART 0.3%",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002661,
+    "systemName": "Botane",
+    "security": 0.8754401206970215,
+    "type": "player"
+  },
+  {
+    "stationID": "1049039427968",
+    "locationName": "Niballe - 56% Refines Grindhaus",
+    "regionID": 10000044,
+    "regionName": "Solitude",
+    "systemID": 30003580,
+    "systemName": "Niballe",
+    "security": 0.62018883228302,
+    "type": "player"
+  },
+  {
+    "stationID": "1031240619395",
+    "locationName": "Eystur - Vherokior Market & Development",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002543,
+    "systemName": "Eystur",
+    "security": 0.9492318034172058,
+    "type": "player"
+  },
+  {
+    "stationID": "1044164309897",
+    "locationName": "Mora - MlNER NEEDs - The Rings of Mora",
+    "regionID": 10000065,
+    "regionName": "Kor-Azor",
+    "systemID": 30005037,
+    "systemName": "Mora",
+    "security": 0.9325241446495056,
+    "type": "player"
+  },
+  {
+    "stationID": "1048810492290",
+    "locationName": "Hibi - Yellow Haven",
+    "regionID": 10000020,
+    "regionName": "Tash-Murkon",
+    "systemID": 30001662,
+    "systemName": "Hibi",
+    "security": 0.5036504864692688,
+    "type": "player"
+  },
+  {
+    "stationID": "1045712793227",
+    "locationName": "Ambeke - Ship Complex",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002644,
+    "systemName": "Ambeke",
+    "security": 0.5005549192428589,
+    "type": "player"
+  },
+  {
+    "stationID": "1041817719693",
+    "locationName": "Gamis - Public Trade Station 01",
+    "regionID": 10000001,
+    "regionName": "Derelik",
+    "systemID": 30000107,
+    "systemName": "Gamis",
+    "security": 0.47390615940093994,
+    "type": "player"
+  },
+  {
+    "stationID": "1042223782798",
+    "locationName": "Teonusude - Nexus Galactic Heathens Market",
+    "regionID": 10000028,
+    "regionName": "Molden Heath",
+    "systemID": 30002385,
+    "systemName": "Teonusude",
+    "security": 0.5863137245178223,
+    "type": "player"
+  },
+  {
+    "stationID": "1044960858258",
+    "locationName": "Hek - Cheapest Market BE SMART",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30002053,
+    "systemName": "Hek",
+    "security": 0.800000011920929,
+    "type": "player"
+  },
+  {
+    "stationID": "1046043963414",
+    "locationName": "Chesiette - CREDE - Ultima Porta Inferorum",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005327,
+    "systemName": "Chesiette",
+    "security": 0.5727048516273499,
+    "type": "player"
+  },
+  {
+    "stationID": "1050351018262",
+    "locationName": "Misaba - 0.0% Neutral States Regional HQ",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003563,
+    "systemName": "Misaba",
+    "security": 0.064007967710495,
+    "type": "player"
+  },
+  {
+    "stationID": "1044880797208",
+    "locationName": "Ameinaka - MlNER NEEDs - between Rok & Moon",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002511,
+    "systemName": "Ameinaka",
+    "security": 0.9874231815338135,
+    "type": "player"
+  },
+  {
+    "stationID": "1048973232152",
+    "locationName": "Meves - BioCore One",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003032,
+    "systemName": "Meves",
+    "security": 0.9791473746299744,
+    "type": "player"
+  },
+  {
+    "stationID": "1045193582746",
+    "locationName": "Ekura - MlNER NEEDs - Darkside of a Moon",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001378,
+    "systemName": "Ekura",
+    "security": 0.8764173984527588,
+    "type": "player"
+  },
+  {
+    "stationID": "1038515628827",
+    "locationName": "Talidal - Niflheim Station (All Services)",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003889,
+    "systemName": "Talidal",
+    "security": 0.509783148765564,
+    "type": "player"
+  },
+  {
+    "stationID": "1049535002140",
+    "locationName": "Barmalie - Treasure Production&Marked MDM.A",
+    "regionID": 10000032,
+    "regionName": "Sinq Laison",
+    "systemID": 30002683,
+    "systemName": "Barmalie",
+    "security": 0.4764906167984009,
+    "type": "player"
+  },
+  {
+    "stationID": "1048446040103",
+    "locationName": "Sarum Prime - Domain Market Freeport",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003522,
+    "systemName": "Sarum Prime",
+    "security": 1,
+    "type": "player"
+  },
+  {
+    "stationID": "1048982613934",
+    "locationName": "Rohamaa - Omega Manufacturing",
+    "regionID": 10000069,
+    "regionName": "Black Rise",
+    "systemID": 30045325,
+    "systemName": "Rohamaa",
+    "security": 0.5047168731689453,
+    "type": "player"
+  },
+  {
+    "stationID": "1049441788712",
+    "locationName": "Gamdis - Low Tax Industrial Market",
+    "regionID": 10000052,
+    "regionName": "Kador",
+    "systemID": 30004085,
+    "systemName": "Gamdis",
+    "security": 0.6936594843864441,
+    "type": "player"
+  },
+  {
+    "stationID": "1049035426094",
+    "locationName": "Aphend - Baustube GMF-C",
+    "regionID": 10000052,
+    "regionName": "Kador",
+    "systemID": 30004079,
+    "systemName": "Aphend",
+    "security": 0.6292981505393982,
+    "type": "player"
+  },
+  {
+    "stationID": "1021681819954",
+    "locationName": "Keberz - FREEPORT MARKET AND CLONES",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003883,
+    "systemName": "Keberz",
+    "security": 0.5301299095153809,
+    "type": "player"
+  },
+  {
+    "stationID": "1027375934642",
+    "locationName": "Torrinos - FREEPORT MARKET AND CLONES",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001429,
+    "systemName": "Torrinos",
+    "security": 0.5196676850318909,
+    "type": "player"
+  },
+  {
+    "stationID": "1044970203585",
+    "locationName": "Sarum Prime - Winnie's Workshop",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003522,
+    "systemName": "Sarum Prime",
+    "security": 1,
+    "type": "player"
+  },
+  {
+    "stationID": "1046404465214",
+    "locationName": "Avada - Freeport",
+    "regionID": 10000054,
+    "regionName": "Aridia",
+    "systemID": 30004249,
+    "systemName": "Avada",
+    "security": 0.6893498301506042,
+    "type": "player"
+  },
+  {
+    "stationID": "1049358554947",
+    "locationName": "Bomana - MISRIAH STATION - ALL SERVICES",
+    "regionID": 10000049,
+    "regionName": "Khanid",
+    "systemID": 30003913,
+    "systemName": "Bomana",
+    "security": 0.5375121831893921,
+    "type": "player"
+  },
+  {
+    "stationID": "1046680523848",
+    "locationName": "Hodrold - FCKA Prime Marketplace",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003469,
+    "systemName": "Hodrold",
+    "security": 0.5960732698440552,
+    "type": "player"
+  },
+  {
+    "stationID": "1047131132102",
+    "locationName": "Sobaseki - Cheapest Market BE SMART",
+    "regionID": 10000016,
+    "regionName": "Lonetrek",
+    "systemID": 30001363,
+    "systemName": "Sobaseki",
+    "security": 0.8410254716873169,
+    "type": "player"
+  },
+  {
+    "stationID": "1044752365771",
+    "locationName": "Perimeter - 0.0% Neutral States HQ",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000144,
+    "systemName": "Perimeter",
+    "security": 0.9531232118606567,
+    "type": "player"
+  },
+  {
+    "stationID": "1049901476424",
+    "locationName": "Vattuolen - Vel-Gold refinery",
+    "regionID": 10000002,
+    "regionName": "The Forge",
+    "systemID": 30000173,
+    "systemName": "Vattuolen",
+    "security": 0.708073079586029,
+    "type": "player"
+  },
+  {
+    "stationID": "1022167642188",
+    "locationName": "Amamake - 5 Times nearly AT winners",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002537,
+    "systemName": "Amamake",
+    "security": 0.43876123428344727,
+    "type": "player"
+  },
+  {
+    "stationID": "1048092080588",
+    "locationName": "Boranai - Capsuckers R Us",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30002188,
+    "systemName": "Boranai",
+    "security": 0.8937723636627197,
+    "type": "player"
+  },
+  {
+    "stationID": "1047292528467",
+    "locationName": "Amane - Public Trade Hub",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004983,
+    "systemName": "Amane",
+    "security": 0.5528478622436523,
+    "type": "player"
+  },
+  {
+    "stationID": "1047028869086",
+    "locationName": "Bille - MlNER NEEDs - +Moon-ORE-Buy-Back",
+    "regionID": 10000037,
+    "regionName": "Everyshore",
+    "systemID": 30003040,
+    "systemName": "Bille",
+    "security": 0.5158581733703613,
+    "type": "player"
+  },
+  {
+    "stationID": "1047917827552",
+    "locationName": "Dantan - Military Industrial Complex",
+    "regionID": 10000052,
+    "regionName": "Kador",
+    "systemID": 30004097,
+    "systemName": "Dantan",
+    "security": 0.6589744091033936,
+    "type": "player"
+  },
+  {
+    "stationID": "1044579290081",
+    "locationName": "Tama - Svarog Production Center",
+    "regionID": 10000033,
+    "regionName": "The Citadel",
+    "systemID": 30002813,
+    "systemName": "Tama",
+    "security": 0.2825556993484497,
+    "type": "player"
+  },
+  {
+    "stationID": "1050182657126",
+    "locationName": "Villore - Quafe Small'",
+    "regionID": 10000064,
+    "regionName": "Essence",
+    "systemID": 30004993,
+    "systemName": "Villore",
+    "security": 0.8999999761581421,
+    "type": "player"
+  },
+  {
+    "stationID": "1044857068649",
+    "locationName": "Ashab - 0.4% Market Cheaper than AMARR",
+    "regionID": 10000043,
+    "regionName": "Domain",
+    "systemID": 30003491,
+    "systemName": "Ashab",
+    "security": 0.9094600081443787,
+    "type": "player"
+  },
+  {
+    "stationID": "1042833494769",
+    "locationName": "Vay - MlNER NEEDs - we buy ORE",
+    "regionID": 10000068,
+    "regionName": "Verge Vendor",
+    "systemID": 30005318,
+    "systemName": "Vay",
+    "security": 0.758522093296051,
+    "type": "player"
+  },
+  {
+    "stationID": "1048427761902",
+    "locationName": "Avesber - TS10 Mashed Taters",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002530,
+    "systemName": "Avesber",
+    "security": 0.7531836628913879,
+    "type": "player"
+  },
+  {
+    "stationID": "1046802738801",
+    "locationName": "Turnur - Warlords of the Deep",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30002086,
+    "systemName": "Turnur",
+    "security": 0.3874342143535614,
+    "type": "player"
+  },
+  {
+    "stationID": "1033626295285",
+    "locationName": "Lustrevik - Port Royal Regional Trading Hub",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002545,
+    "systemName": "Lustrevik",
+    "security": 0.9462634325027466,
+    "type": "player"
+  },
+  {
+    "stationID": "1048444699516",
+    "locationName": "Frarn - FUEGO Market - Lowest Tax - 0.2%",
+    "regionID": 10000030,
+    "regionName": "Heimatar",
+    "systemID": 30002526,
+    "systemName": "Frarn",
+    "security": 0.8389708995819092,
+    "type": "player"
+  },
+  {
+    "stationID": "1048595097213",
+    "locationName": "Tabbetzur - Point",
+    "regionID": 10000042,
+    "regionName": "Metropolis",
+    "systemID": 30003465,
+    "systemName": "Tabbetzur",
+    "security": 0.27166634798049927,
+    "type": "player"
+  }
+]

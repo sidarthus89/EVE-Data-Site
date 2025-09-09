@@ -5,17 +5,18 @@
   "type": "module",
   "homepage": "https://sidarthus89.github.io/EVE-Data-Site",
   "scripts": {
-    "publish": "npm run predeploy && npm run deploy",
-    "predeploy": "vite build && node redirect.js",
-    "deploy": "gh-pages -d dist",
+    "publish:dev": "npm run build:dev && node redirect.js dev && gh-pages -d dist -b gh-pages -r https://github.com/sidarthus89/EVE-Data-Site-Dev.git",
+    "build:dev": "cross-env VITE_REQUIRE_PRECOMPUTED_ROUTES=false VITE_DATA_BASE=https://sidarthus89.github.io/EVE-Data-Site/data vite build --mode development --sourcemap",
+    "build:prod": "cross-env VITE_REQUIRE_PRECOMPUTED_ROUTES=true vite build",
+    "publish:prod": "npm run build:prod && node redirect.js && gh-pages -d dist -b gh-pages -r https://github.com/sidarthus89/EVE-Data-Site.git",
+    "snapshots:region-hauling": "node scripts/generate-region-hauling.cjs",
+    "snapshots:region-hauling:hubs": "cross-env FROM_REGIONS=10000002,10000043,10000032,10000030,10000042 node scripts/generate-region-hauling.cjs",
+    "snapshots:region-orders": "node scripts/generate-region-orders.cjs",
+    "snapshots:region-orders:hubs": "cross-env REGIONS=10000002,10000043,10000032,10000030,10000042 node scripts/generate-region-orders.cjs",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "worker:dev": "wrangler dev",
-    "worker:deploy": "wrangler deploy",
-    "worker:kv": "wrangler kv:key list --namespace-id b1980b4449db416d839e3adff0359989",
-    "db:reset": "npx wrangler d1 execute eve_market --remote --file sql/schema.sql"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
@@ -30,6 +31,7 @@
     "recharts": "^3.1.2"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "@eslint/js": "^9.30.1",
     "@vitejs/plugin-react": "^4.6.0",
     "dotenv": "^16.0.0",
@@ -41,7 +43,6 @@
     "mssql": "^9.1.1",
     "rollup-plugin-visualizer": "^6.0.3",
     "terser": "^5.43.1",
-    "vite": "^7.0.4",
-    "wrangler": "^4.28.1"
+    "vite": "^7.1.4"
   }
 }

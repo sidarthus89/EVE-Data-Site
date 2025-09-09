@@ -1,7 +1,27 @@
 // src/utils/market.js
-// Market data functions (Azure + ESI fallback)
+// Market data functions (Azure first; no ESI fallbacks for orders)
 
-import { fetchWithRetry, AZURE_BASE, ESI_BASE, fetchMarketTree } from './api.js';
+import { fetchWithRetry, AZURE_BASE, ESI_BASE, fetchMarketTree, fetchStationsNPC, fetchStructures, fetchRegionOrdersSnapshot } from './api.js';
+
+// Simple localStorage cache for market history keyed by typeId:regionId
+const HISTORY_CACHE_KEY = 'marketHistoryCache.v1';
+
+function readHistoryCache() {
+    try {
+        const raw = localStorage.getItem(HISTORY_CACHE_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch {
+        return {};
+    }
+}
+
+function writeHistoryCache(cache) {
+    try {
+        localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(cache));
+    } catch {
+        // ignore quota errors
+    }
+}
 
 export async function fetchMarketOrders(typeId, regionId = null, locationId = null, isBuyOrder = null) {
     const params = new URLSearchParams({ type_id: typeId });
@@ -9,10 +29,24 @@ export async function fetchMarketOrders(typeId, regionId = null, locationId = nu
     if (locationId) params.append('location_id', locationId);
     if (isBuyOrder !== null) params.append('is_buy_order', isBuyOrder);
 
-    const url = `${AZURE_BASE}/market/orders?${params}`;
     console.log(`🎯 Fetching market orders for type_id: ${typeId}, region_id: ${regionId}`);
 
     try {
+        // 0) Try static region snapshot first (best quotes only), except PLEX region (19000001 has no snapshots)
+        const PLEX_REGION_ID = 19000001;
+        if (regionId && Number(regionId) !== PLEX_REGION_ID) {
+            try {
+                const snap = await fetchRegionOrdersSnapshot(regionId);
+                if (snap && snap.best_quotes && snap.best_quotes[typeId]) {
+                    const entry = snap.best_quotes[typeId];
+                    const buy = entry.best_buy ? [{ ...entry.best_buy, is_buy_order: true, type_id: typeId, region_id: regionId }] : [];
+                    const sell = entry.best_sell ? [{ ...entry.best_sell, is_buy_order: false, type_id: typeId, region_id: regionId }] : [];
+                    return { buyOrders: buy, sellOrders: sell, meta: { source: 'snapshot', last_updated: snap.last_updated } };
+                }
+            } catch { }
+        }
+
+        const url = `${AZURE_BASE}/market/orders?${params}`;
         const response = await fetchWithRetry(url, {}, 1);
         console.log('✅ Azure response received:', response);
 
@@ -32,33 +66,8 @@ export async function fetchMarketOrders(typeId, regionId = null, locationId = nu
         return result;
 
     } catch (azureError) {
-        console.error('❌ Azure fetch failed, falling back to ESI:', azureError);
-        if (!regionId) return { buyOrders: [], sellOrders: [] };
-
-        const esiUrl = `${ESI_BASE}/markets/${regionId}/orders/?type_id=${typeId}`;
-        try {
-            const orders = await fetchWithRetry(esiUrl, {}, 1);
-            console.log(`✅ ESI response received: ${orders.length} orders`);
-
-            // ESI orders need to be enriched with location metadata
-            const enrichedOrders = orders.map(order => ({
-                ...order,
-                name: 'Unknown', // Will be resolved via locationInfoMap
-                region_name: `Region ${regionId}`,
-                security: null, // Will be resolved via locationInfoMap
-                location_type: 'Unknown',
-                is_npc: false // Default to player structure, will be resolved
-            }));
-
-            console.log('📊 ESI enriched orders:', enrichedOrders.length);
-            return {
-                buyOrders: enrichedOrders.filter(o => o.is_buy_order),
-                sellOrders: enrichedOrders.filter(o => !o.is_buy_order)
-            };
-        } catch (esiError) {
-            console.error('❌ ESI fetch failed:', esiError);
-            return { buyOrders: [], sellOrders: [] };
-        }
+        console.error('❌ Azure fetch failed for market orders:', azureError);
+        return { buyOrders: [], sellOrders: [], meta: { source: 'none' } };
     }
 }
 
@@ -68,33 +77,60 @@ export async function fetchMarketSummary(typeId, regionId = null) {
     return fetchWithRetry(`${AZURE_BASE}/market/summary?${params}`, {}, 3);
 }
 
-export async function fetchMarketHistory(type_id, region_id, days = 30) {
-    const params = new URLSearchParams({ type_id: type_id, region_id: region_id, days: days });
-    const url = `${AZURE_BASE}/market/history?${params}`;
-    console.log(`📈 Fetching market history: type_id=${type_id}, region_id=${region_id}, days=${days}`);
-    console.log(`📈 URL: ${url}`);
+export async function fetchMarketHistory(type_id, region_id, days = 365) {
+    // Cache key and read existing cache
+    const key = `${type_id}:${region_id}`;
+    const cache = readHistoryCache();
+    const now = Date.now();
+
+    // Keep up to 365 days; if cached and fresh for today, return it
+    const cached = cache[key];
+    if (cached && Array.isArray(cached.data)) {
+        // If lastUpdated is today, serve cached
+        const last = new Date(cached.lastUpdated);
+        const sameDay = last.toDateString() === new Date(now).toDateString();
+        if (sameDay) {
+            return cached.data;
+        }
+    }
+
+    // ESI direct: https://esi.evetech.net/latest/markets/{region_id}/history/?type_id={type_id}
+    const url = `${ESI_BASE}/markets/${region_id}/history/?type_id=${encodeURIComponent(type_id)}`;
+    console.log(`📈 Fetching market history from ESI: type_id=${type_id}, region_id=${region_id}`);
 
     try {
-        const response = await fetch(url);
-        console.log(`📈 Response status: ${response.status} ${response.statusText}`);
-
+        const response = await fetch(url, { headers: { 'User-Agent': 'EVE-Data-Site' } });
         if (!response.ok) {
             throw new Error(`Failed to fetch market history: ${response.statusText} (${response.status})`);
         }
 
         const data = await response.json();
-        console.log(`📈 Received data:`, {
-            isArray: Array.isArray(data),
-            length: Array.isArray(data) ? data.length : 'not array',
-            type: typeof data,
-            sample: Array.isArray(data) && data.length > 0 ? data[0] : data
-        });
-
-        return data;
+        return persistHistory(key, now, cache, cached, data);
     } catch (error) {
-        console.error(`📈 Error in fetchMarketHistory for type_id=${type_id}, region_id=${region_id}:`, error);
+        console.warn(`📈 ESI history unavailable for type_id=${type_id}, region_id=${region_id}:`, error?.message || error);
+        if (cached && Array.isArray(cached.data)) return cached.data;
         throw error;
     }
+}
+
+function persistHistory(key, now, cache, cached, data) {
+    // Normalize and clamp to 365 days, sorted by date asc
+    const normalized = (Array.isArray(data) ? data : [])
+        .filter(e => e && e.date)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(-365);
+
+    // Merge with cached if present to avoid losing older days when API returns fewer
+    let merged = normalized;
+    if (cached && Array.isArray(cached.data) && cached.data.length) {
+        const map = new Map(cached.data.map(e => [e.date, e]));
+        for (const e of normalized) map.set(e.date, e);
+        merged = Array.from(map.values()).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-365);
+    }
+
+    cache[key] = { lastUpdated: now, data: merged };
+    writeHistoryCache(cache);
+    return merged;
 }
 
 export async function fetchAggregatedOrders(typeId, regionId) {
@@ -207,126 +243,57 @@ export async function fetchTradeRouteData(fromId, toId, types = [34, 44992]) {
     return opportunities.sort((a, b) => b.profit_percentage - a.profit_percentage);
 }
 
-export async function fetchRegionHaulingData(originRegionId, destinationRegionId = null) {
-    const params = new URLSearchParams({ from_region: originRegionId });
-    if (destinationRegionId) {
-        params.append('to_region', destinationRegionId);
-    }
+// Deprecated: live region hauling API and precomputed artifacts are not used.
+export async function fetchRegionHaulingData() { return []; }
 
-    const url = `${AZURE_BASE}/region_hauling?${params}`;
-    console.log(`🚛 Fetching region hauling data: ${url}`);
-
+// Build cross-region trade routes from precomputed region_orders snapshots (best quotes per region)
+export async function generateRegionRoutesFromSnapshots(originRegionId, destinationRegionId) {
+    const from = Number(originRegionId);
+    const to = Number(destinationRegionId || originRegionId);
     try {
-        const response = await fetchWithRetry(url, {}, 3);
-        console.log('🚛 Region hauling response:', response);
-        return response.routes || [];
-    } catch (error) {
-        console.error('❌ Azure region hauling failed, attempting fallback method:', error);
+        const [snapA, snapB] = await Promise.all([
+            fetchRegionOrdersSnapshot(from),
+            fetchRegionOrdersSnapshot(to)
+        ]);
 
-        // Fallback: Use live market data to generate basic trade routes
-        try {
-            console.log('🚛 Using fallback trade route analysis...');
-            const tradeRoutes = await generateBasicTradeRoutes(originRegionId, destinationRegionId);
-            return tradeRoutes;
-        } catch (fallbackError) {
-            console.error('❌ Fallback method also failed:', fallbackError);
-            throw new Error(`Azure Functions unavailable (${error.message}). Fallback failed: ${fallbackError.message}`);
+        if (!snapA || !snapB || !snapA.best_quotes || !snapB.best_quotes) return [];
+        const routes = [];
+        // Iterate over intersection of types present in both snapshots
+        const typeIds = Object.keys(snapA.best_quotes);
+        for (const t of typeIds) {
+            const a = snapA.best_quotes[t];
+            const b = snapB.best_quotes[t];
+            if (!a || !b) continue;
+            const sellA = a.best_sell; // we buy at origin's best sell
+            const buyB = b.best_buy;   // we sell to destination's best buy
+            if (!sellA || !buyB) continue;
+            const profit = (buyB.price || 0) - (sellA.price || 0);
+            if (profit <= 0) continue;
+            const qty = Math.min(Number(sellA.volume_remain || 0), Number(buyB.volume_remain || 0));
+            const roi = sellA.price > 0 ? (profit / sellA.price) * 100 : 0;
+            routes.push({
+                type_id: Number(t),
+                origin_id: sellA.location_id,
+                destination_id: buyB.location_id,
+                sell_price: sellA.price,
+                buy_price: buyB.price,
+                profit_per_unit: profit,
+                profit_margin: roi,
+                max_volume: qty,
+                origin_region_id: from,
+                destination_region_id: to,
+                _fallback: true
+            });
         }
+        // Sort by profit per unit desc and cap to a reasonable size
+        return routes.sort((x, y) => (y.profit_per_unit || 0) - (x.profit_per_unit || 0)).slice(0, 5000);
+    } catch {
+        return [];
     }
 }
 
-// Fallback function to generate basic trade routes using live market data
-async function generateBasicTradeRoutes(originRegionId, destinationRegionId = null) {
-    console.log('🚛 Generating basic trade routes using live market data...');
-
-    // Load full set of tradeable items from market.json
-    const marketTree = await fetchMarketTree();
-    const commonTradeItems = [];
-    const traverse = node => {
-        if (node.items) {
-            node.items.forEach(item => {
-                commonTradeItems.push({
-                    typeId: Number(item.typeID),
-                    name: item.typeName,
-                    volume: item.volume || 0.01
-                });
-            });
-        }
-        Object.keys(node).forEach(key => {
-            if (key !== 'items' && key !== '_info' && typeof node[key] === 'object') {
-                traverse(node[key]);
-            }
-        });
-    };
-    traverse(marketTree);
-
-    const tradeOpportunities = [];
-    const destRegionId = destinationRegionId || originRegionId; // If no destination, use same region
-
-    // Helper: fetch orders directly from ESI and split by buy/sell
-    async function fetchEsiOrders(typeId, regionId) {
-        const url = `${ESI_BASE}/markets/${regionId}/orders/?type_id=${typeId}`;
-        const orders = await fetchWithRetry(url, {}, 1);
-        return {
-            sellOrders: orders.filter(o => !o.is_buy_order),
-            buyOrders: orders.filter(o => o.is_buy_order)
-        };
-    }
-    for (const item of commonTradeItems) {
-        const { typeId } = item;
-        try {
-            // Fetch sell orders from origin region via ESI
-            const { sellOrders } = await fetchEsiOrders(typeId, originRegionId);
-            // Fetch buy orders from destination region via ESI
-            const { buyOrders } = await fetchEsiOrders(typeId, destRegionId);
-
-            if (sellOrders.length > 0 && buyOrders.length > 0) {
-                // Find best prices
-                const bestSellPrice = Math.min(...sellOrders.map(order => order.price));
-                const bestBuyPrice = Math.max(...buyOrders.map(order => order.price));
-
-                if (bestBuyPrice > bestSellPrice) {
-                    const profit = bestBuyPrice - bestSellPrice;
-                    const profitMargin = ((profit / bestSellPrice) * 100);
-
-                    // Get volume info and location details
-                    const sellOrder = sellOrders.find(o => o.price === bestSellPrice);
-                    const buyOrder = buyOrders.find(o => o.price === bestBuyPrice);
-                    const maxVolume = Math.min(
-                        sellOrder?.volume_remain || 0,
-                        buyOrder?.volume_remain || 0
-                    );
-
-                    tradeOpportunities.push({
-                        type_id: item.typeId,
-                        item_name: item.name,
-                        item_volume: item.volume,
-                        origin_id: sellOrder?.location_id || 0,
-                        destination_id: buyOrder?.location_id || 0,
-                        origin_station_name: sellOrder?.name || 'Unknown Station',
-                        destination_station_name: buyOrder?.name || 'Unknown Station',
-                        origin_security: sellOrder?.security || null,
-                        destination_security: buyOrder?.security || null,
-                        sell_price: bestSellPrice,
-                        buy_price: bestBuyPrice,
-                        profit_per_unit: profit,
-                        profit_margin: profitMargin,
-                        max_volume: maxVolume,
-                        _fallback: true // Mark as fallback data
-                    });
-                }
-            }
-        } catch (itemError) {
-            console.warn(`🚛 Failed to fetch data for item ${item.typeId}:`, itemError);
-        }
-    }
-
-    // Sort by profit margin and return top results
-    const sortedRoutes = tradeOpportunities
-        .filter(route => route.profit_margin > 1) // Only routes with >1% profit
-        .sort((a, b) => b.profit_margin - a.profit_margin)
-        .slice(0, 50); // Top 50 routes
-
-    console.log(`🚛 Generated ${sortedRoutes.length} fallback trade routes`);
-    return sortedRoutes;
+// Prefer snapshots only: use precomputed region_hauling artifact; if missing/empty, derive from region_orders snapshots; never call live Azure route API
+export async function fetchRegionHaulingSnapshotsOnly(originRegionId, destinationRegionId = null) {
+    // Build from region_orders snapshots only (no region_hauling artifacts)
+    return generateRegionRoutesFromSnapshots(originRegionId, destinationRegionId || originRegionId);
 }

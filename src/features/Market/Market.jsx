@@ -11,8 +11,7 @@ import PLEXMarketTicker from './PLEXMarketTicker.jsx';
 import './Market.css';
 import { fetchMarketOrders } from '../../utils/market.js';
 import { applyOutlierFilter, flattenMarketTree } from '../../utils/common.js';
-import stations from '../../data/stations.json';
-import marketTreeStatic from '../../data/market.json';
+import { fetchStructures, fetchRegions, fetchStationsNPC } from '../../utils/api.js';
 
 // If your regions.json is a raw array, this loader handles both raw and wrapped formats
 async function loadRegionsFile() {
@@ -39,6 +38,7 @@ export default function Market() {
     // Dynamic data sources
     const [regions, setRegions] = useState([]);         // loaded from /data/regions.json
     const [structures, setStructures] = useState([]);   // loaded from /data/structures.json
+    const [stations, setStations] = useState([]);       // loaded from /data/stations*.json
 
     // Location metadata map (stations + structures)
     const [locationInfoMap, setLocationInfoMap] = useState({});
@@ -53,23 +53,30 @@ export default function Market() {
 
     // Load the static market tree locally (baked into src/data)
     useEffect(() => {
-        try {
-            // Normalize to array for your MarketTree component expectations
-            let treeArray = marketTreeStatic;
-            if (treeArray && !Array.isArray(treeArray) && typeof treeArray === 'object') {
-                treeArray = Object.entries(treeArray).map(([name, node]) => ({ ...node, name }));
-            }
-            if (!Array.isArray(treeArray) || treeArray.length === 0) {
-                setMarketTreeError('Market tree data is empty or invalid.');
+        // Load market tree at runtime from /data to avoid bundling large JSON
+        const url = `${import.meta.env.BASE_URL}data/market.json`;
+        fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load market.json');
+                return res.json();
+            })
+            .then(json => {
+                let treeArray = json;
+                if (treeArray && !Array.isArray(treeArray) && typeof treeArray === 'object') {
+                    treeArray = Object.entries(treeArray).map(([name, node]) => ({ ...node, name }));
+                }
+                if (!Array.isArray(treeArray) || treeArray.length === 0) {
+                    setMarketTreeError('Market tree data is empty or invalid.');
+                    setMarketTree(null);
+                } else {
+                    setMarketTreeError(null);
+                    setMarketTree(treeArray);
+                }
+            })
+            .catch(() => {
+                setMarketTreeError('Failed to load market tree.');
                 setMarketTree(null);
-            } else {
-                setMarketTreeError(null);
-                setMarketTree(treeArray);
-            }
-        } catch (e) {
-            setMarketTreeError('Failed to load market tree.');
-            setMarketTree(null);
-        }
+            });
     }, []);
 
     // Flatten the tree for quick lookup and breadcrumbs
@@ -80,7 +87,7 @@ export default function Market() {
 
     // Load dynamic regions and structures
     useEffect(() => {
-        loadRegionsFile()
+        fetchRegions()
             .then(setRegions)
             .catch(err => console.error('❌ Failed to load regions:', err));
     }, []);
@@ -88,49 +95,69 @@ export default function Market() {
     useEffect(() => {
         if (!regions.length) return; // Wait for region metadata
 
-        const regionMap = new Map();
-        regions.forEach(r => regionMap.set(Number(r.regionID), r.regionName));
+        const buildMap = async () => {
+            const regionMap = new Map();
+            regions.forEach(r => regionMap.set(Number(r.regionID), r.regionName));
 
-        const mergedMap = {};
+            const mergedMap = {};
 
-        // 1. Baked-in NPC stations from stations.json
-        stations.forEach(station => {
-            const stationId = Number(station.station_id || station.stationID);
-            mergedMap[stationId] = {
-                name: station.name,
-                security: typeof station.security_status === 'number' ? station.security_status :
-                    typeof station.security === 'number' ? station.security : null,
-                regionName: station.region_name || regionMap.get(Number(station.region_id || station.regionID)) || 'Unknown',
-                type: 'station',
-                isNPC: true
-            };
-        });
+            try {
+                const stationsRaw = await fetchStationsNPC();
+                // Normalize stations: support array of objects or object map keyed by id
+                let stationsArr = [];
+                if (Array.isArray(stationsRaw)) {
+                    stationsArr = stationsRaw;
+                } else if (stationsRaw && typeof stationsRaw === 'object') {
+                    stationsArr = Object.entries(stationsRaw).map(([id, s]) => ({
+                        station_id: Number(id),
+                        ...s
+                    }));
+                }
+                setStations(stationsArr);
+                stationsArr.forEach(station => {
+                    const stationId = Number(station.station_id ?? station.stationID);
+                    if (!Number.isFinite(stationId)) return;
+                    const name = station.name || station.stationName || station.locationName || 'Unknown';
+                    const regionName = station.region_name || station.regionName || regionMap.get(Number(station.region_id ?? station.regionID)) || 'Unknown';
+                    const security = (typeof station.security_status === 'number') ? station.security_status
+                        : (typeof station.security === 'number') ? station.security
+                            : (typeof station.securityStatus === 'number') ? station.securityStatus
+                                : null;
+                    mergedMap[stationId] = {
+                        name,
+                        security,
+                        regionName,
+                        type: 'station',
+                        isNPC: true
+                    };
+                });
+            } catch (e) {
+                console.error('❌ Failed to load NPC stations:', e);
+            }
 
-        console.log(`📍 Loaded ${Object.keys(mergedMap).length} NPC stations`);
+            // Player-owned structures from structures.json
+            structures.forEach(structure => {
+                // structures.json uses structureID (not stationID)
+                const structureId = Number(structure.structureID ?? structure.stationID);
+                if (!Number.isFinite(structureId)) return;
+                mergedMap[structureId] = {
+                    name: structure.locationName || structure.name || 'Unknown',
+                    security: typeof structure.security === 'number' ? structure.security : null,
+                    regionName: structure.regionName || regionMap.get(Number(structure.regionID)) || 'Unknown',
+                    type: 'structure',
+                    isNPC: false // structures are player-owned by default
+                };
+            });
 
-        // 2. Player-owned structures from structures.json
-        structures.forEach(structure => {
-            const structureId = Number(structure.stationID);
-            mergedMap[structureId] = {
-                name: structure.locationName,
-                security: typeof structure.security === 'number' ? structure.security : null,
-                regionName: structure.regionName || regionMap.get(Number(structure.regionID)) || 'Unknown',
-                type: 'structure',
-                isNPC: structure.type === 'npc' // Most structures are player-owned unless explicitly marked as NPC
-            };
-        });
+            console.log(`📍 Total locations (NPC + Structures): ${Object.keys(mergedMap).length}`);
+            setLocationInfoMap(mergedMap);
+        };
 
-        console.log(`📍 Total locations (NPC + Structures): ${Object.keys(mergedMap).length}`);
-        setLocationInfoMap(mergedMap);
+        buildMap();
     }, [regions, structures]);
 
     useEffect(() => {
-        const url = `${import.meta.env.BASE_URL}data/structures.json`;
-        fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to load structures.json');
-                return res.json();
-            })
+        fetchStructures()
             .then(setStructures)
             .catch(err => console.error('❌ Failed to load structures:', err));
     }, []);
@@ -302,18 +329,44 @@ export default function Market() {
         if (allOrders.length === 0) return;
 
         const updatedMap = { ...locationInfoMap };
+        const regionIdToName = new Map(regions.map(r => [Number(r.regionID), r.regionName]));
         let newLocationsAdded = 0;
 
         allOrders.forEach(order => {
             const id = Number(order.location_id);
-            if (!updatedMap[id] && id > 0) {
+            if (!Number.isFinite(id) || id <= 0) return;
+            if (!updatedMap[id]) {
+                // Try resolve from known stations/structures first
+                const station = stations.find(s => Number(s.station_id ?? s.stationID) === id);
+                if (station) {
+                    const name = station.name || station.stationName || station.locationName || 'Unknown';
+                    const regionName = station.region_name || station.regionName || regionIdToName.get(Number(station.region_id ?? station.regionID)) || 'Unknown';
+                    const security = (typeof station.security_status === 'number') ? station.security_status
+                        : (typeof station.security === 'number') ? station.security
+                            : (typeof station.securityStatus === 'number') ? station.securityStatus
+                                : null;
+                    updatedMap[id] = { name, regionName, security, type: 'station', isNPC: true };
+                    newLocationsAdded++;
+                    return;
+                }
+                const structure = structures.find(s => Number(s.structureID ?? s.stationID) === id);
+                if (structure) {
+                    const name = structure.locationName || structure.name || 'Unknown';
+                    const regionName = structure.regionName || regionIdToName.get(Number(structure.regionID)) || 'Unknown';
+                    const security = (typeof structure.security === 'number') ? structure.security : null;
+                    updatedMap[id] = { name, regionName, security, type: 'structure', isNPC: false };
+                    newLocationsAdded++;
+                    return;
+                }
+                const name = order.name || order.location_name;
+                const regionName = order.region_name || order.regionName || regionIdToName.get(Number(order.region_id)) || 'Unknown Region';
                 updatedMap[id] = {
-                    name: order.name || order.location_name || 'Unknown Location',
-                    regionName: order.region_name || order.regionName || 'Unknown Region',
+                    name: name || 'Unknown Location',
+                    regionName: regionName || 'Unknown Region',
                     security: typeof order.security === 'number' ? order.security :
-                        typeof order.security_status === 'number' ? order.security_status : null,
+                        (typeof order.security_status === 'number' ? order.security_status : null),
                     type: order.location_type || order.type || 'unknown',
-                    isNPC: order.is_npc === 1 || order.isNPC === true
+                    isNPC: (order.is_npc === 1 || order.isNPC === true) ?? (id < 1000000000000)
                 };
                 newLocationsAdded++;
             }

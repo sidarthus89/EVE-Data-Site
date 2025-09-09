@@ -89,7 +89,8 @@ export default function MarketTables({
             const sec = truncateToOneDecimal(Number(cellValue) || 0);
             cellValue = `${sec.toFixed(1)}`;
         } else if (columnId === 'station_type') {
-            const isNPC = locationInfoMap[Number(row.original.location_id)]?.isNPC;
+            const locId = Number(row.original.location_id);
+            const isNPC = locationInfoMap[locId]?.isNPC ?? (locId < 1000000000000);
             cellValue = isNPC ? 'NPC' : 'Player';
         } else if (columnId === 'location_name') {
             const loc = locationInfoMap[Number(cellValue)];
@@ -135,7 +136,8 @@ export default function MarketTables({
                     values.add(`${sec.toFixed(1)}`);
                 }
             } else if (columnId === 'station_type') {
-                const isNPC = locationInfoMap[Number(row.location_id)]?.isNPC;
+                const locId = Number(row.location_id);
+                const isNPC = locationInfoMap[locId]?.isNPC ?? (locId < 1000000000000);
                 values.add(isNPC ? 'NPC' : 'Player');
             } else if (columnId === 'location_name') {
                 const locName = locationInfoMap[Number(row.location_id)]?.name;
@@ -283,7 +285,7 @@ export default function MarketTables({
             id: 'security',
             header: 'Sec.',
             cell: info => {
-                const locationId = info.row.original.location_id;
+                const locationId = Number(info.row.original.location_id);
                 const rawSec = locationInfoMap[locationId]?.security;
                 return typeof rawSec === 'number'
                     ? <span style={{ color: getSecurityColor(rawSec) }}>{rawSec.toFixed(1)}</span>
@@ -293,7 +295,8 @@ export default function MarketTables({
         },
         {
             accessorFn: row => {
-                const isNPC = locationInfoMap[Number(row.location_id)]?.isNPC;
+                const locId = Number(row.location_id);
+                const isNPC = locationInfoMap[locId]?.isNPC ?? (locId < 1000000000000);
                 return isNPC ? 'NPC' : 'Player';
             },
             id: 'station_type',
@@ -316,7 +319,7 @@ export default function MarketTables({
             id: 'location_name',
             header: 'Location',
             cell: info => {
-                const locationId = info.getValue();
+                const locationId = Number(info.getValue());
                 const locName = capitalizeWords(locationInfoMap[locationId]?.name || 'Unknown');
                 const cellId = `${info.column.id}-${info.row.id}`;
                 const isCopied = copiedCells.has(cellId);
@@ -354,7 +357,7 @@ export default function MarketTables({
             id: 'region_name',
             header: 'Region',
             cell: info => {
-                const regionName = locationInfoMap[info.getValue()]?.regionName || 'Unknown';
+                const regionName = locationInfoMap[Number(info.getValue())]?.regionName || 'Unknown';
                 return capitalizeWords(regionName);
             },
             sortingFn: (a, b) => {
@@ -406,7 +409,7 @@ export default function MarketTables({
             id: 'security',
             header: 'Sec.',
             cell: info => {
-                const locationId = info.row.original.location_id;
+                const locationId = Number(info.row.original.location_id);
                 const rawSec = locationInfoMap[locationId]?.security;
                 return typeof rawSec === 'number'
                     ? <span style={{ color: getSecurityColor(rawSec) }}>{rawSec.toFixed(1)}</span>
@@ -416,7 +419,8 @@ export default function MarketTables({
         },
         {
             accessorFn: row => {
-                const isNPC = locationInfoMap[Number(row.location_id)]?.isNPC;
+                const locId = Number(row.location_id);
+                const isNPC = locationInfoMap[locId]?.isNPC ?? (locId < 1000000000000);
                 return isNPC ? 'NPC' : 'Player';
             },
             id: 'station_type',
@@ -439,7 +443,7 @@ export default function MarketTables({
             id: 'location_name',
             header: 'Location',
             cell: info => {
-                const locationId = info.getValue();
+                const locationId = Number(info.getValue());
                 const locName = capitalizeWords(locationInfoMap[locationId]?.name || 'Unknown');
                 const cellId = `${info.column.id}-${info.row.id}`;
                 const isCopied = copiedCells.has(cellId);
@@ -542,7 +546,10 @@ export default function MarketTables({
             onSortingChange: updater => updateState(updater, sortKey),
             onColumnSizingChange: updater => updateState(updater, sizingKey),
             onColumnFiltersChange: updater => updateState(updater, filtersKey),
-            getRowId: row => row.order_id.toString(),
+            getRowId: row => {
+                const oid = row.order_id ?? `${row.is_buy_order ? 'B' : 'S'}-${row.type_id}-${row.region_id ?? 'r'}-${row.location_id ?? 'l'}-${row.price}`;
+                return String(oid);
+            },
         });
     };
 
@@ -863,7 +870,10 @@ export default function MarketTables({
         onSortingChange: updater => setTableState(prev => ({ ...prev, sellerSorting: typeof updater === 'function' ? updater(prev.sellerSorting) : updater })),
         onColumnSizingChange: updater => setTableState(prev => ({ ...prev, sellerSizing: typeof updater === 'function' ? updater(prev.sellerSizing) : updater })),
         onColumnFiltersChange: updater => setTableState(prev => ({ ...prev, sellerColumnFilters: typeof updater === 'function' ? updater(prev.sellerColumnFilters) : updater })),
-        getRowId: row => row.order_id.toString(),
+        getRowId: row => {
+            const oid = row.order_id ?? `${row.is_buy_order ? 'B' : 'S'}-${row.type_id}-${row.region_id ?? 'r'}-${row.location_id ?? 'l'}-${row.price}`;
+            return String(oid);
+        },
     });
 
     const buyerTableWithHeaders = useReactTable({
@@ -891,7 +901,10 @@ export default function MarketTables({
         onSortingChange: updater => setTableState(prev => ({ ...prev, buyerSorting: typeof updater === 'function' ? updater(prev.buyerSorting) : updater })),
         onColumnSizingChange: updater => setTableState(prev => ({ ...prev, buyerSizing: typeof updater === 'function' ? updater(prev.buyerSizing) : updater })),
         onColumnFiltersChange: updater => setTableState(prev => ({ ...prev, buyerColumnFilters: typeof updater === 'function' ? updater(prev.buyerColumnFilters) : updater })),
-        getRowId: row => row.order_id.toString(),
+        getRowId: row => {
+            const oid = row.order_id ?? `${row.is_buy_order ? 'B' : 'S'}-${row.type_id}-${row.region_id ?? 'r'}-${row.location_id ?? 'l'}-${row.price}`;
+            return String(oid);
+        },
     });
 
     // Virtualizers for updated tables

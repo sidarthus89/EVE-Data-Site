@@ -1,165 +1,257 @@
-// Region Hauling Azure Function - JavaScript version
-// Handles /api/region_hauling endpoint for profitable region-to-region or intra-region trade routes
+// Region Hauling Azure Function - SQL-backed implementation
+// Computes profitable routes by comparing best sell in origin region vs best buy in destination region.
 
 const sql = require('mssql');
+const telemetry = require('../utils/telemetry');
+const fs = require('fs');
+const path = require('path');
+const { upsertDataToAll } = require('../utils/github');
+const { getDbConfig } = require('../utils/db');
 
-const dbConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    server: process.env.DB_SERVER,
-    options: { encrypt: true }
-};
+// Resolve DB configuration once per cold start
+const dbConfig = getDbConfig();
 
 module.exports = async function (context, req) {
-    const { method } = req;
-    // Default CORS headers
-    const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  telemetry.init();
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': 'https://sidarthus89.github.io',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  };
+
+  if (req.method === 'OPTIONS') {
+    context.res = { status: 200, headers: corsHeaders };
+    return;
+  }
+
+  const origin_region_id = parseInt(req.query.origin_region_id || req.query.from_region, 10);
+  const destination_region_id = req.query.destination_region_id || req.query.to_region
+    ? parseInt(req.query.destination_region_id || req.query.to_region, 10)
+    : null;
+  const limit = req.query.limit ? parseInt(req.query.limit, 10) : 200;
+  const forcePersist = (req.query.persist === '1' || req.query.persist === 'true');
+
+  if (!origin_region_id) {
+    context.res = {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      body: { error: 'origin_region_id or from_region is required' }
+    };
+    return;
+  }
+
+  const toRegion = destination_region_id || origin_region_id;
+
+  // Hubs list (sync with scheduler). Allow override via env HUB_REGIONS="10000002,10000043,..."
+  const HUB_REGIONS = (process.env.HUB_REGIONS ? process.env.HUB_REGIONS.split(',').map(s => Number(s.trim())) : [10000002, 10000043, 10000032, 10000030, 10000042]);
+  const isHubToHub = HUB_REGIONS.includes(origin_region_id) && HUB_REGIONS.includes(toRegion);
+
+  // Repository snapshot directory (relative to function folder)
+  const SNAPSHOT_DIR = path.join(__dirname, '../../public/data/region_hauling');
+  function saveSnapshotToRepo(routes) {
+    const payload = JSON.stringify({ origin_region_id, destination_region_id: toRegion, count: routes.length, routes });
+    try {
+      if (!fs.existsSync(SNAPSHOT_DIR)) fs.mkdirSync(SNAPSHOT_DIR, { recursive: true });
+      const fileName = path.join(SNAPSHOT_DIR, `${origin_region_id}-${toRegion}.json`);
+      fs.writeFileSync(fileName, payload);
+      telemetry.trackEvent('ON_DEMAND_SNAPSHOT_SAVED', {
+        origin_region_id: String(origin_region_id),
+        destination_region_id: String(toRegion),
+        count: String(routes.length)
+      });
+    } catch (e) {
+      telemetry.trackException(e, { area: 'fs.writeSnapshot', origin_region_id: String(origin_region_id), destination_region_id: String(toRegion) });
+    }
+    // Upsert to GitHub repo (always attempt)
+    const repoPath = `region_hauling/${origin_region_id}-${toRegion}.json`;
+    upsertDataToAll(repoPath, payload, `chore(region-hauling): update ${origin_region_id}-${toRegion}.json`)
+      .then(results => telemetry.trackEvent('ON_DEMAND_SNAPSHOT_COMMITTED', { path: repoPath, targets: JSON.stringify(results) }))
+      .catch(e => telemetry.trackException(e, { area: 'github.upsertFile', path: repoPath }));
+  }
+
+  // Structured trace for request
+  telemetry.trackEvent('REGION_HAULING_REQUEST', {
+    origin_region_id: String(origin_region_id),
+    destination_region_id: String(toRegion),
+    limit: String(limit),
+    source: 'http'
+  });
+
+  try {
+    if (!dbConfig) {
+      const err = new Error("Database configuration is missing. Provide DB_CONNECTION_STRING or SQLCONNSTR_* or DB_* env vars.");
+      err.code = 'CONFIG_DB_MISSING';
+      throw err;
+    }
+
+    // Support both config objects and connection strings
+    const pool = await sql.connect(dbConfig);
+
+    const queryWithJoins = `
+WITH types AS (
+  SELECT DISTINCT type_id FROM market_orders WHERE region_id IN (@fromRegion, @toRegion)
+)
+SELECT TOP (@limit)
+  s.type_id,
+  s.location_id AS origin_id,
+  ISNULL(lo.location_name, CONCAT('Station ', s.location_id)) AS origin_name,
+  lo.security_status AS origin_security,
+  lo.is_npc AS origin_is_npc,
+  lo.system_id AS origin_system_id,
+  b.location_id AS destination_id,
+  ISNULL(ld.location_name, CONCAT('Station ', b.location_id)) AS destination_name,
+  ld.security_status AS destination_security,
+  ld.is_npc AS destination_is_npc,
+  ld.system_id AS destination_system_id,
+  CAST(s.price AS DECIMAL(18,2)) AS sell_price,
+  CAST(b.price AS DECIMAL(18,2)) AS buy_price,
+  CAST(b.price - s.price AS DECIMAL(18,4)) AS profit_per_unit,
+  CAST(((b.price - s.price) / NULLIF(s.price,0)) * 100.0 AS FLOAT) AS profit_margin,
+  CAST(CASE WHEN s.volume_remain < b.volume_remain THEN s.volume_remain ELSE b.volume_remain END AS INT) AS max_volume,
+  CAST((b.price - s.price) * (CASE WHEN s.volume_remain < b.volume_remain THEN s.volume_remain ELSE b.volume_remain END) AS DECIMAL(18,2)) AS total_profit,
+  CAST(s.price * (CASE WHEN s.volume_remain < b.volume_remain THEN s.volume_remain ELSE b.volume_remain END) AS DECIMAL(18,2)) AS total_cost
+FROM types t
+CROSS APPLY (
+  SELECT TOP 1 o.*
+  FROM market_orders o
+  WHERE o.region_id = @fromRegion AND o.type_id = t.type_id AND o.is_buy_order = 0 AND o.volume_remain > 0
+  ORDER BY o.price ASC
+) s
+CROSS APPLY (
+  SELECT TOP 1 o.*
+  FROM market_orders o
+  WHERE o.region_id = @toRegion AND o.type_id = t.type_id AND o.is_buy_order = 1 AND o.volume_remain > 0
+  ORDER BY o.price DESC
+) b
+LEFT JOIN locations lo ON lo.location_id = s.location_id
+LEFT JOIN locations ld ON ld.location_id = b.location_id
+WHERE b.price > s.price
+ORDER BY profit_margin DESC, total_profit DESC;`;
+
+    const queryNoJoins = `
+WITH types AS (
+  SELECT DISTINCT type_id FROM market_orders WHERE region_id IN (@fromRegion, @toRegion)
+)
+SELECT TOP (@limit)
+  s.type_id,
+  s.location_id AS origin_id,
+  NULL AS origin_name,
+  NULL AS origin_security,
+  NULL AS origin_is_npc,
+  NULL AS origin_system_id,
+  b.location_id AS destination_id,
+  NULL AS destination_name,
+  NULL AS destination_security,
+  NULL AS destination_is_npc,
+  NULL AS destination_system_id,
+  CAST(s.price AS DECIMAL(18,2)) AS sell_price,
+  CAST(b.price AS DECIMAL(18,2)) AS buy_price,
+  CAST(b.price - s.price AS DECIMAL(18,4)) AS profit_per_unit,
+  CAST(((b.price - s.price) / NULLIF(s.price,0)) * 100.0 AS FLOAT) AS profit_margin,
+  CAST(CASE WHEN s.volume_remain < b.volume_remain THEN s.volume_remain ELSE b.volume_remain END AS INT) AS max_volume,
+  CAST((b.price - s.price) * (CASE WHEN s.volume_remain < b.volume_remain THEN s.volume_remain ELSE b.volume_remain END) AS DECIMAL(18,2)) AS total_profit,
+  CAST(s.price * (CASE WHEN s.volume_remain < b.volume_remain THEN s.volume_remain ELSE b.volume_remain END) AS DECIMAL(18,2)) AS total_cost
+FROM types t
+CROSS APPLY (
+  SELECT TOP 1 o.*
+  FROM market_orders o
+  WHERE o.region_id = @fromRegion AND o.type_id = t.type_id AND o.is_buy_order = 0 AND o.volume_remain > 0
+  ORDER BY o.price ASC
+) s
+CROSS APPLY (
+  SELECT TOP 1 o.*
+  FROM market_orders o
+  WHERE o.region_id = @toRegion AND o.type_id = t.type_id AND o.is_buy_order = 1 AND o.volume_remain > 0
+  ORDER BY o.price DESC
+) b
+WHERE b.price > s.price
+ORDER BY profit_margin DESC, total_profit DESC;`;
+
+    let result;
+    try {
+      result = await pool.request()
+        .input('fromRegion', sql.Int, origin_region_id)
+        .input('toRegion', sql.Int, toRegion)
+        .input('limit', sql.Int, limit)
+        .query(queryWithJoins);
+    } catch (joinErr) {
+      context.log.warn('region_hauling: locations join failed, retrying without joins:', joinErr.message);
+      result = await pool.request()
+        .input('fromRegion', sql.Int, origin_region_id)
+        .input('toRegion', sql.Int, toRegion)
+        .input('limit', sql.Int, limit)
+        .query(queryNoJoins);
+    }
+
+    const rows = result.recordset || [];
+
+    const routes = rows.map(r => ({
+      type_id: r.type_id,
+      origin_id: Number(r.origin_id),
+      origin_name: r.origin_name || null,
+      origin_security: r.origin_security != null ? Number(r.origin_security) : null,
+      origin_is_npc: r.origin_is_npc === true || r.origin_is_npc === 1,
+      origin_system_id: r.origin_system_id != null ? Number(r.origin_system_id) : null,
+      destination_id: Number(r.destination_id),
+      destination_name: r.destination_name || null,
+      destination_security: r.destination_security != null ? Number(r.destination_security) : null,
+      destination_is_npc: r.destination_is_npc === true || r.destination_is_npc === 1,
+      destination_system_id: r.destination_system_id != null ? Number(r.destination_system_id) : null,
+      sell_price: Number(r.sell_price),
+      buy_price: Number(r.buy_price),
+      profit_per_unit: Number(r.profit_per_unit),
+      profit_margin: Number(r.profit_margin),
+      max_volume: r.max_volume != null ? Number(r.max_volume) : 0,
+      total_profit: r.total_profit != null ? Number(r.total_profit) : undefined,
+      total_cost: r.total_cost != null ? Number(r.total_cost) : undefined
+    }));
+
+    telemetry.trackEvent('REGION_HAULING_SUCCESS', {
+      origin_region_id: String(origin_region_id),
+      destination_region_id: String(toRegion),
+      count: String(routes.length)
+    });
+
+    context.res = {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      body: {
+        origin_region_id,
+        destination_region_id: toRegion,
+        routes,
+        count: routes.length
+      }
     };
 
-    // Handle CORS preflight requests
-    if (method === 'OPTIONS') {
-        context.res = {
-            status: 200,
-            headers: corsHeaders
-        };
-        return;
+    // Persist snapshot when non-hub-to-hub, or when forced via query flag
+    if ((forcePersist || !isHubToHub) && routes.length > 0) {
+      // Fire-and-forget; do not block response
+      setImmediate(() => saveSnapshotToRepo(routes));
     }
-
-    const { origin_region_id, destination_region_id } = req.query;
-
-    if (!origin_region_id) {
-        context.res = {
-            status: 400,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json'
-            },
-            body: { error: 'origin_region_id is required' }
-        };
-        return;
-    }
-
-    try {
-        context.log('Starting region hauling query with params:', { origin_region_id, destination_region_id });
-
-        const pool = await sql.connect(dbConfig);
-        const request = pool.request();
-        request.input('origin_region_id', sql.Int, parseInt(origin_region_id));
-        if (destination_region_id) {
-            request.input('destination_region_id', sql.Int, parseInt(destination_region_id));
-        }
-
-        const query = `
-      SELECT TOP 50
-        sell.type_id,
-        sell.location_id AS origin_id,
-        buy.location_id AS destination_id,
-        sell.price AS sell_price,
-        buy.price AS buy_price,
-        (buy.price - sell.price) AS profit_per_unit,
-        ((buy.price - sell.price) / sell.price * 100) AS profit_margin,
-        CASE 
-          WHEN sell.volume_remain < buy.volume_remain THEN sell.volume_remain
-          ELSE buy.volume_remain
-        END AS max_volume
-      FROM market_orders sell
-      JOIN market_orders buy ON sell.type_id = buy.type_id
-      WHERE sell.is_buy_order = 0
-        AND buy.is_buy_order = 1
-        AND sell.region_id = @origin_region_id
-        ${destination_region_id ? 'AND buy.region_id = @destination_region_id' : ''}
-        AND buy.price > sell.price
-        AND sell.volume_remain > 0
-        AND buy.volume_remain > 0
-      ORDER BY profit_margin DESC
-    `;
-
-        context.log('Executing query:', query);
-        const result = await request.query(query);
-        const routes = result.recordset || [];
-
-        // Hybrid model: update cached routes with live ESI data for freshness
-        let finalRoutes = routes;
-        try {
-            const ESI_BASE = 'https://esi.evetech.net/latest';
-            const ESI_DATASOURCE = 'tranquility';
-            const origin = parseInt(origin_region_id);
-            const dest = destination_region_id ? parseInt(destination_region_id) : origin;
-            const typeIds = [...new Set(routes.map(r => r.type_id))];
-            for (const typeId of typeIds) {
-                // Fetch best sell (NPC sell orders) from origin via ESI
-                const sellRes = await fetch(`${ESI_BASE}/markets/${origin}/orders/?type_id=${typeId}&datasource=${ESI_DATASOURCE}`);
-                const sellData = await sellRes.json();
-                const sells = sellData.filter(o => !o.is_buy_order);
-                const bestSell = sells.length ? Math.min(...sells.map(o => o.price)) : null;
-                // Fetch best buy (player buy orders) from destination via ESI
-                const buyRes = await fetch(`${ESI_BASE}/markets/${dest}/orders/?type_id=${typeId}&datasource=${ESI_DATASOURCE}`);
-                const buyData = await buyRes.json();
-                const buys = buyData.filter(o => o.is_buy_order);
-                const bestBuy = buys.length ? Math.max(...buys.map(o => o.price)) : null;
-                if (bestSell === null || bestBuy === null) continue;
-                const profitUnit = bestBuy - bestSell;
-                if (profitUnit <= 0) continue;
-                // Determine max volume
-                const volSell = sells.find(o => o.price === bestSell)?.volume_remain || 0;
-                const volBuy = buys.find(o => o.price === bestBuy)?.volume_remain || 0;
-                const maxVol = Math.min(volSell, volBuy);
-                const profitMargin = bestSell > 0 ? (profitUnit / bestSell) * 100 : 0;
-                // Update existing or add new route
-                const idx = finalRoutes.findIndex(r => r.type_id === typeId);
-                const updated = {
-                    type_id: typeId,
-                    origin_id: origin,
-                    destination_id: dest,
-                    sell_price: bestSell,
-                    buy_price: bestBuy,
-                    profit_per_unit: profitUnit,
-                    profit_margin: profitMargin,
-                    max_volume: maxVol
-                };
-                if (idx >= 0) finalRoutes[idx] = updated;
-                else finalRoutes.push(updated);
-            }
-            // Sort and limit top 50
-            finalRoutes.sort((a, b) => b.profit_margin - a.profit_margin);
-            finalRoutes = finalRoutes.slice(0, 50);
-        } catch (liveErr) {
-            context.log.warn('⚠️ Live ESI update failed:', liveErr.message);
-        }
-
-        context.log(`Returning ${finalRoutes.length} routes (cached + live hybrid)`);
-        context.res = {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                ...corsHeaders
-            },
-            body: {
-                origin_region_id,
-                destination_region_id: destination_region_id || origin_region_id,
-                routes: finalRoutes,
-                count: finalRoutes.length
-            }
-        };
-    } catch (error) {
-        context.log.error('❌ Error in region hauling:', error);
-        context.res = {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json',
-                ...corsHeaders
-            },
-            body: {
-                error: error.message,
-                origin_region_id,
-                destination_region_id: destination_region_id || origin_region_id,
-                routes: [],
-                count: 0
-            }
-        };
-    }
+  } catch (error) {
+    // Capture rich diagnostics to distinguish auth vs. network vs. SQL issues
+    const errProps = {
+      area: 'region_hauling',
+      origin_region_id: String(origin_region_id),
+      destination_region_id: String(toRegion),
+      code: error && (error.code || error.name) || undefined,
+      number: error && (error.number || error.errno) || undefined,
+      original: error && error.originalError && error.originalError.message || undefined
+    };
+    context.log.error('region_hauling SQL error:', errProps, error && error.message);
+    telemetry.trackException(error, errProps);
+    context.res = {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      body: {
+        error: error && error.message || 'Internal error',
+        code: errProps.code,
+        number: errProps.number,
+        origin_region_id,
+        destination_region_id: toRegion,
+        routes: [],
+        count: 0
+      }
+    };
+  }
 };

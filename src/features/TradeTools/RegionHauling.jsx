@@ -2,9 +2,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import RegionSelector from '../../components/RegionSelector/RegionSelector.jsx';
 import { getSecurityColor, getStationInfo, getRegionInfo } from '../../utils/common.js';
-import { fetchMarketOrders, fetchRegionHaulingData } from '../../utils/market.js';
-import { fetchRegions, fetchWithRetry, fetchStructures } from '../../utils/api.js';
-import stations from '../../data/stations.json';
+import { fetchMarketOrders, fetchRegionHaulingSnapshotsOnly } from '../../utils/market.js';
+import { fetchRegions, fetchStructures, fetchStationsNPC, fetchMarketTree } from '../../utils/api.js';
 import './RegionHauling.css';
 
 // Utility functions for formatting (replaces eveTradeAPI utils)
@@ -30,7 +29,7 @@ const INITIAL_FORM = {
     maxBudget: '',
     salesTax: 7.5, // Default to "No Skill"
     securityStatus: 'any',
-    structureType: 'both',
+    structureType: 'all',
     routePreference: 'safest',
     hideOutOfStock: false
 };
@@ -48,38 +47,103 @@ export default function RegionHauling() {
     const [itemsPerPage] = useState(50);
     const [isFormSticky, setIsFormSticky] = useState(false);
     const [formCollapsed, setFormCollapsed] = useState(false);
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    const [sortConfig, setSortConfig] = useState({ key: 'Net Profit', direction: 'desc' });
     const [showResults, setShowResults] = useState(false);
+    // Column widths for resizable headers (px)
+    const [colWidths, setColWidths] = useState({
+        'Item': 140,
+        'From': 240,
+        'Quantity': 110,
+        'Buy Price': 130,
+        'Total Buy Price': 140,
+        'To': 240,
+        'Sell Price': 140,
+        'Net Profit': 140,
+        'Jumps': 90,
+        'Profit per Jump': 150,
+        'Profit Per Item': 130,
+        'ROI': 100,
+        'Total Volume (m³)': 120,
+    });
 
-    // Fetch item details (volume and name) from ESI
-    const fetchItemDetails = async (typeId) => {
-        try {
-            const response = await fetchWithRetry(`https://esi.evetech.net/latest/universe/types/${typeId}/`);
-            return {
-                volume: response.volume || 0.01,
-                name: response.name || `Item ${typeId}`
-            };
-        } catch (error) {
-            console.warn(`Failed to fetch details for type ${typeId}:`, error);
-            return {
-                volume: 0.01,
-                name: `Item ${typeId}`
-            };
-        }
+    const startResize = (key, startX, startWidth) => {
+        const onMove = (e) => {
+            const dx = (e.clientX || 0) - startX;
+            setColWidths(prev => ({ ...prev, [key]: Math.max(60, Math.min(800, Math.round(startWidth + dx))) }));
+        };
+        const onUp = () => {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
     };
 
-    // Calculate jumps between two systems
-    const calculateJumps = async (fromSystemId, toSystemId) => {
-        try {
-            const routeResponse = await fetchWithRetry(
-                `https://esi.evetech.net/latest/route/${fromSystemId}/${toSystemId}/`
-            );
-            return routeResponse.length - 1; // Number of jumps is route length minus 1
-        } catch (error) {
-            console.warn(`Failed to calculate jumps from ${fromSystemId} to ${toSystemId}:`, error);
-            return 'N/A';
-        }
+    const HeaderCell = ({ label }) => {
+        const width = colWidths[label] || 120;
+        return (
+            <th
+                onClick={() => handleSort(label)}
+                style={{ width, minWidth: width, maxWidth: width, position: 'relative' }}
+            >
+                {label}{sortConfig.key === label ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}
+                <span
+                    className="col-resizer"
+                    onMouseDown={(e) => {
+                        e.stopPropagation();
+                        startResize(label, e.clientX || 0, width);
+                    }}
+                    title="Drag to resize"
+                />
+            </th>
+        );
     };
+
+    const cellStyle = (label) => {
+        const width = colWidths[label] || 120;
+        return { width, minWidth: width, maxWidth: width };
+    };
+
+    // Fetch item details (volume and name) from precomputed market.json
+    const fetchItemDetails = (() => {
+        let cache = null;
+        const buildIndex = (tree) => {
+            const map = new Map();
+            const walk = (node) => {
+                if (!node || typeof node !== 'object') return;
+                if (Array.isArray(node.items)) {
+                    for (const it of node.items) {
+                        const id = Number(it.typeID);
+                        if (!map.has(id)) {
+                            map.set(id, { name: it.typeName, volume: it.volume || 0.01 });
+                        }
+                    }
+                }
+                for (const k of Object.keys(node)) {
+                    if (k !== 'items' && k !== '_info') walk(node[k]);
+                }
+            };
+            walk(tree);
+            return map;
+        };
+        return async (typeId) => {
+            try {
+                if (!cache) {
+                    const tree = await fetchMarketTree();
+                    cache = buildIndex(tree);
+                }
+                const rec = cache.get(Number(typeId));
+                return { volume: rec?.volume || 0.01, name: rec?.name || `Item ${typeId}` };
+            } catch {
+                return { volume: 0.01, name: `Item ${typeId}` };
+            }
+        };
+    })();
+
+    // Calculate jumps between two systems: skip ESI; leave as 'N/A' unless provided by API
+    // Calculate jumps between two systems (if system IDs are known). We avoid ESI; if missing, return 'N/A'.
+    // Placeholder: if the API supplies a numeric jumps value, we use it; otherwise leave as 'N/A'.
+    const calculateJumps = async () => 'N/A';
 
     // Handle form sticky behavior on scroll
     useEffect(() => {
@@ -157,10 +221,13 @@ export default function RegionHauling() {
 
     // Data transformation function to convert API/market data to display format
     const transformApiResponseToDisplayFormat = async (apiData, formData) => {
-        // Load static structure data for mapping
-        const structures = await fetchStructures();
+        // Load static structure and station data for mapping (from /public/data)
+        const [structures, stations] = await Promise.all([
+            fetchStructures(),
+            fetchStationsNPC()
+        ]);
         const stationMap = new Map(stations.map(s => [Number(s.station_id || s.stationID), s]));
-        const structMap = new Map(structures.map(s => [Number(s.stationID), s]));
+        const structMap = new Map(structures.map(s => [Number(s.structureID ?? s.stationID), s]));
 
         if (!apiData || !Array.isArray(apiData)) {
             return [];
@@ -176,55 +243,93 @@ export default function RegionHauling() {
             // Get item details (volume and name) from ESI
             const itemDetails = await fetchItemDetails(trade.type_id);
 
-            // Calculate maximum units that can fit in cargo hold
-            let maxUnits = trade.max_volume || 0;
+            // Calculate maximum units considering cargo capacity and budget
+            let maxUnits = trade.max_volume || 0; // available tradable units
             if (cargoCapacity && itemDetails.volume > 0) {
                 const cargoLimitedUnits = Math.floor(cargoCapacity / itemDetails.volume);
                 maxUnits = Math.min(maxUnits, cargoLimitedUnits);
             }
+            if (formData.maxBudget) {
+                const budget = Number(formData.maxBudget) || 0;
+                const unitPrice = Number(trade.sell_price || 0);
+                if (unitPrice > 0) {
+                    const budgetLimitedUnits = Math.floor(budget / unitPrice);
+                    maxUnits = Math.min(maxUnits, budgetLimitedUnits);
+                }
+            }
             // Compute total volume
-            const totalVolume = Math.floor(maxUnits * itemDetails.volume);
+            const totalVolume = Math.floor((maxUnits || 0) * (itemDetails.volume || 0));
 
-            // Determine origin/destination IDs and lookup info
-            const originId = trade.origin_id ?? trade.from_location;
-            const destId = trade.destination_id ?? trade.to_location;
-            const originInfo = stationMap.get(originId) || structMap.get(originId) || {};
-            const destInfo = stationMap.get(destId) || structMap.get(destId) || {};
+            // Use enhanced data directly from the API if available
+            // If not, fall back to local lookup methods
+            let originStationName, destinationStationName, originIsNPC, destinationIsNPC, jumps;
+            // Ensure info objects are declared in outer scope for later use
+            let originInfo = null, destInfo = null;
 
-            // Log missing structure IDs for debugging
-            if (!originInfo.name) {
-                console.warn(`Missing origin structure ID: ${originId}`);
+            // Use the enhanced data from our API if available
+            if (trade.origin_name && trade.destination_name) {
+                originStationName = trade.origin_name;
+                destinationStationName = trade.destination_name;
+                originIsNPC = (trade.origin_is_npc ?? true) === true;
+                destinationIsNPC = (trade.destination_is_npc ?? true) === true;
+                jumps = trade.jumps ?? 'N/A';
+            } else {
+                // Fall back to local lookup for older API responses
+                const originId = trade.origin_id ?? trade.from_location ?? trade.source_station_id;
+                const destId = trade.destination_id ?? trade.to_location ?? trade.destination_station_id;
+                originInfo = stationMap.get(originId) || structMap.get(originId) || {};
+                destInfo = stationMap.get(destId) || structMap.get(destId) || {};
+
+                // Log missing structure IDs for debugging
+                if (!originInfo.name) {
+                    console.warn(`Missing origin structure ID: ${originId}`);
+                }
+                if (!destInfo.name) {
+                    console.warn(`Missing destination structure ID: ${destId}`);
+                }
+
+                originStationName = originInfo.name || `Unknown Station (ID: ${originId})`;
+                destinationStationName = destInfo.name || `Unknown Station (ID: ${destId})`;
+
+                // Ensure player structures are displayed correctly; default unknown to NPC (true)
+                const originIsNpcComputed = originInfo && (originInfo.type === 'station' || originInfo.is_npc === 1 || originInfo.is_npc === true);
+                const destIsNpcComputed = destInfo && (destInfo.type === 'station' || destInfo.is_npc === 1 || destInfo.is_npc === true);
+                originIsNPC = originIsNpcComputed === undefined ? true : !!originIsNpcComputed;
+                destinationIsNPC = destIsNpcComputed === undefined ? true : !!destIsNpcComputed;
+
+                // Calculate jumps between systems
+                jumps = 'N/A';
+                const fromSystemId = trade.origin_system_id || originInfo?.system_id || originInfo?.systemID || originInfo?.solarSystemID;
+                const toSystemId = trade.destination_system_id || destInfo?.system_id || destInfo?.systemID || destInfo?.solarSystemID;
+                if (fromSystemId && toSystemId) {
+                    jumps = await calculateJumps(fromSystemId, toSystemId);
+                }
             }
-            if (!destInfo.name) {
-                console.warn(`Missing destination structure ID: ${destId}`);
-            }
 
-            const originStationName = originInfo.name || `Unknown Station (ID: ${originId})`;
-            const destinationStationName = destInfo.name || `Unknown Station (ID: ${destId})`;
+            // Get the security status data
+            let originSecurity = trade.origin_security ?? (originInfo ? (originInfo.security_status ?? originInfo.security ?? null) : null);
+            let destSecurity = trade.destination_security ?? (destInfo ? (destInfo.security_status ?? destInfo.security ?? null) : null);
+            // Coerce to numbers when possible
+            originSecurity = (originSecurity !== null && originSecurity !== undefined) ? Number(originSecurity) : originSecurity;
+            destSecurity = (destSecurity !== null && destSecurity !== undefined) ? Number(destSecurity) : destSecurity;
 
-            // Ensure player structures are displayed correctly
-            const originIsNPC = originInfo.type === 'station' || originInfo.is_npc === 1;
-            const destinationIsNPC = destInfo.type === 'station' || destInfo.is_npc === 1;
-
-            // Calculate jumps between systems
-            let jumps = 'N/A';
-            if (originInfo.system_id && destInfo.system_id) {
-                jumps = await calculateJumps(originInfo.system_id, destInfo.system_id);
-            }
+            // Calculate profit per jump
+            const profitPerJump = trade.profit_per_jump ?? (jumps && typeof jumps === 'number' && jumps > 0 ?
+                ((trade.profit_per_unit || 0) * maxUnits) / jumps : null);
 
             transformedTrades.push({
-                'Item': itemDetails.name,
+                'Item': trade.name || itemDetails.name,
                 'From': {
                     name: originStationName,
-                    security: originInfo.security_status ?? originInfo.security ?? null,
+                    security: originSecurity,
                     isNPC: originIsNPC,
-                    systemId: originInfo.system_id
+                    systemId: trade.origin_system_id || (originInfo ? originInfo.system_id : null)
                 },
                 'To': {
                     name: destinationStationName,
-                    security: destInfo.security_status ?? destInfo.security ?? null,
+                    security: destSecurity,
                     isNPC: destinationIsNPC,
-                    systemId: destInfo.system_id
+                    systemId: trade.destination_system_id || (destInfo ? destInfo.system_id : null)
                 },
                 'Buy Price': trade.sell_price || 0,
                 'Sell Price': trade.buy_price || 0,
@@ -232,20 +337,77 @@ export default function RegionHauling() {
                 'Profit Percentage': trade.profit_margin || 0,
                 'Quantity': maxUnits,
                 'Total Volume (m3)': totalVolume,
-                'Item Volume': itemDetails.volume,
+                'Item Volume': trade.volume || itemDetails.volume,
                 'Jumps': jumps,
-                'Total Profit': (trade.profit_per_unit || 0) * maxUnits,
+                'Profit per Jump': profitPerJump,
+                'Total Profit': trade.total_profit || ((trade.profit_per_unit || 0) * maxUnits),
+                'ROI': trade.profit_margin,
                 '_rawData': trade
             });
         }
 
-        return transformedTrades;
+        // Apply post-transform filters
+        let finalTrades = transformedTrades;
+
+        // Drop rows that end up with zero quantity after budget/capacity limits
+        finalTrades = finalTrades.filter(t => (Number(t['Quantity']) || 0) > 0);
+
+        // Re-apply Budget / Min Profit / ROI filters using computed quantities
+        const minProfitFilter = parseFloat(formData.minProfit || '0');
+        const minRoiFilter = parseFloat(formData.minROI || '0');
+        const maxBudgetFilter = formData.maxBudget ? parseFloat(formData.maxBudget) : null;
+
+        finalTrades = finalTrades.filter(t => {
+            const qty = Number(t['Quantity']) || 0;
+            const buyPrice = Number(t['Buy Price']) || 0;
+            const totalBuy = buyPrice * qty;
+            const totalProfit = Number(t['Total Profit']) || 0;
+            const roiPct = Number(t['Profit Percentage']) || 0;
+
+            const meetsBudget = maxBudgetFilter == null || totalBuy <= maxBudgetFilter;
+            const meetsProfit = totalProfit >= minProfitFilter;
+            const meetsRoi = roiPct >= minRoiFilter;
+            return meetsBudget && meetsProfit && meetsRoi;
+        });
+        // Security filter
+        if (formData.securityStatus && formData.securityStatus !== 'any') {
+            const isHigh = s => typeof s === 'number' && s >= 0.5;
+            const isLow = s => typeof s === 'number' && s > 0 && s < 0.5;
+            const isNull = s => typeof s === 'number' && s <= 0;
+            finalTrades = finalTrades.filter(t => {
+                const os = t.From?.security;
+                const ds = t.To?.security;
+                if (os == null || ds == null) return false;
+                if (formData.securityStatus === 'highsec') return isHigh(os) && isHigh(ds);
+                if (formData.securityStatus === 'lowsec') return isLow(os) && isLow(ds);
+                if (formData.securityStatus === 'nullsec') return isNull(os) && isNull(ds);
+                return true;
+            });
+        }
+        // Structure type filter
+        if (formData.structureType && formData.structureType !== 'all') {
+            finalTrades = finalTrades.filter(t => {
+                const oNpc = t.From?.isNPC === true;
+                const dNpc = t.To?.isNPC === true;
+                if (formData.structureType === 'avoid-player') return oNpc && dNpc; // NPC-only
+                if (formData.structureType === 'avoid-npc') return !oNpc && !dNpc; // Player-only
+                return true;
+            });
+        }
+        // Max jumps filter
+        if (formData.maxJumps) {
+            const maxJumps = Number(formData.maxJumps);
+            if (Number.isFinite(maxJumps)) {
+                finalTrades = finalTrades.filter(t => typeof t.Jumps === 'number' ? t.Jumps <= maxJumps : true);
+            }
+        }
+        return finalTrades;
     };
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
-            [field]: value || (field === 'minProfit' ? '500000' : prev[field]), // Ensure default value for Min Profit
+            [field]: value,
         }));
     };
 
@@ -276,9 +438,9 @@ export default function RegionHauling() {
 
     // Structure type options
     const structureTypeOptions = [
-        { value: 'both', label: 'Any' },
-        { value: 'stations', label: 'NPC Stations' },
-        { value: 'structures', label: 'Player Structures' }
+        { value: 'all', label: 'All' },
+        { value: 'avoid-player', label: 'Avoid Player Structures' },
+        { value: 'avoid-npc', label: 'Avoid NPC Stations' }
     ];
 
     // Route preference options
@@ -304,22 +466,30 @@ export default function RegionHauling() {
         }));
     };
 
-    // New function to fetch and process market orders
+    // New function to fetch and process market orders (snapshots only)
     const fetchAndProcessMarketOrders = async (fromRegionId, toRegionId, formData) => {
         try {
-            // Fetch market orders from ESI
-            const marketOrders = await fetchMarketOrders(fromRegionId, toRegionId);
+            // Use only GitHub snapshots: derive from region_orders (no region_hauling artifacts)
+            const regionHaulingData = await fetchRegionHaulingSnapshotsOnly(fromRegionId, toRegionId);
 
             // Filter and process orders to find profitable trades
-            const profitableTrades = marketOrders.filter(order => {
-                const profit = order.sell_price - order.buy_price;
-                const roi = (profit / order.buy_price) * 100;
+            const profitableTrades = regionHaulingData.filter(route => {
+                // Prefer total profit when available; fall back to unit profit * quantity
+                const unitProfit = (route.profit_per_unit ?? (route.buy_price - route.sell_price) ?? 0);
+                const quantity = (route.max_volume ?? 0);
+                const totalProfit = (route.total_profit ?? (unitProfit * quantity));
 
-                return (
-                    profit >= parseFloat(formData.minProfit) &&
-                    roi >= parseFloat(formData.minROI) &&
-                    (!formData.maxBudget || order.buy_price <= parseFloat(formData.maxBudget))
-                );
+                const roi = (route.profit_margin ?? (
+                    route.sell_price ? ((unitProfit / route.sell_price) * 100) : 0
+                ));
+
+                const meetsProfit = totalProfit >= parseFloat(formData.minProfit || 0);
+
+                // If budget is provided, approximate total buy cost as unit price * quantity
+                const totalBuyCost = (route.sell_price ?? 0) * quantity;
+                const meetsBudget = !formData.maxBudget || totalBuyCost <= parseFloat(formData.maxBudget);
+
+                return meetsProfit && (roi >= parseFloat(formData.minROI || 0)) && meetsBudget;
             });
 
             // Transform data for display
@@ -345,14 +515,18 @@ export default function RegionHauling() {
         }
 
         try {
-            const fromRegionId = formData.fromRegion.regionID;
-            const toRegionId = formData.toRegion.regionID;
+            const fromRegionId = Number(formData.fromRegion.regionID);
+            const toRegionId = Number(formData.toRegion.regionID);
+
+            console.log(`🚛 Searching for trade routes from ${formData.fromRegion.regionName} (${fromRegionId}) to ${formData.toRegion.regionName} (${toRegionId})`);
 
             // Fetch and process market orders
             const transformedData = await fetchAndProcessMarketOrders(fromRegionId, toRegionId, formData);
 
             if (transformedData.length > 0) {
                 setResults(transformedData);
+                // Show banner only when routes were derived from snapshots (not precomputed)
+                setUsingFallback(transformedData.some(r => r._rawData && r._rawData._fallback));
                 setShowResults(true);
             } else {
                 setError('No profitable trades found for the selected criteria.');
@@ -523,7 +697,7 @@ export default function RegionHauling() {
                                     <label>Max Jumps</label>
                                     <input
                                         type="number"
-                                        value={formData.maxJumps}
+                                        value={formData.maxJumps ?? ''}
                                         onChange={e => handleInputChange('maxJumps', e.target.value)}
                                         placeholder="∞"
                                         className="form-control"
@@ -535,7 +709,7 @@ export default function RegionHauling() {
                                     <label>Max Budget</label>
                                     <input
                                         type="number"
-                                        value={formData.maxBudget}
+                                        value={formData.maxBudget ?? ''}
                                         onChange={e => handleInputChange('maxBudget', e.target.value)}
                                         placeholder="∞"
                                         className="form-control"
@@ -547,7 +721,7 @@ export default function RegionHauling() {
                                     <label>Max Capacity (m³)</label>
                                     <input
                                         type="number"
-                                        value={formData.maxWeight}
+                                        value={formData.maxWeight ?? ''}
                                         onChange={e => handleInputChange('maxWeight', e.target.value)}
                                         placeholder="∞"
                                         className="form-control"
@@ -573,8 +747,9 @@ export default function RegionHauling() {
                                     <label>Min Profit</label>
                                     <input
                                         type="number"
-                                        value={formData.minProfit}
+                                        value={formData.minProfit ?? ''}
                                         onChange={e => handleInputChange('minProfit', e.target.value)}
+                                        placeholder="0"
                                         className="form-control"
                                         style={{ width: '175px' }}
                                     />
@@ -584,8 +759,9 @@ export default function RegionHauling() {
                                     <label>Min ROI %</label>
                                     <input
                                         type="number"
-                                        value={formData.minROI}
-                                        onChange={e => handleInputChange('minROI', Number(e.target.value) || 0)}
+                                        value={formData.minROI ?? ''}
+                                        onChange={e => handleInputChange('minROI', e.target.value)}
+                                        placeholder="0"
                                         className="form-control"
                                         style={{ width: '100px' }}
                                     />
@@ -615,18 +791,7 @@ export default function RegionHauling() {
                     <div className="results-container">
                         <div className="results-header">
                             <h2>Trade Route Results ({sortedResults.length} found)</h2>
-                            {usingFallback && (
-                                <div className="fallback-warning" style={{
-                                    backgroundColor: '#fff3cd',
-                                    border: '1px solid #ffeaa7',
-                                    borderRadius: '4px',
-                                    padding: '10px',
-                                    margin: '10px 0',
-                                    color: '#856404'
-                                }}>
-                                    ⚠️ Azure Functions unavailable. Using basic market data analysis. Results may be limited to common trade items.
-                                </div>
-                            )}
+                            {/* Snapshot banner removed; snapshots are the live source */}
                             <button
                                 onClick={clearResults}
                                 className="new-search-btn"
@@ -638,19 +803,19 @@ export default function RegionHauling() {
                             <table className="results-table wide-table">
                                 <thead>
                                     <tr>
-                                        <th onClick={() => handleSort('Item')}>Item{sortConfig.key === 'Item' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('Quantity')}>Buy Quantity{sortConfig.key === 'Quantity' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('Buy Price')}>Item Buy Price{sortConfig.key === 'Buy Price' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('Total Buy Price')}>Total Buy Price{sortConfig.key === 'Total Buy Price' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('From')}>From{sortConfig.key === 'From' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('To')}>To{sortConfig.key === 'To' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('Sell Price')}>Item Sell Price{sortConfig.key === 'Sell Price' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('Net Profit')}>Net Profit{sortConfig.key === 'Net Profit' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('Profit Per Item')}>Profit Per Item{sortConfig.key === 'Profit Per Item' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('ROI')}>ROI%{sortConfig.key === 'ROI' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('Profit per Jump')}>Profit per Jump{sortConfig.key === 'Profit per Jump' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('Jumps')}>Jumps{sortConfig.key === 'Jumps' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
-                                        <th onClick={() => handleSort('Total Volume (m³)')}>Total Volume (m³){sortConfig.key === 'Total Volume (m³)' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                                        <HeaderCell label="Item" />
+                                        <HeaderCell label="From" />
+                                        <HeaderCell label="Quantity" />
+                                        <HeaderCell label="Buy Price" />
+                                        <HeaderCell label="Total Buy Price" />
+                                        <HeaderCell label="To" />
+                                        <HeaderCell label="Sell Price" />
+                                        <HeaderCell label="Net Profit" />
+                                        <HeaderCell label="Jumps" />
+                                        <HeaderCell label="Profit per Jump" />
+                                        <HeaderCell label="Profit Per Item" />
+                                        <HeaderCell label="ROI" />
+                                        <HeaderCell label="Total Volume (m³)" />
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -677,7 +842,7 @@ export default function RegionHauling() {
                                             const totalBuyPrice = buyPrice * quantity;
                                             const profitPerJump = (typeof jumps === 'number' && jumps > 0)
                                                 ? totalProfit / jumps
-                                                : 0;
+                                                : null;
 
                                             // Render station names with security coloring and click-to-copy
                                             const renderStationName = (station) => {
@@ -716,7 +881,7 @@ export default function RegionHauling() {
 
                                             return (
                                                 <tr key={startIndex + index}>
-                                                    <td>
+                                                    <td style={cellStyle('Item')}>
                                                         <span
                                                             className="clickable-location"
                                                             onClick={() => copyToClipboard(item)}
@@ -725,18 +890,18 @@ export default function RegionHauling() {
                                                             {item}
                                                         </span>
                                                     </td>
-                                                    <td>{renderStationName(fromStation)}</td>
-                                                    <td>{utils.formatNumber(quantity, 0)}</td>
-                                                    <td>{utils.formatNumber(buyPrice)}</td>
-                                                    <td>{utils.formatNumber(totalBuyPrice)}</td>
-                                                    <td>{renderStationName(toStation)}</td>
-                                                    <td>{utils.formatNumber(sellPrice)}</td>
-                                                    <td>{utils.formatNumber(totalProfit)}</td>
-                                                    <td>{jumps}</td>
-                                                    <td>{utils.formatNumber(profitPerJump)}</td>
-                                                    <td>{utils.formatNumber(profitPerUnit)}</td>
-                                                    <td>{utils.formatNumber(profitPercentage, 1)}%</td>
-                                                    <td>{utils.formatNumber(totalVolume, 0)}</td>
+                                                    <td style={cellStyle('From')}>{renderStationName(fromStation)}</td>
+                                                    <td style={cellStyle('Quantity')}>{utils.formatNumber(quantity, 0)}</td>
+                                                    <td style={cellStyle('Buy Price')}>{utils.formatNumber(buyPrice)}</td>
+                                                    <td style={cellStyle('Total Buy Price')}>{utils.formatNumber(totalBuyPrice)}</td>
+                                                    <td style={cellStyle('To')}>{renderStationName(toStation)}</td>
+                                                    <td style={cellStyle('Sell Price')}>{utils.formatNumber(sellPrice)}</td>
+                                                    <td style={cellStyle('Net Profit')}>{utils.formatNumber(totalProfit)}</td>
+                                                    <td style={cellStyle('Jumps')}>{(typeof jumps === 'number') ? jumps : 'N/A'}</td>
+                                                    <td style={cellStyle('Profit per Jump')}>{profitPerJump != null ? utils.formatNumber(profitPerJump) : '-'}</td>
+                                                    <td style={cellStyle('Profit Per Item')}>{utils.formatNumber(profitPerUnit)}</td>
+                                                    <td style={cellStyle('ROI')}>{utils.formatNumber(profitPercentage, 1)}%</td>
+                                                    <td style={cellStyle('Total Volume (m³)')}>{utils.formatNumber(totalVolume, 0)}</td>
                                                 </tr>
                                             );
                                         });

@@ -1,12 +1,6 @@
 const sql = require('mssql');
-
-const dbConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    server: process.env.DB_SERVER,
-    options: { encrypt: true }
-};
+const { getDbConfig } = require('../utils/db');
+const dbConfig = getDbConfig();
 
 // Popular items to pre-cache
 const POPULAR_TYPE_IDS = [
@@ -35,6 +29,9 @@ module.exports = async function (context, myTimer) {
     context.log('CacheWarmup function started at:', startTime.toISOString());
 
     try {
+        if (!dbConfig) {
+            throw new Error('Database configuration is missing. Provide DB_CONNECTION_STRING or SQLCONNSTR_* or DB_* env vars.');
+        }
         const pool = await sql.connect(dbConfig);
 
         let cacheEntriesCreated = 0;

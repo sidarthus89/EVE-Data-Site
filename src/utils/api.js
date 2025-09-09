@@ -1,11 +1,19 @@
 // src/utils/api.js
 // Shared API module with base URLs for Azure and ESI and retry logic
-import marketTree from '../data/market.json';
-import regionsData from '../data/regions.json';
-import structuresData from '../data/structures.json';
 
-export const AZURE_BASE = 'https://evedatafunc01.azurewebsites.net/api';
+// Preferred data source: same-origin static files under /data (served by GitHub Pages or Static Web Apps)
+// Optional override: VITE_DATA_BASE (absolute or relative)
+const BASE_URL = import.meta.env.BASE_URL || '/';
+const DEFAULT_DATA_BASE = `${BASE_URL.replace(/\/$/, '')}/data`;
+export const DATA_BASE = (import.meta.env.VITE_DATA_BASE || '').replace(/\/$/, '') || DEFAULT_DATA_BASE;
+
+
+// Azure Functions base; allow override for local dev (e.g., VITE_AZURE_BASE=http://localhost:7071/api)
+export const AZURE_BASE = (import.meta.env.VITE_AZURE_BASE || process.env.VITE_AZURE_BASE || 'https://evedatafunc01.azurewebsites.net/api').replace(/\/$/, '');
 export const ESI_BASE = 'https://esi.evetech.net/latest';
+
+// Build mode helpers
+export const IS_DEV_BUILD = (import.meta.env.MODE === 'development');
 
 /**
  * Fetch with retry logic and exponential backoff
@@ -37,22 +45,88 @@ export async function fetchWithRetry(url, options = {}, retries = 3) {
     }
 }
 
+// Try a list of URLs in order and resolve on the first success
+async function fetchAny(urls) {
+    let lastErr;
+    for (const u of urls.filter(Boolean)) {
+        try {
+            return await fetchWithRetry(u);
+        } catch (e) {
+            lastErr = e;
+        }
+    }
+    throw lastErr || new Error('No sources available');
+}
 
 export function fetchMarketTree() {
-    return Promise.resolve(marketTree);
+    return fetchAny([
+        `${DATA_BASE}/market.json`,
+        `${DATA_BASE}/market/market.json`,
+    ]);
 }
 
 export function fetchRegions() {
-    // Static regions data loaded from JSON
-    const data = regionsData;
-    if (Array.isArray(data)) return Promise.resolve(data);
-    if (Array.isArray(data.regions)) return Promise.resolve(data.regions);
-    return Promise.reject(new Error('Invalid regions.json format'));
+    return fetchAny([
+        `${DATA_BASE}/regions.json`,
+        `${DATA_BASE}/regions/regions.json`,
+    ]).then((data) => {
+        if (Array.isArray(data)) return data;
+        if (data && Array.isArray(data.regions)) return data.regions;
+        throw new Error('Invalid regions.json format');
+    });
 }
 
 export function fetchStructures() {
-    const data = structuresData;
-    if (Array.isArray(data)) return Promise.resolve(data);
-    if (Array.isArray(data.structures)) return Promise.resolve(data.structures);
-    return Promise.reject(new Error('Invalid structures.json format'));
+    return fetchAny([
+        `${DATA_BASE}/structures.json`,
+        `${DATA_BASE}/structures/structures.json`,
+    ]);
+}
+
+export function fetchStationsNPC() {
+    return fetchAny([
+        `${DATA_BASE}/stations.json`,
+        `${DATA_BASE}/stations/stations_npc.json`,
+    ]);
+}
+
+export function fetchSystems() {
+    return fetchAny([
+        `${DATA_BASE}/systems.json`,
+        `${DATA_BASE}/systems/systems.json`,
+    ]);
+}
+
+export function fetchRegionsWithMarkets() {
+    // Project decision: only regions.json will be maintained; treat all regions as market-capable.
+    return fetchRegions();
+}
+
+// Precomputed region hauling artifacts (optional). Will try multiple common paths.
+export function fetchPrecomputedRegionHauling() {
+    // Disabled: no precomputed region_hauling artifact fetches or telemetry beacons.
+    return Promise.reject(new Error('region_hauling_artifacts_disabled'));
+}
+
+// Precomputed per-region best quotes snapshot
+export function fetchRegionOrdersSnapshot(regionId) {
+    const id = String(regionId);
+    // Fire-and-forget log to Azure Function (silent)
+    try {
+        const name = `${id}.json`;
+        const url = `${AZURE_BASE}/log/request?name=${encodeURIComponent(name)}&source=${encodeURIComponent('spa:region_orders')}`;
+        if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+            navigator.sendBeacon(url, '1');
+        } else {
+            fetch(url, { method: 'GET', mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(() => { });
+        }
+    } catch { }
+    // Quiet fetch to avoid console noise on 404s (snapshots are optional)
+    const url = `${DATA_BASE}/region_orders/${id}.json`;
+    return fetch(url).then(async (res) => {
+        if (!res.ok) throw new Error(`snapshot-missing:${res.status}`);
+        const ct = res.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) throw new Error('snapshot-not-json');
+        return res.json();
+    });
 }

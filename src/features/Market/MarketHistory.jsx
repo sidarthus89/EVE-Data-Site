@@ -16,7 +16,7 @@ import { fetchMarketHistory, fetchUniverseMarketHistory } from '../../utils/mark
 export default function MarketHistory({ selectedItem, selectedRegion, setActiveTab }) {
     const [historyData, setHistoryData] = useState([]);
     const [startIndex, setStartIndex] = useState(0);
-    const [endIndex, setEndIndex] = useState(30); // Changed: Set to 30 initially instead of 0
+    const [endIndex, setEndIndex] = useState(30);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -65,10 +65,11 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                     region: selectedRegion?.regionName || 'All Regions'
                 });
 
-                // Set default to show all data
-                const defaultStart = 0;
-                const defaultEnd = data?.length || 0;
-
+                // Default to last 30 days if available
+                const total = data?.length || 0;
+                const window = Math.min(30, total || 0);
+                const defaultStart = Math.max(0, total - window);
+                const defaultEnd = total;
                 setStartIndex(defaultStart);
                 setEndIndex(defaultEnd);
             } catch (error) {

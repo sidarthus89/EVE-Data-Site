@@ -2,11 +2,12 @@
 
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { visualizer } from 'rollup-plugin-visualizer';
+// ...existing code...
 
-const repoName = 'EVE-Data-Site';
+const PROD_REPO = 'EVE-Data-Site';
+const DEV_REPO = 'EVE-Data-Site-Dev';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const IS_DEV = mode !== 'production';
 
   return {
@@ -33,13 +34,15 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-    base: IS_DEV ? '/' : `/${repoName}/`,
+    // Base path logic:
+    // - Local dev server: '/'
+    // - Dev build (mode === 'development' with publish:dev): '/EVE-Data-Site-Dev/'
+    // - Prod build: '/EVE-Data-Site/'
+    base: command === 'serve'
+      ? '/'
+      : (mode === 'development' ? `/${DEV_REPO}/` : `/${PROD_REPO}/`),
     plugins: [
       react(),
-      visualizer({
-        filename: './dist/stats.html',
-        open: true, // Automatically open the stats file in your browser
-      }),
     ],
     define: {
       'import.meta.env.IS_DEV': JSON.stringify(IS_DEV)

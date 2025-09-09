@@ -8,6 +8,10 @@
 
   <link rel="icon" type="image/png" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Reduce caching of the HTML shell to avoid stale chunk references on GH Pages -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>EVE Data Site</title>
 
   <!-- Google Analytics Tracking Code -->
@@ -21,7 +25,44 @@
 
   <!-- End Google Analytics Tracking Code -->
 
+  <!-- Handle route restoration from 404.html redirects -->
+  <script>
+    (function () {
+      // Restore deep link after 404.html redirect for GH Pages (prod or dev repo)
+      var redirectPath = sessionStorage.getItem('spa:path');
+      if (!redirectPath) return;
+      sessionStorage.removeItem('spa:path');
 
+      var path = window.location.pathname;
+      // Extract repo segment (first non-empty segment)
+      var parts = path.split('/').filter(Boolean);
+      var repo = parts.length ? parts[0] : '';
+      // Only proceed if we're at the repo root (e.g., /<repo>/)
+      var atRepoRoot = path === '/' + repo + '/' || path === '/' + repo;
+      if (repo && atRepoRoot && !window.location.search) {
+        history.replaceState(null, null, '/' + repo + redirectPath);
+      }
+    })();
+  </script>
+  <!-- If a dynamic import fails due to stale chunk (HTML served as JS), do a one-time hard reload to bust cache -->
+  <script>
+    (function () {
+      const orig = window.__vite_is_modern_browser; // harmless read to keep after Vite runtime
+      window.addEventListener('error', function (e) {
+        const msg = String(e?.message || '');
+        const targetSrc = e?.target && (e.target.src || e.target.href);
+        const looksLikeChunk = targetSrc && /\/assets\//.test(targetSrc);
+        const already = sessionStorage.getItem('spa:reloaded');
+        if (!already && (msg.includes('dynamically imported module') || looksLikeChunk)) {
+          try { sessionStorage.setItem('spa:reloaded', '1'); } catch { }
+          // append a cache-busting query
+          const url = new URL(window.location.href);
+          url.searchParams.set('v', Date.now().toString());
+          window.location.replace(url.toString());
+        }
+      }, true);
+    })();
+  </script>
 </head>
 
 <body>

@@ -4,7 +4,8 @@ import { useEffect, useState, useMemo } from 'react';
 import './RegionSelector.css';
 import { fetchRegions } from '../../utils/api';
 
-const popularRegions = [
+// Source of truth for UI "hub" regions; keep in sync with HUB_REGIONS env on Functions
+export const POPULAR_REGION_NAMES = [
     'The Forge',
     'Domain',
     'Heimatar',
@@ -50,9 +51,9 @@ export default function RegionSelector({ selectedRegion, onRegionChange, allowAl
     }, [selectedRegion, regions, onRegionChange, allowAllRegions]);
 
     const { popularRegionsList, otherRegionsList, allRegionsList } = useMemo(() => {
-        const popular = regions.filter(r => popularRegions.includes(r.regionName))
+        const popular = regions.filter(r => POPULAR_REGION_NAMES.includes(r.regionName))
             .sort((a, b) => a.regionName.localeCompare(b.regionName));
-        const others = regions.filter(r => !popularRegions.includes(r.regionName))
+        const others = regions.filter(r => !POPULAR_REGION_NAMES.includes(r.regionName))
             .sort((a, b) => a.regionName.localeCompare(b.regionName));
         const all = regions.slice().sort((a, b) => a.regionName.localeCompare(b.regionName));
         return {

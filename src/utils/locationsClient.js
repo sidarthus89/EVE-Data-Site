@@ -1,11 +1,17 @@
 // locationsClient.js
-import stations from '../data/stations.json'; // baked into src/data
+// Runtime loaders for location metadata from /public/data
 
 let structuresCache = null;
 let regionsCache = null;
+let stationsCache = null;
 
 export async function loadStations() {
-    return stations; // no fetch needed
+    if (stationsCache) return stationsCache;
+    const url = `${import.meta.env.BASE_URL}data/stations.json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to load stations');
+    stationsCache = await res.json();
+    return stationsCache;
 }
 
 export async function loadStructures() {
@@ -27,7 +33,8 @@ export async function loadRegions() {
 }
 
 export async function getStationInfo(id) {
-    return stations.find(s => s.stationID === Number(id));
+    const stations = await loadStations();
+    return stations.find(s => Number(s.stationID || s.station_id) === Number(id));
 }
 
 export async function getStructureInfo(id) {

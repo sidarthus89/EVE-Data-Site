@@ -60,6 +60,9 @@ CREATE TABLE esi_update_log
 );
 
 -- Regions reference table (for faster lookups)
+IF NOT EXISTS (SELECT *
+FROM sys.objects
+WHERE object_id = OBJECT_ID(N'[dbo].[regions]') AND type = 'U')
 CREATE TABLE regions
 (
     region_id INT PRIMARY KEY,
@@ -70,6 +73,9 @@ CREATE TABLE regions
 );
 
 -- Systems reference table (for faster lookups)
+IF NOT EXISTS (SELECT *
+FROM sys.objects
+WHERE object_id = OBJECT_ID(N'[dbo].[systems]') AND type = 'U')
 CREATE TABLE systems
 (
     system_id INT PRIMARY KEY,
@@ -84,23 +90,56 @@ CREATE TABLE systems
 );
 
 -- Create indexes for locations
-CREATE INDEX IX_locations_region ON locations (region_id, is_active);
-CREATE INDEX IX_locations_system ON locations (system_id, is_active);
-CREATE INDEX IX_locations_type ON locations (location_type, is_active);
-CREATE INDEX IX_locations_updated ON locations (last_updated);
-CREATE INDEX IX_locations_name ON locations (location_name);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_locations_region' AND object_id = OBJECT_ID('dbo.locations'))
+    CREATE INDEX IX_locations_region ON locations (region_id, is_active);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_locations_system' AND object_id = OBJECT_ID('dbo.locations'))
+    CREATE INDEX IX_locations_system ON locations (system_id, is_active);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_locations_type' AND object_id = OBJECT_ID('dbo.locations'))
+    CREATE INDEX IX_locations_type ON locations (location_type, is_active);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_locations_updated' AND object_id = OBJECT_ID('dbo.locations'))
+    CREATE INDEX IX_locations_updated ON locations (last_updated);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_locations_name' AND object_id = OBJECT_ID('dbo.locations'))
+    CREATE INDEX IX_locations_name ON locations (location_name);
 
 -- Create indexes for esi_update_log
-CREATE INDEX IX_esi_log_type_status ON esi_update_log (update_type, status);
-CREATE INDEX IX_esi_log_started ON esi_update_log (started_at);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_esi_log_type_status' AND object_id = OBJECT_ID('dbo.esi_update_log'))
+    CREATE INDEX IX_esi_log_type_status ON esi_update_log (update_type, status);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_esi_log_started' AND object_id = OBJECT_ID('dbo.esi_update_log'))
+    CREATE INDEX IX_esi_log_started ON esi_update_log (started_at);
 
 -- Create indexes for regions
-CREATE INDEX IX_regions_name ON regions (region_name);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_regions_name' AND object_id = OBJECT_ID('dbo.regions'))
+    CREATE INDEX IX_regions_name ON regions (region_name);
 
 -- Create indexes for systems
-CREATE INDEX IX_systems_region ON systems (region_id);
-CREATE INDEX IX_systems_security ON systems (security_status);
-CREATE INDEX IX_systems_name ON systems (system_name);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_systems_region' AND object_id = OBJECT_ID('dbo.systems'))
+    CREATE INDEX IX_systems_region ON systems (region_id);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_systems_security' AND object_id = OBJECT_ID('dbo.systems'))
+    CREATE INDEX IX_systems_security ON systems (security_status);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_systems_name' AND object_id = OBJECT_ID('dbo.systems'))
+    CREATE INDEX IX_systems_name ON systems (system_name);
 
 GO
 
@@ -170,11 +209,14 @@ AS
         LEFT JOIN v_active_stations loc ON mo.location_id = loc.location_id;
 GO
 
-CREATE INDEX IX_locations_location_id ON locations (location_id);
+IF NOT EXISTS (SELECT 1
+FROM sys.indexes
+WHERE name = 'IX_locations_location_id' AND object_id = OBJECT_ID('dbo.locations'))
+    CREATE INDEX IX_locations_location_id ON locations (location_id);
 GO
 
 
-CREATE VIEW v_region_summary
+CREATE OR ALTER VIEW v_region_summary
 AS
     SELECT
         r.region_id,
@@ -198,7 +240,7 @@ GO
 
 -- Example stored procedures for common operations
 GO
-CREATE PROCEDURE sp_upsert_location
+CREATE OR ALTER PROCEDURE sp_upsert_location
     @location_id BIGINT,
     @location_name NVARCHAR(255),
     @location_type NVARCHAR(50),

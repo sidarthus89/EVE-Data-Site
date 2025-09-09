@@ -380,79 +380,75 @@ select.form-control {
 }
 
 /* Column-specific styling */
+/* Numeric alignment per current column order:
+   1 Item, 2 From, 3 Quantity, 4 Buy, 5 Total Buy, 6 To, 7 Sell, 8 Net Profit,
+   9 Jumps, 10 Profit/Jump, 11 Profit/Unit, 12 ROI, 13 Volume */
+.results-table td:nth-child(3),
+/* Quantity */
 .results-table td:nth-child(4),
 /* Buy Price */
 .results-table td:nth-child(5),
+/* Total Buy Price */
+.results-table td:nth-child(7),
 /* Sell Price */
-.results-table td:nth-child(6),
-/* Profit */
 .results-table td:nth-child(8),
-/* Quantity */
-.results-table td:nth-child(9) {
-    /* Volume */
+/* Net Profit */
+.results-table td:nth-child(10),
+/* Profit per Jump */
+.results-table td:nth-child(11),
+/* Profit Per Item */
+.results-table td:nth-child(13)
+
+/* Total Volume */
+    {
     text-align: right;
     font-family: 'Courier New', monospace;
 }
 
-.results-table td:nth-child(7),
+.results-table td:nth-child(9),
+/* Jumps */
+.results-table td:nth-child(12)
+
 /* ROI */
-.results-table td:nth-child(10) {
-    /* Jumps */
+    {
     text-align: center;
     font-weight: 500;
 }
 
 /* Column widths for better distribution */
-.results-table th:nth-child(1) {
-    width: 120px;
+/* Header resizer handle */
+.results-table th {
+    position: relative;
 }
 
+.col-resizer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    background: transparent;
+}
+
+.col-resizer:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Allow wrapping for Item, From and To columns */
+.results-table td:nth-child(1),
 /* Item */
-.results-table th:nth-child(2) {
-    width: 200px;
-}
-
+.results-table td:nth-child(2),
 /* From */
-.results-table th:nth-child(3) {
-    width: 200px;
-}
+.results-table td:nth-child(6)
 
 /* To */
-.results-table th:nth-child(4) {
-    width: 120px;
+    {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.2;
 }
-
-/* Buy Price */
-.results-table th:nth-child(5) {
-    width: 120px;
-}
-
-/* Sell Price */
-.results-table th:nth-child(6) {
-    width: 140px;
-}
-
-/* Profit Per Unit */
-.results-table th:nth-child(7) {
-    width: 100px;
-}
-
-/* Profit % */
-.results-table th:nth-child(8) {
-    width: 120px;
-}
-
-/* Quantity */
-.results-table th:nth-child(9) {
-    width: 140px;
-}
-
-/* Total Volume */
-.results-table th:nth-child(10) {
-    width: 80px;
-}
-
-/* Jumps */
 
 /* Return to Top Button */
 .return-to-top {

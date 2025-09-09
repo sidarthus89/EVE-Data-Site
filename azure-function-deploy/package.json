@@ -5,10 +5,13 @@
     "scripts": {
         "start": "func start",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "deploy": "func azure functionapp publish evedatafunc01 --no-build"
+        "deploy": "func azure functionapp publish evedatafunc01 --no-build",
+        "logs": "func azure functionapp logstream evedatafunc01"
     },
     "dependencies": {
-        "mssql": "^9.1.1"
+        "mssql": "^9.1.1",
+        "node-fetch": "^2.7.0",
+        "applicationinsights": "^3.0.0"
     },
     "devDependencies": {
         "@azure/functions": "^4.0.0"
