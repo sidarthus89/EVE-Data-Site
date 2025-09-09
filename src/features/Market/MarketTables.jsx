@@ -371,11 +371,32 @@ export default function MarketTables({
             accessorKey: 'duration',
             header: 'Expires in',
             cell: info => {
-                const { issued, duration } = info.row.original;
-                const issuedDate = new Date(issued);
-                const expiryDate = new Date(issuedDate.getTime() + duration * 24 * 60 * 60 * 1000);
-                const now = new Date();
-                const diffMinutes = Math.max(Math.floor((expiryDate - now) / 60000), 0);
+                const row = info.row.original || {};
+                // Prefer explicit expiry timestamp if present
+                const explicitExpiry = row.expires_at || row.expiry || row.expiresAt || null; // ISO string
+                let expiryMs = null;
+                if (explicitExpiry) {
+                    const d = new Date(explicitExpiry);
+                    if (!isNaN(d.getTime())) expiryMs = d.getTime();
+                }
+                if (expiryMs == null) {
+                    // Fall back to issued + duration (days)
+                    const { issued, duration } = row;
+                    if (issued && typeof duration === 'number') {
+                        const issuedDate = new Date(issued);
+                        if (!isNaN(issuedDate.getTime())) {
+                            expiryMs = issuedDate.getTime() + duration * 24 * 60 * 60 * 1000;
+                        }
+                    }
+                }
+                if (expiryMs == null && typeof row.duration_seconds === 'number') {
+                    // Optional: duration in seconds from now
+                    expiryMs = Date.now() + (row.duration_seconds * 1000);
+                }
+                if (expiryMs == null) return '—';
+                const diff = expiryMs - Date.now();
+                if (!Number.isFinite(diff)) return '—';
+                const diffMinutes = Math.max(Math.floor(diff / 60000), 0);
                 return formatExpiresIn(diffMinutes);
             },
             size: 112,
@@ -501,11 +522,29 @@ export default function MarketTables({
             accessorKey: 'duration',
             header: 'Expires in',
             cell: info => {
-                const { issued, duration } = info.row.original;
-                const issuedDate = new Date(issued);
-                const expiryDate = new Date(issuedDate.getTime() + duration * 24 * 60 * 60 * 1000);
-                const now = new Date();
-                const diffMinutes = Math.max(Math.floor((expiryDate - now) / 60000), 0);
+                const row = info.row.original || {};
+                const explicitExpiry = row.expires_at || row.expiry || row.expiresAt || null;
+                let expiryMs = null;
+                if (explicitExpiry) {
+                    const d = new Date(explicitExpiry);
+                    if (!isNaN(d.getTime())) expiryMs = d.getTime();
+                }
+                if (expiryMs == null) {
+                    const { issued, duration } = row;
+                    if (issued && typeof duration === 'number') {
+                        const issuedDate = new Date(issued);
+                        if (!isNaN(issuedDate.getTime())) {
+                            expiryMs = issuedDate.getTime() + duration * 24 * 60 * 60 * 1000;
+                        }
+                    }
+                }
+                if (expiryMs == null && typeof row.duration_seconds === 'number') {
+                    expiryMs = Date.now() + (row.duration_seconds * 1000);
+                }
+                if (expiryMs == null) return '—';
+                const diff = expiryMs - Date.now();
+                if (!Number.isFinite(diff)) return '—';
+                const diffMinutes = Math.max(Math.floor(diff / 60000), 0);
                 return formatExpiresIn(diffMinutes);
             },
             size: 112,

@@ -102,6 +102,18 @@ export function fetchRegionsWithMarkets() {
     return fetchRegions();
 }
 
+// Lightweight helper: fetch route between two systems via ESI and return jump count
+export async function fetchRouteJumps(originSystemId, destinationSystemId) {
+    const o = Number(originSystemId);
+    const d = Number(destinationSystemId);
+    if (!Number.isFinite(o) || !Number.isFinite(d)) throw new Error('invalid-system-ids');
+    const url = `${ESI_BASE}/route/${o}/${d}/`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'EVE-Data-Site' } });
+    if (!res.ok) throw new Error(`ESI route ${res.status}`);
+    const arr = await res.json();
+    return Array.isArray(arr) ? Math.max(0, arr.length - 1) : null;
+}
+
 // Precomputed region hauling artifacts (optional). Will try multiple common paths.
 export function fetchPrecomputedRegionHauling() {
     // Disabled: no precomputed region_hauling artifact fetches or telemetry beacons.
@@ -129,4 +141,51 @@ export function fetchRegionOrdersSnapshot(regionId) {
         if (!ct.includes('application/json')) throw new Error('snapshot-not-json');
         return res.json();
     });
+}
+
+// Resolve repo owner and name from DATA_BASE or window.location (GitHub Pages), fallback to defaults
+function detectRepoInfoFromEnvironment() {
+    try {
+        let owner = null, repo = null;
+        const defaultOwner = 'sidarthus89';
+        const defaultRepo = 'EVE-Data-Site';
+        const tryParse = (href) => {
+            const u = new URL(href);
+            const host = u.hostname || '';
+            const pathParts = (u.pathname || '/').split('/').filter(Boolean);
+            if (host.endsWith('github.io') && pathParts.length > 0) {
+                const sub = host.split('.')[0];
+                return { owner: sub || defaultOwner, repo: pathParts[0] || defaultRepo };
+            }
+            return null;
+        };
+        // Prefer DATA_BASE if absolute
+        if (/^https?:\/\//i.test(DATA_BASE)) {
+            const info = tryParse(DATA_BASE);
+            if (info) return info;
+        }
+        if (typeof window !== 'undefined') {
+            const info = tryParse(window.location.href);
+            if (info) return info;
+        }
+        return { owner: defaultOwner, repo: defaultRepo };
+    } catch {
+        return { owner: 'sidarthus89', repo: 'EVE-Data-Site' };
+    }
+}
+
+// Fetch the ISO timestamp of the most recent commit that touched the data/ folder on gh-pages
+export async function fetchDataLastCommitTime() {
+    const { owner, repo } = detectRepoInfoFromEnvironment();
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/commits?sha=gh-pages&path=data&per_page=1`;
+    try {
+        const res = await fetch(apiUrl, { headers: { 'Accept': 'application/vnd.github+json' } });
+        if (res.ok) {
+            const arr = await res.json();
+            const first = Array.isArray(arr) ? arr[0] : null;
+            const iso = first?.commit?.committer?.date || first?.commit?.author?.date;
+            if (iso) return new Date(iso).toISOString();
+        }
+    } catch { /* noop */ }
+    return null;
 }

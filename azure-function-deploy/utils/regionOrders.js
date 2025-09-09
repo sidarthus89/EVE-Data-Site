@@ -49,6 +49,9 @@ function updateBestQuotes(map, order) {
                 price: order.price,
                 location_id: order.location_id,
                 volume_remain: order.volume_remain,
+                // add fields to compute expiration client-side
+                issued: order.issued || null,
+                duration: typeof order.duration === 'number' ? order.duration : null,
             };
         }
     } else {
@@ -57,6 +60,9 @@ function updateBestQuotes(map, order) {
                 price: order.price,
                 location_id: order.location_id,
                 volume_remain: order.volume_remain,
+                // add fields to compute expiration client-side
+                issued: order.issued || null,
+                duration: typeof order.duration === 'number' ? order.duration : null,
             };
         }
     }

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import RegionSelector from '../../components/RegionSelector/RegionSelector.jsx';
 import { getSecurityColor, getStationInfo, getRegionInfo } from '../../utils/common.js';
 import { fetchMarketOrders, fetchRegionHaulingSnapshotsOnly } from '../../utils/market.js';
-import { fetchRegions, fetchStructures, fetchStationsNPC, fetchMarketTree } from '../../utils/api.js';
+import { fetchRegions, fetchStructures, fetchStationsNPC, fetchMarketTree, fetchRouteJumps, fetchDataLastCommitTime } from '../../utils/api.js';
 import './RegionHauling.css';
 
 // Utility functions for formatting (replaces eveTradeAPI utils)
@@ -49,6 +49,9 @@ export default function RegionHauling() {
     const [formCollapsed, setFormCollapsed] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: 'Net Profit', direction: 'desc' });
     const [showResults, setShowResults] = useState(false);
+    // Timer state for "Time Since Last Update" based on GitHub data commits
+    const [lastResultsAt, setLastResultsAt] = useState(null);
+    const [nowTick, setNowTick] = useState(Date.now());
     // Column widths for resizable headers (px)
     const [colWidths, setColWidths] = useState({
         'Item': 140,
@@ -140,10 +143,20 @@ export default function RegionHauling() {
         };
     })();
 
-    // Calculate jumps between two systems: skip ESI; leave as 'N/A' unless provided by API
-    // Calculate jumps between two systems (if system IDs are known). We avoid ESI; if missing, return 'N/A'.
-    // Placeholder: if the API supplies a numeric jumps value, we use it; otherwise leave as 'N/A'.
-    const calculateJumps = async () => 'N/A';
+    // Calculate jumps between two systems using ESI route; tiny in-memory cache
+    const jumpCache = React.useRef(new Map());
+    const calculateJumps = async (fromSystemId, toSystemId) => {
+        const key = `${fromSystemId}->${toSystemId}`;
+        if (jumpCache.current.has(key)) return jumpCache.current.get(key);
+        try {
+            const hops = await fetchRouteJumps(fromSystemId, toSystemId);
+            jumpCache.current.set(key, hops);
+            return hops;
+        } catch {
+            jumpCache.current.set(key, null);
+            return null;
+        }
+    };
 
     // Handle form sticky behavior on scroll
     useEffect(() => {
@@ -298,7 +311,7 @@ export default function RegionHauling() {
                 destinationIsNPC = destIsNpcComputed === undefined ? true : !!destIsNpcComputed;
 
                 // Calculate jumps between systems
-                jumps = 'N/A';
+                jumps = null;
                 const fromSystemId = trade.origin_system_id || originInfo?.system_id || originInfo?.systemID || originInfo?.solarSystemID;
                 const toSystemId = trade.destination_system_id || destInfo?.system_id || destInfo?.systemID || destInfo?.solarSystemID;
                 if (fromSystemId && toSystemId) {
@@ -589,6 +602,33 @@ export default function RegionHauling() {
         setCurrentPage(1);
         setUsingFallback(false);
         setShowResults(false);
+        // Do not reset lastResultsAt; it reflects GitHub data/ last commit, not search time
+    };
+
+    // On mount, fetch last commit time for data/ and refresh it periodically; tick every second for display
+    useEffect(() => {
+        let mounted = true;
+        const fetchCommit = async () => {
+            try {
+                const iso = await fetchDataLastCommitTime();
+                if (mounted && iso) setLastResultsAt(new Date(iso).getTime());
+            } catch { /* noop */ }
+        };
+        // Initial fetch
+        fetchCommit();
+        // Refresh every 60s to capture new publishes while page is open
+        const refreshId = setInterval(fetchCommit, 60_000);
+        // UI tick every second
+        const uiTickId = setInterval(() => setNowTick(Date.now()), 1_000);
+        return () => { mounted = false; clearInterval(refreshId); clearInterval(uiTickId); };
+    }, []);
+
+    const renderSinceLastUpdate = () => {
+        if (!lastResultsAt) return '—';
+        const diffMs = Math.max(0, nowTick - lastResultsAt);
+        const minutes = Math.floor(diffMs / 60000);
+        const seconds = Math.floor((diffMs % 60000) / 1000);
+        return `${minutes}m ${seconds}s`;
     };
 
     if (!regionsData) {
@@ -779,10 +819,17 @@ export default function RegionHauling() {
                             <button
                                 type="submit"
                                 disabled={loading || !formData.fromRegion || !formData.toRegion}
-                                className="submit-btn"
+                                className="eve-button"
                             >
                                 {loading ? 'Searching...' : 'Find Trade Routes'}
                             </button>
+                            <span
+                                className="update-timer"
+                                title={lastResultsAt ? new Date(lastResultsAt).toLocaleString() : ''}
+                                style={{ marginLeft: '16px', color: '#ccc', fontSize: '0.95rem', whiteSpace: 'nowrap' }}
+                            >
+                                Time Since Last Update: {renderSinceLastUpdate()}
+                            </span>
                         </div>
                     </form>
                 </div>

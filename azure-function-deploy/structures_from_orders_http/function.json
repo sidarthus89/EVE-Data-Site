@@ -1,14 +1,15 @@
 {
     "bindings": [
         {
-            "authLevel": "anonymous",
+            "authLevel": "function",
             "type": "httpTrigger",
             "direction": "in",
             "name": "req",
             "methods": [
-                "get"
+                "get",
+                "post"
             ],
-            "route": "config/public"
+            "route": "structures-from-orders"
         },
         {
             "type": "http",

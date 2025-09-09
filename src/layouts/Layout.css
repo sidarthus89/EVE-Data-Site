@@ -89,6 +89,9 @@
     width: 100%;
     box-sizing: border-box;
     margin-top: 48px;
+    /* Ensure content doesn't hide behind fixed footer */
+    padding-bottom: 48px;
+    /* footer height (32px) + extra spacing */
 }
 
 /* ───── Footer ───── */

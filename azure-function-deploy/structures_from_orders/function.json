@@ -1,7 +1,7 @@
 {
     "bindings": [
         {
-            "authLevel": "anonymous",
+            "authLevel": "function",
             "type": "httpTrigger",
             "direction": "in",
             "name": "req",
@@ -9,13 +9,18 @@
                 "get",
                 "post"
             ],
-            "route": "diag/github"
+            "route": "structures-from-orders"
         },
         {
             "type": "http",
             "direction": "out",
             "name": "res"
+        },
+        {
+            "name": "myTimer",
+            "type": "timerTrigger",
+            "direction": "in",
+            "schedule": "30 */10 * * * *"
         }
-    ],
-    "scriptFile": "index.js"
+    ]
 }

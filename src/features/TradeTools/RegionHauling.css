@@ -32,6 +32,12 @@
     /* Enable scrolling */
 }
 
+/* Provide a scroll area inside the page that accounts for the fixed footer */
+.scrollable-content {
+    padding-bottom: 72px;
+    /* footer (32px) + breathing room for pagination */
+}
+
 .page-header {
     text-align: center;
     margin-bottom: 30px;
@@ -245,31 +251,10 @@ select.form-control {
     margin-top: 25px;
 }
 
-.submit-btn {
-    background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
-    color: white;
-    border: none;
-    padding: 16px 40px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 200px;
-}
+/* Use global .eve-button styles from index.css for the submit button */
 
-.submit-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #0077dd 0%, #0055aa 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 102, 204, 0.3);
-}
-
-.submit-btn:disabled {
-    background: #444;
-    color: #888;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+.update-timer {
+    display: inline-block;
 }
 
 /* Error Message */
