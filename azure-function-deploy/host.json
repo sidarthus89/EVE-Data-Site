@@ -1,5 +1,14 @@
 {
   "version": "2.0",
+  "functions": [
+    "hauling_cache",
+    "market_orders_fast",
+    "regions_with_markets",
+    "region_orders_hubs",
+    "region_orders_others",
+    "request_log",
+    "structures_update"
+  ],
   "logging": {
     "applicationInsights": {
       "samplingSettings": {

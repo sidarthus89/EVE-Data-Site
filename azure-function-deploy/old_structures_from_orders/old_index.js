@@ -31,14 +31,17 @@ async function fetchJson(url, options = {}, retries = 3) {
 
 // Discover available region snapshots from the gh-pages branch
 async function listRegionSnapshotIds() {
-    // Regions list is in public/data/regions.json of main, but snapshots live on gh-pages under data/region_orders/{id}.json
-    // We'll try /data/regions.json from gh-pages to enumerate ids safely.
     const regionsUrl = `${GH_RAW}/${GH_OWNER}/${GH_REPO}/${GH_BRANCH_DATA}/data/regions.json`;
     const res = await fetch(regionsUrl);
-    if (!res.ok) throw new Error(`Failed to load regions.json from gh-pages: ${res.status}`);
-    const data = await res.json();
-    const ids = Array.isArray(data) ? data.map(r => r.regionID || r.region_id) : Array.isArray(data.regions) ? data.regions.map(r => r.regionID || r.region_id) : [];
-    return ids.filter((v) => Number.isFinite(Number(v))).map(Number);
+    if (res.ok) {
+        const data = await res.json();
+        const ids = Array.isArray(data) ? data.map(r => r.regionID || r.region_id) : Array.isArray(data.regions) ? data.regions.map(r => r.regionID || r.region_id) : [];
+        return ids.filter((v) => Number.isFinite(Number(v))).map(Number);
+    }
+    const esi = await fetch(buildUrl('/universe/regions/'), { headers: { 'User-Agent': 'EVE-Data-Site-Functions' } });
+    if (!esi.ok) throw new Error(`Failed to load regions from gh-pages (${res.status}) and ESI (${esi.status})`);
+    const ids = await esi.json();
+    return Array.isArray(ids) ? ids.filter(n => Number.isFinite(Number(n))).map(Number) : [];
 }
 
 async function fetchRegionOrdersSnapshot(regionId) {
@@ -51,6 +54,12 @@ async function fetchRegionOrdersSnapshot(regionId) {
 function collectStructureIdsFromSnapshot(snapshot) {
     const set = new Set();
     if (!snapshot || typeof snapshot !== 'object') return set;
+    if (Array.isArray(snapshot.structure_ids)) {
+        for (const id of snapshot.structure_ids) {
+            const n = Number(id);
+            if (Number.isFinite(n) && n > 1000000000000) set.add(n);
+        }
+    }
     const best = snapshot.best_quotes || {};
     for (const v of Object.values(best)) {
         const bb = v && v.best_buy; const bs = v && v.best_sell;
@@ -89,14 +98,14 @@ async function fetchSystemInfo(systemId) {
 }
 
 async function fetchStructureDetail(structureId, bearer) {
-    if (!bearer) return null; // require auth for structures endpoint
+    if (!bearer) return null;
     const res = await fetch(buildUrl(`/universe/structures/${structureId}/`), {
         headers: {
             'Authorization': `Bearer ${bearer}`,
             'User-Agent': 'EVE-Data-Site-Functions'
         }
     });
-    if (!res.ok) return null; // inaccessible or unknown
+    if (!res.ok) return null;
     const json = await res.json();
     const sys = await fetchSystemInfo(json.solar_system_id).catch(() => null);
     return {
@@ -106,7 +115,6 @@ async function fetchStructureDetail(structureId, bearer) {
         systemID: json.solar_system_id,
         regionID: sys?.region_id || null,
         security: sys?.security ?? null,
-        // raw fields
         structure_id: structureId,
         owner_id: json.owner_id,
         solar_system_id: json.solar_system_id,
@@ -116,7 +124,6 @@ async function fetchStructureDetail(structureId, bearer) {
 
 async function run(context) {
     const start = Date.now();
-    // 1) Discover regions and load snapshots
     const regionIds = await listRegionSnapshotIds();
     const union = new Set();
     for (const rid of regionIds) {
@@ -124,13 +131,12 @@ async function run(context) {
         if (!snap) continue;
         const set = collectStructureIdsFromSnapshot(snap);
         for (const id of set) union.add(id);
-        await sleep(15); // tiny pacing for GH raw
+        await sleep(15);
     }
 
     const ids = Array.from(union);
     context.log(`Found ${ids.length} structure ids from region orders`);
 
-    // 2) Enrich via ESI (auth if available)
     const bearer = await getAccessTokenIfAvailable();
     const results = [];
     const CONC = Math.max(1, Number(process.env.STRUCTURES_ENRICH_CONCURRENCY || 6));
@@ -141,34 +147,28 @@ async function run(context) {
             try {
                 const rec = await fetchStructureDetail(id, bearer);
                 if (rec) results.push(rec);
-            } catch {
-                // ignore individual failures
-            }
+            } catch { }
             await sleep(50);
         }
     }
     await Promise.all(Array.from({ length: CONC }, () => worker()));
 
-    // 3) Upsert to GitHub data path
-    const body = JSON.stringify(results);
-    const relPath = 'structures/structures.json';
-    const message = `chore(structures): update from region orders (${results.length} structures)`;
-    const targets = await upsertDataToAll(relPath, body, message);
+    let targets = [];
+    if (results.length > 0) {
+        const body = JSON.stringify(results);
+        const relPath = 'structures/structures.json';
+        const message = `chore(structures): update from region orders (${results.length} structures)`;
+        targets = await upsertDataToAll(relPath, body, message);
+    } else {
+        context.log('No structures discovered from region orders; skipping GitHub upsert.');
+    }
 
     const elapsed = Date.now() - start;
     return { idsCount: ids.length, count: results.length, elapsed, targets };
 }
 
 module.exports = async function (context) {
-    context.log(`structures_from_orders timer start ${new Date().toISOString()}`);
-    try {
-        const summary = await run(context);
-        context.log(`structures_from_orders done in ${summary.elapsed}ms; wrote ${summary.count}`);
-        context.log(JSON.stringify({ targets: summary.targets }));
-    } catch (e) {
-        context.log.error('structures_from_orders failed', e);
-        throw e;
-    }
+    context.log('old_structures_from_orders invoked (deprecated)');
+    const summary = await run(context);
+    context.log(JSON.stringify(summary));
 };
-
-module.exports.run = run;

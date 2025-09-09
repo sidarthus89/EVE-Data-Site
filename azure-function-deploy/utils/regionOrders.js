@@ -72,7 +72,11 @@ async function generateBestQuotesForRegion(regionId, log) {
     const first = await fetchRegionOrdersPage(regionId, 1);
     const totalPages = Math.max(1, first.totalPages || 1);
     const bestMap = new Map();
-    for (const o of first.data) updateBestQuotes(bestMap, o);
+    const structureIds = new Set();
+    for (const o of first.data) {
+        updateBestQuotes(bestMap, o);
+        if (o && o.location_id && o.location_id > 1000000000000) structureIds.add(o.location_id);
+    }
 
     let nextPage = 2;
     async function worker() {
@@ -80,7 +84,10 @@ async function generateBestQuotesForRegion(regionId, log) {
             const p = nextPage++;
             try {
                 const { data } = await fetchRegionOrdersPage(regionId, p);
-                for (const o of data) updateBestQuotes(bestMap, o);
+                for (const o of data) {
+                    updateBestQuotes(bestMap, o);
+                    if (o && o.location_id && o.location_id > 1000000000000) structureIds.add(o.location_id);
+                }
             } catch (e) {
                 log && log(`Region ${regionId} page ${p} failed: ${e.message}`);
                 await sleep(200);
@@ -103,6 +110,7 @@ async function generateBestQuotesForRegion(regionId, log) {
         region_id: regionId,
         last_updated: new Date().toISOString(),
         best_quotes,
+        structure_ids: Array.from(structureIds),
     };
 }
 

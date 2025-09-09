@@ -1,4 +1,4 @@
-const { uploadJsonBlob } = require('../utils/blob');
+const { uploadJsonBlob } = require('../utils/old_blob');
 const fetch = require('node-fetch');
 
 // Pull from existing endpoint and cache to blob for hot pairs

@@ -7,7 +7,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "deploy": "func azure functionapp publish evedatafunc01 --no-build",
         "logs": "func azure functionapp logstream evedatafunc01",
-        "run:structures-from-orders": "func start --functions structures_from_orders"
+        "sync:region-orders:hubs": "node scripts/sync-region-orders-direct.js"
     },
     "dependencies": {
         "mssql": "^9.1.1",

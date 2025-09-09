@@ -1,4 +1,6 @@
 {
+    "disabled": true,
+    "$schema": "https://json.schemastore.org/function",
     "bindings": [
         {
             "authLevel": "function",
@@ -6,21 +8,15 @@
             "direction": "in",
             "name": "req",
             "methods": [
-                "get",
-                "post"
+                "post",
+                "get"
             ],
-            "route": "structures-from-orders"
+            "route": "structures/sync"
         },
         {
             "type": "http",
             "direction": "out",
             "name": "res"
-        },
-        {
-            "name": "myTimer",
-            "type": "timerTrigger",
-            "direction": "in",
-            "schedule": "30 */10 * * * *"
         }
     ]
 }

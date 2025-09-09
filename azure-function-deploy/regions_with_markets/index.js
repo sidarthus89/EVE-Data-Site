@@ -1,6 +1,6 @@
 const sql = require('mssql');
 const fetch = require('node-fetch');
-const { uploadJsonBlob } = require('../utils/blob');
+const { uploadJsonBlob } = require('../utils/old_blob');
 
 const dbConfig = {
     user: process.env.DB_USER,
