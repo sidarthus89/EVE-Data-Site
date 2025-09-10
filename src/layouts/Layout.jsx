@@ -116,7 +116,7 @@ export default function Layout() {
                         <span className="eve-button">Market Tools▾</span>
                         <div className="nav-dropdown-menu">
                             <Link to="/market" className="eve-button">Full Market</Link>
-                            <Link to="/appraisal" className="eve-button">Appraisal</Link>
+                            {/* <Link to="/appraisal" className="eve-button">Appraisal</Link>*/}
                             {/* <div className="nav-subdropdown">
                                 <span className="eve-button">Resource Pricing ▸</span>
                                 <div className="nav-submenu">

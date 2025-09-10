@@ -24,6 +24,8 @@ export default function ItemViewer({ selectedItem, marketTree, onBreadcrumbClick
         const alreadyExists = existing.some((item) => item.typeID === selectedItem.typeID);
         if (!alreadyExists) {
             localStorage.setItem(QUICKBAR_KEY, JSON.stringify([...existing, selectedItem]));
+            // Fire global event so MarketQuickbar reacts immediately when its tab is active
+            window.dispatchEvent(new CustomEvent('quickbar:add', { detail: selectedItem }));
         }
     };
 

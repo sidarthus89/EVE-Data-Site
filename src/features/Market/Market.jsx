@@ -47,6 +47,7 @@ export default function Market() {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const selectedItemID = parseInt(queryParams.get('item') || '0', 10);
+    const [initialItemID] = useState(selectedItemID || 0);
 
     // Error state
     const [marketTreeError, setMarketTreeError] = useState(null);
@@ -162,36 +163,53 @@ export default function Market() {
             .catch(err => console.error('❌ Failed to load structures:', err));
     }, []);
 
-    // Handle ?item= selection in URL
-    // On first load, if ?item= is present, select it but keep the query so share links still work on refresh.
-    // After the user manually selects another item, we can clear the query.
+    // Deep link handling (?item=TYPEID) with fallback search and delayed path expansion
     const [initialQueryHandled, setInitialQueryHandled] = useState(false);
     useEffect(() => {
-        if (!flattenedMarketTree?.items?.length || initialQueryHandled) return;
-        if (selectedItemID) {
-            const item = flattenedMarketTree.items.find(entry => entry.typeID === selectedItemID);
-            if (item) {
-                setSelectedItem(item);
-                setBreadcrumbPath(flattenedMarketTree.pathMap[selectedItemID]);
-                setActiveTab('orders');
-                setInitialQueryHandled(true);
-            }
-        } else {
-            setInitialQueryHandled(true);
-        }
-    }, [flattenedMarketTree, selectedItemID, initialQueryHandled]);
+        if (initialQueryHandled) return; // already processed
+        if (!marketTree || !flattenedMarketTree?.items?.length) return; // wait until tree & flatten ready
 
-    // Clear the query param when user selects a different item (not the initial deep-link one)
+        if (!selectedItemID) {
+            setInitialQueryHandled(true);
+            return;
+        }
+
+        // Try flattened list first
+        let item = flattenedMarketTree.items.find(e => Number(e.typeID) === selectedItemID);
+        // Fallback recursive search (covers any missed nodes)
+        if (!item) item = findItemById(selectedItemID, marketTree);
+        if (item) {
+            setSelectedItem(item);
+            const crumb = flattenedMarketTree.pathMap[item.typeID] || flattenedMarketTree.pathMap[selectedItemID] || [];
+            setBreadcrumbPath(crumb);
+            setActiveTab('orders');
+            // Trigger tree navigation after a tick so MarketTree listener exists
+            setTimeout(() => {
+                if (window.marketTreeNavigate && Array.isArray(crumb) && crumb.length) {
+                    window.marketTreeNavigate(crumb);
+                }
+            }, 150);
+        } else {
+            console.warn('[DeepLink] Item not found for typeID', selectedItemID);
+        }
+        setInitialQueryHandled(true);
+    }, [marketTree, flattenedMarketTree, selectedItemID, initialQueryHandled]);
+
+    // Clear the query param only if user navigates to a different item than the deep-linked one
     useEffect(() => {
         if (!initialQueryHandled) return;
         const params = new URLSearchParams(window.location.search);
         if (params.has('item')) {
-            // Remove only after initial handling is done and selection changed
+            if (selectedItem && initialItemID && selectedItem.typeID === initialItemID) {
+                // Keep deep-link param while viewing the same item
+                return;
+            }
+            // User navigated away: remove the param
             params.delete('item');
             const url = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
             window.history.replaceState({}, '', url);
         }
-    }, [selectedItem, initialQueryHandled]);
+    }, [selectedItem, initialQueryHandled, initialItemID]);
 
     // Helper: find item by id in raw or normalized tree
     const findItemById = (typeID, tree) => {
@@ -412,10 +430,24 @@ export default function Market() {
 
     const handleItemSelect = (item) => {
         setSelectedItem(item);
-        if (window.location.search) {
-            const currentUrl = new URL(window.location.href);
-            currentUrl.search = '';
-            window.history.replaceState({}, '', currentUrl.toString());
+        // If selection matches deep-link ID, ensure param present; else strip it.
+        if (initialItemID && item?.typeID === initialItemID) {
+            const params = new URLSearchParams(window.location.search);
+            if (!params.has('item')) {
+                params.set('item', String(initialItemID));
+                const url = `${window.location.pathname}?${params.toString()}`;
+                window.history.replaceState({}, '', url);
+            }
+        } else {
+            if (window.location.search) {
+                const currentUrl = new URL(window.location.href);
+                const params = new URLSearchParams(currentUrl.search);
+                if (params.has('item')) {
+                    params.delete('item');
+                    currentUrl.search = params.toString();
+                    window.history.replaceState({}, '', currentUrl.toString());
+                }
+            }
         }
         setActiveTab('orders');
     };

@@ -278,12 +278,6 @@ export default function MarketTables({
             size: 160,
         },
         {
-            accessorKey: 'range',
-            header: 'Range',
-            cell: info => formatRange(info.getValue()),
-            size: 84,
-        },
-        {
             accessorFn: row => {
                 const sec = locationInfoMap[Number(row.location_id)]?.security;
                 return (sec === null || sec === undefined) ? null : sec;
@@ -758,7 +752,9 @@ export default function MarketTables({
 
     // Header wrapper with filter UI
     const createHeader = (label, tableType, table) => ({ column }) => {
-        const canFilter = ['security', 'station_type', 'region_name', 'location_name', 'range'].includes(column.id);
+        // Sellers do not have Range column anymore; keep range filter only for buyers.
+        const canFilter = ['security', 'station_type', 'region_name', 'location_name'].includes(column.id) ||
+            (tableType === 'buyer' && column.id === 'range');
         const isActiveFilter = activeFilterColumns[tableType] === column.id;
 
         return (

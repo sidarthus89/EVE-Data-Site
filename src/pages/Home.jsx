@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 
 export default function Home() {
+    // Provide a scrollable area sized between fixed nav (48px) and footer (32px)
+    // Parent containers have overflow hidden, so we create an internal scroll context here.
+    const scrollAreaStyle = {
+        overflowY: 'auto',
+        height: 'calc(100vh - 48px - 32px)',
+        boxSizing: 'border-box',
+        paddingRight: '8px'
+    };
     return (
-        <section className="home">
+        <section className="home" style={scrollAreaStyle}>
             <h1>Full Market</h1>
             <p>
                 This featue is just like the in game market feature, but with some perks. Like:

@@ -23,13 +23,26 @@ export const formatRange = range => {
 };
 
 export const getSecurityColor = sec => {
-    const thresholds = [
-        [1.0, '#2e74df'], [0.9, '#389cf6'], [0.8, '#4acff3'], [0.7, '#62daa6'],
-        [0.6, '#71e452'], [0.5, '#eeff83'], [0.4, '#de6a0c'], [0.3, '#ce4611'],
-        [0.2, '#bb1014'], [0.1, '#6d221d'], [0.0, '#8f2f69']
-    ];
-    for (const [threshold, color] of thresholds) if (sec >= threshold) return color;
-    return '#8f2f69';
+    if (sec === undefined || sec === null || isNaN(sec)) return '#8f2f69';
+    // Round to nearest tenth (0.86 -> 0.9) per updated requirement.
+    // Clamp below 0 to 0.0 and above 1 to 1.0.
+    let bucket = Math.round(sec * 10) / 10;
+    if (bucket < 0) bucket = 0.0;
+    if (bucket > 1) bucket = 1.0;
+    const colorMap = {
+        1.0: '#2e74df',
+        0.9: '#389cf6',
+        0.8: '#4acff3',
+        0.7: '#62daa6',
+        0.6: '#71e452',
+        0.5: '#eeff83',
+        0.4: '#de6a0c',
+        0.3: '#ce4611',
+        0.2: '#bb1014',
+        0.1: '#6d221d',
+        0.0: '#8f2f69'
+    };
+    return colorMap[bucket] ?? '#8f2f69';
 };
 
 export const FILTER_OPTIONS = {
@@ -325,30 +338,32 @@ export function filterRegionsBySecurity(locationsData, securityFilter) {
 }
 
 export function flattenMarketTree(marketTree) {
-    const flattened = [];
+    const items = [];
+    const pathMap = {}; // typeID -> array of category names
 
-    function walk(node, path = []) {
-        for (const [key, value] of Object.entries(node)) {
-            if (key === '_info') continue;
-
-            if (Array.isArray(value?.items)) {
+    function walkCategory(node, path = []) {
+        if (!node || typeof node !== 'object') return;
+        const entries = Array.isArray(node) ? node.map(n => [n.name, n]) : Object.entries(node);
+        for (const [key, value] of entries) {
+            if (!value || typeof value !== 'object') continue;
+            // Items array on this category
+            if (Array.isArray(value.items)) {
                 for (const item of value.items) {
-                    flattened.push({
-                        ...item,
-                        categoryPath: [...path, key].join(' > ')
-                    });
+                    if (!item || typeof item !== 'object') continue;
+                    items.push({ ...item });
+                    pathMap[item.typeID] = [...path, key];
                 }
             }
-
-            // Recurse into subcategories
+            // Recurse into child categories; skip metadata keys
             for (const [subKey, subValue] of Object.entries(value)) {
-                if (subKey !== 'items' && subKey !== '_info' && typeof subValue === 'object') {
-                    walk({ [subKey]: subValue }, [...path, key]);
+                if (subKey === 'items' || subKey === '_info') continue;
+                if (subValue && typeof subValue === 'object') {
+                    walkCategory(subValue, [...path, key]);
                 }
             }
         }
     }
 
-    walk(marketTree);
-    return flattened;
+    walkCategory(marketTree, []);
+    return { items, pathMap };
 }
