@@ -5,6 +5,7 @@ const {
     upsertRegionSnapshot,
     listAllRegionIds,
     sleep,
+    regionSnapshotExists,
 } = require('../utils/regionOrders');
 
 function getHubRegions() {
@@ -35,11 +36,17 @@ module.exports = async function (context, myTimer) {
         while (queue.length) {
             const regionId = queue.shift();
             try {
-                context.log(`[W${id}] Generating region ${regionId}`);
-                const snapshot = await generateBestQuotesForRegion(regionId, (msg) => context.log(`[W${id}] ${msg}`));
-                const res = await upsertRegionSnapshot(regionId, snapshot, `chore(region-orders): region ${regionId}`);
-                context.log(`[W${id}] Committed ${regionId}: ${JSON.stringify(res)}`);
-                success++;
+                const exists = await regionSnapshotExists(regionId);
+                if (exists) {
+                    context.log(`[W${id}] Skip region ${regionId} (already present)`);
+                    success++;
+                } else {
+                    context.log(`[W${id}] Generating region ${regionId} (missing on data branch)`);
+                    const snapshot = await generateBestQuotesForRegion(regionId, (msg) => context.log(`[W${id}] ${msg}`));
+                    const res = await upsertRegionSnapshot(regionId, snapshot, `chore(region-orders): region ${regionId}`);
+                    context.log(`[W${id}] Committed ${regionId}: ${JSON.stringify(res)}`);
+                    success++;
+                }
             } catch (e) {
                 context.log.error(`[W${id}] Failed region ${regionId}: ${e.message}`);
                 telemetry.trackException(e, { area: 'region_orders_others', regionId: String(regionId) });

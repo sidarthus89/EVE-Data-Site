@@ -4,6 +4,9 @@ const { upsertDataToAll } = require('./github');
 const ESI_BASE = process.env.ESI_BASE || 'https://esi.evetech.net/latest';
 const REGION_CONCURRENCY = Math.max(1, Number(process.env.REGION_CONCURRENCY || 2));
 const PAGE_CONCURRENCY = Math.max(1, Number(process.env.PAGE_CONCURRENCY || 2));
+const GH_RAW_OWNER = process.env.GITHUB_OWNER || 'sidarthus89';
+const GH_RAW_REPO = process.env.GITHUB_REPO || 'EVE-Data-Site';
+const GH_DATA_BRANCH = process.env.GITHUB_BRANCH_DATA || 'gh-pages';
 
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
@@ -128,11 +131,27 @@ async function listAllRegionIds() {
     return ids;
 }
 
+// Check if a region snapshot file already exists on the data (gh-pages) branch for the production repo.
+// Returns true if HTTP 200, false if 404; throws for other statuses.
+async function regionSnapshotExists(regionId) {
+    const url = `https://raw.githubusercontent.com/${GH_RAW_OWNER}/${GH_RAW_REPO}/${GH_DATA_BRANCH}/data/region_orders/${regionId}.json`;
+    try {
+        const res = await fetch(url, { headers: { 'User-Agent': 'EVE-Data-Site-Functions' } });
+        if (res.status === 404) return false;
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        return true;
+    } catch (e) {
+        // On network errors treat as existing=false so we attempt to generate; safer for recovery.
+        return false;
+    }
+}
+
 module.exports = {
     REGION_CONCURRENCY,
     PAGE_CONCURRENCY,
     generateBestQuotesForRegion,
     upsertRegionSnapshot,
     listAllRegionIds,
+    regionSnapshotExists,
     sleep,
 };
