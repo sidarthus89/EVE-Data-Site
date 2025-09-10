@@ -63,6 +63,7 @@ export default function ItemViewer({ selectedItem, marketTree, onBreadcrumbClick
                         className="quickbar-btn"
                         onClick={handleAddToQuickbar}
                         title="Add to Quickbar"
+                        style={{ minWidth: '140px', padding: '8px 14px', textAlign: 'center' }}
                     >
                         Add to Quickbar
                     </button>

@@ -664,7 +664,6 @@ export default function RegionHauling() {
                                     alignItems: 'center',
                                     flexWrap: 'nowrap',
                                     gap: '20px',
-                                    padding: '0 20px',
                                     overflowX: 'auto',
                                     margin: '0 auto 10px auto',
                                 }}

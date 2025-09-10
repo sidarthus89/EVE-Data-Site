@@ -18,11 +18,12 @@
 .quickbar-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 8px;
+    gap: 8px;
+    padding: 6px 8px;
     border-radius: 4px;
     transition: background-color 0.2s ease;
     margin-bottom: 4px;
+    position: relative;
 }
 
 .quickbar-item:hover {
@@ -59,6 +60,27 @@
     opacity: 1;
 }
 
+.quickbar-remove-btn {
+    margin-left: auto;
+    /* forces button to far right */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    color: #bbb;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0;
+    transform: translateX(4px);
+    transition: opacity 0.2s, background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.quickbar-item:hover .quickbar-remove-btn {
+    opacity: 1;
+    transform: translateX(0);
+}
+
 .quickbar-remove-btn:hover {
-    color: #ff4444;
+    background: #2b0d0d;
+    color: #ff5d5d;
 }

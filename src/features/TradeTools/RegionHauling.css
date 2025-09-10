@@ -72,7 +72,6 @@
 
 /* Form Styles */
 .hauling-form {
-    background-color: #1a1a1a;
     border-radius: 8px;
     padding: 30px, 0px;
     margin-bottom: 30px;
@@ -196,12 +195,17 @@ select.form-control {
     border: 2px solid #444;
     border-radius: 8px;
     color: #ffffff;
-    padding: 12px 14px;
+    padding: 10px 14px;
+    /* match vertical rhythm of .form-control */
     box-sizing: border-box;
-    width: 220px;
-    /* tighter to avoid spill */
-    min-width: 180px;
-    max-width: 240px;
+    height: 44px;
+    /* consistent with other controls */
+    line-height: 1.2;
+    width: 155px;
+    /* align with common select widths (Route/Sales Tax) */
+    min-width: 155px;
+    max-width: 175px;
+    display: block;
 }
 
 .form-group .region-selector:focus {
