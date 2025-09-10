@@ -37,9 +37,9 @@ export default function Home() {
                 <li>Trade Route is currently not working</li>
             </ul>
 
-            <h1>Known Issues (As of: 8/29/2025)</h1>
+            <h1>Known Issues (As of: 9/10/2025)</h1>
             <ul>
-                <li>I need to adjust some of the spacing and fit for the region to region trade page. You may need to pan to the right to get the last few bits of informaiton.</li>
+                <li>Region hualing has some jump range calculation bugs right now.</li>
                 <li>Shareable link to item on market not working</li>
                 <li>Player structure names might be incorrect or missing in areas.</li>
             </ul>
