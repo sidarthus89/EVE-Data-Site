@@ -35,7 +35,8 @@ function updateBestQuotes(map, order) {
             entry.best_buy = {
                 price: order.price,
                 location_id: order.location_id,
-                volume_remain: order.volume_remain
+                volume_remain: order.volume_remain,
+                range: typeof order.range !== 'undefined' ? order.range : null
             };
         }
     } else {
@@ -43,7 +44,8 @@ function updateBestQuotes(map, order) {
             entry.best_sell = {
                 price: order.price,
                 location_id: order.location_id,
-                volume_remain: order.volume_remain
+                volume_remain: order.volume_remain,
+                range: null
             };
         }
     }

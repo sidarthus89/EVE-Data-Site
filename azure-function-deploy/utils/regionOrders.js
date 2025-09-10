@@ -52,6 +52,8 @@ function updateBestQuotes(map, order) {
                 price: order.price,
                 location_id: order.location_id,
                 volume_remain: order.volume_remain,
+                // preserve buy order range so UI can show Station/System/Region
+                range: typeof order.range !== 'undefined' ? order.range : null,
                 // add fields to compute expiration client-side
                 issued: order.issued || null,
                 duration: typeof order.duration === 'number' ? order.duration : null,
@@ -63,6 +65,8 @@ function updateBestQuotes(map, order) {
                 price: order.price,
                 location_id: order.location_id,
                 volume_remain: order.volume_remain,
+                // sell orders are always station-bound; keep null for consistency
+                range: null,
                 // add fields to compute expiration client-side
                 issued: order.issued || null,
                 duration: typeof order.duration === 'number' ? order.duration : null,

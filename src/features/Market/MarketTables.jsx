@@ -278,6 +278,12 @@ export default function MarketTables({
             size: 160,
         },
         {
+            accessorKey: 'range',
+            header: 'Range',
+            cell: info => formatRange(info.getValue()),
+            size: 84,
+        },
+        {
             accessorFn: row => {
                 const sec = locationInfoMap[Number(row.location_id)]?.security;
                 return (sec === null || sec === undefined) ? null : sec;

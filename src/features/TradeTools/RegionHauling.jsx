@@ -838,10 +838,10 @@ export default function RegionHauling() {
                     <div className="results-container">
                         <div className="results-header">
                             <h2>Trade Route Results ({sortedResults.length} found)</h2>
-                            {/* Snapshot banner removed; snapshots are the live source */}
                             <button
                                 onClick={clearResults}
-                                className="new-search-btn"
+                                className="eve-button clear-results-btn"
+                                type="button"
                             >
                                 Clear Results
                             </button>

@@ -41,7 +41,8 @@ export const FILTER_OPTIONS = {
 };
 
 export function applyOutlierFilter(orders, filterType = FILTER_OPTIONS.NONE) {
-    if (filterType === FILTER_OPTIONS.NONE || orders.length < 10) return orders;
+    // Always allow filtering even for small sets; require at least 4 points to compute IQR meaningfully
+    if (filterType === FILTER_OPTIONS.NONE || orders.length < 4) return orders;
 
     const sorted = [...orders].sort((a, b) => a.price - b.price);
 
