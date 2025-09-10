@@ -7,6 +7,8 @@ const PAGE_CONCURRENCY = Math.max(1, Number(process.env.PAGE_CONCURRENCY || 2));
 const GH_RAW_OWNER = process.env.GITHUB_OWNER || 'sidarthus89';
 const GH_RAW_REPO = process.env.GITHUB_REPO || 'EVE-Data-Site';
 const GH_DATA_BRANCH = process.env.GITHUB_BRANCH_DATA || 'gh-pages';
+const SNAPSHOT_MAX_AGE_MINUTES = Number(process.env.SNAPSHOT_MAX_AGE_MINUTES || 10);
+const SNAPSHOT_MAX_AGE_MS = SNAPSHOT_MAX_AGE_MINUTES * 60 * 1000;
 
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
@@ -135,19 +137,30 @@ async function listAllRegionIds() {
     return ids;
 }
 
-// Check if a region snapshot file already exists on the data (gh-pages) branch for the production repo.
-// Returns true if HTTP 200, false if 404; throws for other statuses.
-async function regionSnapshotExists(regionId) {
+// Internal helper to fetch snapshot meta (last_updated) from raw branch
+async function getRegionSnapshotInfo(regionId) {
     const url = `https://raw.githubusercontent.com/${GH_RAW_OWNER}/${GH_RAW_REPO}/${GH_DATA_BRANCH}/data/region_orders/${regionId}.json`;
     try {
         const res = await fetch(url, { headers: { 'User-Agent': 'EVE-Data-Site-Functions' } });
-        if (res.status === 404) return false;
-        if (!res.ok) throw new Error(`status ${res.status}`);
-        return true;
+        if (res.status === 404) return { exists: false };
+        if (!res.ok) return { exists: false, error: `status ${res.status}` };
+        const json = await res.json();
+        const ts = json && json.last_updated ? Date.parse(json.last_updated) : NaN;
+        const lastUpdated = Number.isFinite(ts) ? new Date(ts) : null;
+        const ageMs = lastUpdated ? Date.now() - lastUpdated.getTime() : null;
+        return { exists: true, lastUpdated, ageMs, count: json.best_quotes ? Object.keys(json.best_quotes).length : 0 };
     } catch (e) {
-        // On network errors treat as existing=false so we attempt to generate; safer for recovery.
-        return false;
+        return { exists: false, error: e.message };
     }
+}
+
+// Decide whether to (re)generate snapshot: missing, no timestamp, or stale beyond threshold.
+async function shouldGenerateRegionSnapshot(regionId) {
+    const info = await getRegionSnapshotInfo(regionId);
+    if (!info.exists) return { generate: true, reason: 'missing', ageMs: null };
+    if (!info.lastUpdated) return { generate: true, reason: 'no-timestamp', ageMs: null };
+    if (info.ageMs > SNAPSHOT_MAX_AGE_MS) return { generate: true, reason: 'stale', ageMs: info.ageMs };
+    return { generate: false, reason: 'fresh', ageMs: info.ageMs };
 }
 
 module.exports = {
@@ -156,6 +169,7 @@ module.exports = {
     generateBestQuotesForRegion,
     upsertRegionSnapshot,
     listAllRegionIds,
-    regionSnapshotExists,
+    getRegionSnapshotInfo,
+    shouldGenerateRegionSnapshot,
     sleep,
 };

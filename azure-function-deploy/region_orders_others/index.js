@@ -5,7 +5,7 @@ const {
     upsertRegionSnapshot,
     listAllRegionIds,
     sleep,
-    regionSnapshotExists,
+    shouldGenerateRegionSnapshot,
 } = require('../utils/regionOrders');
 
 function getHubRegions() {
@@ -36,14 +36,14 @@ module.exports = async function (context, myTimer) {
         while (queue.length) {
             const regionId = queue.shift();
             try {
-                const exists = await regionSnapshotExists(regionId);
-                if (exists) {
-                    context.log(`[W${id}] Skip region ${regionId} (already present)`);
+                const decision = await shouldGenerateRegionSnapshot(regionId);
+                if (!decision.generate) {
+                    context.log(`[W${id}] Skip region ${regionId} (${decision.reason}, ageMs=${decision.ageMs})`);
                     success++;
                 } else {
-                    context.log(`[W${id}] Generating region ${regionId} (missing on data branch)`);
+                    context.log(`[W${id}] Generating region ${regionId} (${decision.reason})`);
                     const snapshot = await generateBestQuotesForRegion(regionId, (msg) => context.log(`[W${id}] ${msg}`));
-                    const res = await upsertRegionSnapshot(regionId, snapshot, `chore(region-orders): region ${regionId}`);
+                    const res = await upsertRegionSnapshot(regionId, snapshot, `chore(region-orders): region ${regionId} (${decision.reason})`);
                     context.log(`[W${id}] Committed ${regionId}: ${JSON.stringify(res)}`);
                     success++;
                 }

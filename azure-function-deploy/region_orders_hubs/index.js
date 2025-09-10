@@ -4,7 +4,7 @@ const {
     generateBestQuotesForRegion,
     upsertRegionSnapshot,
     sleep,
-    regionSnapshotExists,
+    shouldGenerateRegionSnapshot,
 } = require('../utils/regionOrders');
 
 // Default hub regions; override via env HUB_REGIONS="10000002,10000043,..."
@@ -27,14 +27,14 @@ module.exports = async function (context, myTimer) {
         while (queue.length) {
             const regionId = queue.shift();
             try {
-                const exists = await regionSnapshotExists(regionId);
-                if (exists) {
-                    context.log(`[H${id}] Skip region ${regionId} (already present)`);
+                const decision = await shouldGenerateRegionSnapshot(regionId);
+                if (!decision.generate) {
+                    context.log(`[H${id}] Skip region ${regionId} (${decision.reason}, ageMs=${decision.ageMs})`);
                     success++;
                 } else {
-                    context.log(`[H${id}] Generating region ${regionId} (missing on data branch)`);
+                    context.log(`[H${id}] Generating region ${regionId} (${decision.reason})`);
                     const snapshot = await generateBestQuotesForRegion(regionId, (msg) => context.log(`[H${id}] ${msg}`));
-                    const res = await upsertRegionSnapshot(regionId, snapshot, `chore(region-orders): hub ${regionId}`);
+                    const res = await upsertRegionSnapshot(regionId, snapshot, `chore(region-orders): hub ${regionId} (${decision.reason})`);
                     context.log(`[H${id}] Committed ${regionId}: ${JSON.stringify(res)}`);
                     success++;
                 }
