@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import RegionSelector from '../../components/RegionSelector/RegionSelector.jsx';
 import { getSecurityColor, getStationInfo, getRegionInfo } from '../../utils/common.js';
 import { fetchMarketOrders, fetchRegionHaulingSnapshotsOnly } from '../../utils/market.js';
-import { fetchRegions, fetchStructures, fetchStationsNPC, fetchMarketTree, fetchRouteJumps, fetchDataLastCommitTime } from '../../utils/api.js';
+import { fetchRegions, fetchStructures, fetchStationsNPC, fetchMarketTree, fetchRouteJumps, fetchDataLastCommitTime, fetchRouteSystems } from '../../utils/api.js';
 import './RegionHauling.css';
 
 // Utility functions for formatting (replaces eveTradeAPI utils)
@@ -146,13 +146,30 @@ export default function RegionHauling() {
         };
     })();
 
-    // Calculate jumps between two systems using ESI route; tiny in-memory cache
+    // Calculate jumps honoring routePreference (shortest vs safest/high-sec only)
     const jumpCache = React.useRef(new Map());
+    const systemSecurityCache = React.useRef(new Map());
     const calculateJumps = async (fromSystemId, toSystemId) => {
-        const key = `${fromSystemId}->${toSystemId}`;
+        const key = `${fromSystemId}->${toSystemId}:${formData.routePreference}`;
         if (jumpCache.current.has(key)) return jumpCache.current.get(key);
         try {
-            const hops = await fetchRouteJumps(fromSystemId, toSystemId);
+            const flag = formData.routePreference === 'safest' ? 'secure' : 'shortest';
+            const systems = await fetchRouteSystems(fromSystemId, toSystemId, flag);
+            if (!systems) {
+                jumpCache.current.set(key, null);
+                return null;
+            }
+            if (flag === 'secure') {
+                const anyLow = systems.some(sid => {
+                    const sec = systemSecurityCache.current.get(sid);
+                    return typeof sec === 'number' && sec < 0.5;
+                });
+                if (anyLow) {
+                    jumpCache.current.set(key, null);
+                    return null;
+                }
+            }
+            const hops = Math.max(0, systems.length - 1);
             jumpCache.current.set(key, hops);
             return hops;
         } catch {
@@ -318,6 +335,8 @@ export default function RegionHauling() {
                 const fromSystemId = trade.origin_system_id || originInfo?.system_id || originInfo?.systemID || originInfo?.solarSystemID;
                 const toSystemId = trade.destination_system_id || destInfo?.system_id || destInfo?.systemID || destInfo?.solarSystemID;
                 if (fromSystemId && toSystemId) {
+                    if (originInfo?.security_status != null) systemSecurityCache.current.set(fromSystemId, Number(originInfo.security_status));
+                    if (destInfo?.security_status != null) systemSecurityCache.current.set(toSystemId, Number(destInfo.security_status));
                     jumps = await calculateJumps(fromSystemId, toSystemId);
                 }
             }
@@ -400,13 +419,13 @@ export default function RegionHauling() {
                 return true;
             });
         }
-        // Structure type filter
+        // Structure type filter (NPC vs Player)
         if (formData.structureType && formData.structureType !== 'all') {
             finalTrades = finalTrades.filter(t => {
                 const oNpc = t.From?.isNPC === true;
                 const dNpc = t.To?.isNPC === true;
-                if (formData.structureType === 'avoid-player') return oNpc && dNpc; // NPC-only
-                if (formData.structureType === 'avoid-npc') return !oNpc && !dNpc; // Player-only
+                if (formData.structureType === 'avoid-player') return oNpc && dNpc; // keep only NPC
+                if (formData.structureType === 'avoid-npc') return !oNpc && !dNpc; // keep only player
                 return true;
             });
         }
@@ -692,7 +711,7 @@ export default function RegionHauling() {
                 <div className="hauling-form">
                     <form onSubmit={handleSubmit}>
                         <div className="form-container">
-                            <div className="form-row form-row-main responsive-row">
+                            <div className="form-row top-row-fixed-6">
                                 <div className="form-group region-group">
                                     <label>Starting Region</label>
                                     <RegionSelector
@@ -721,7 +740,6 @@ export default function RegionHauling() {
                                         value={formData.securityStatus}
                                         onChange={e => handleInputChange('securityStatus', e.target.value)}
                                         className="form-control"
-                                        style={{ width: '115px' }}
                                     >
                                         {securityStatusOptions.map(o => (
                                             <option key={o.value} value={o.value}>{o.label}</option>
@@ -735,7 +753,6 @@ export default function RegionHauling() {
                                         value={formData.structureType}
                                         onChange={e => handleInputChange('structureType', e.target.value)}
                                         className="form-control"
-                                        style={{ width: '165px' }}
                                     >
                                         {structureTypeOptions.map(o => (
                                             <option key={o.value} value={o.value}>{o.label}</option>
@@ -749,7 +766,6 @@ export default function RegionHauling() {
                                         value={formData.routePreference}
                                         onChange={e => handleInputChange('routePreference', e.target.value)}
                                         className="form-control"
-                                        style={{ width: '155px' }}
                                     >
                                         {routePreferenceOptions.map(o => (
                                             <option key={o.value} value={o.value}>{o.label}</option>
@@ -765,70 +781,31 @@ export default function RegionHauling() {
                                         onChange={e => handleInputChange('maxJumps', e.target.value)}
                                         placeholder="∞"
                                         className="form-control"
-                                        style={{ width: '80px' }}
                                     />
                                 </div>
-
+                            </div>
+                            <div className="form-row second-row-fixed-5">
                                 <div className="form-group">
                                     <label>Max Budget</label>
-                                    <input
-                                        type="number"
-                                        value={formData.maxBudget ?? ''}
-                                        onChange={e => handleInputChange('maxBudget', e.target.value)}
-                                        placeholder="∞"
-                                        className="form-control"
-                                        style={{ width: '165px' }}
-                                    />
+                                    <input type="number" value={formData.maxBudget ?? ''} onChange={e => handleInputChange('maxBudget', e.target.value)} placeholder="∞" className="form-control" />
                                 </div>
-
                                 <div className="form-group">
                                     <label>Max Capacity (m³)</label>
-                                    <input
-                                        type="number"
-                                        value={formData.maxWeight ?? ''}
-                                        onChange={e => handleInputChange('maxWeight', e.target.value)}
-                                        placeholder="∞"
-                                        className="form-control"
-                                        style={{ width: '135px' }}
-                                    />
+                                    <input type="number" value={formData.maxWeight ?? ''} onChange={e => handleInputChange('maxWeight', e.target.value)} placeholder="∞" className="form-control" />
                                 </div>
-
                                 <div className="form-group">
                                     <label>Sales Tax</label>
-                                    <select
-                                        value={formData.salesTax}
-                                        onChange={e => handleInputChange('salesTax', Number(e.target.value))}
-                                        className="form-control"
-                                        style={{ width: '155px' }}
-                                    >
-                                        {salesTaxOptions.map(o => (
-                                            <option key={o.level} value={o.tax}>{o.label}</option>
-                                        ))}
+                                    <select value={formData.salesTax} onChange={e => handleInputChange('salesTax', Number(e.target.value))} className="form-control">
+                                        {salesTaxOptions.map(o => (<option key={o.level} value={o.tax}>{o.label}</option>))}
                                     </select>
                                 </div>
-
                                 <div className="form-group">
                                     <label>Min Profit</label>
-                                    <input
-                                        type="number"
-                                        value={formData.minProfit ?? ''}
-                                        onChange={e => handleInputChange('minProfit', e.target.value)}
-                                        placeholder="0"
-                                        className="form-control"
-                                        style={{ width: '175px' }}
-                                    />
+                                    <input type="number" value={formData.minProfit ?? ''} onChange={e => handleInputChange('minProfit', e.target.value)} placeholder="0" className="form-control" />
                                 </div>
-
                                 <div className="form-group">
                                     <label>Min ROI %</label>
-                                    <input
-                                        type="number"
-                                        value={formData.minROI ?? ''}
-                                        onChange={e => handleInputChange('minROI', e.target.value)}
-                                        placeholder="0"
-                                        className="form-control"
-                                        style={{ width: '100px' }}
-                                    />
+                                    <input type="number" value={formData.minROI ?? ''} onChange={e => handleInputChange('minROI', e.target.value)} placeholder="0" className="form-control" />
                                 </div>
                             </div>
                         </div>

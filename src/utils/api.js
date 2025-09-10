@@ -114,6 +114,19 @@ export async function fetchRouteJumps(originSystemId, destinationSystemId) {
     return Array.isArray(arr) ? Math.max(0, arr.length - 1) : null;
 }
 
+// Retrieve full route system ID array with optional flag ('shortest' | 'secure')
+export async function fetchRouteSystems(originSystemId, destinationSystemId, flag = 'shortest') {
+    const o = Number(originSystemId);
+    const d = Number(destinationSystemId);
+    if (!Number.isFinite(o) || !Number.isFinite(d)) throw new Error('invalid-system-ids');
+    const safeFlag = (flag === 'secure' || flag === 'shortest') ? flag : 'shortest';
+    const url = `${ESI_BASE}/route/${o}/${d}/?flag=${safeFlag}`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'EVE-Data-Site' } });
+    if (!res.ok) throw new Error(`ESI route ${res.status}`);
+    const arr = await res.json();
+    return Array.isArray(arr) ? arr : null;
+}
+
 // Precomputed region hauling artifacts (optional). Will try multiple common paths.
 export function fetchPrecomputedRegionHauling() {
     // Disabled: no precomputed region_hauling artifact fetches or telemetry beacons.
