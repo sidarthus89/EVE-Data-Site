@@ -916,4 +916,108 @@ export default function RegionHauling() {
                                             const item = result.Item || 'Unknown Item';
                                             const fromStation = result.From || {};
                                             const toStation = result['To'] || result['Take To'] || {};
-                                            const buyPrice = result['Buy Price'
+                                            const buyPrice = result['Buy Price'] || 0;
+                                            const quantity = result['Quantity'] || 0;
+                                            const totalBuyPrice = buyPrice * quantity;
+                                            const sellPrice = result['Sell Price'] || 0;
+                                            const totalProfit = result['Total Profit'] || 0;
+                                            const jumps = (typeof result['Jumps'] === 'number') ? result['Jumps'] : '—';
+                                            const profitPerJump = result['Profit per Jump'];
+                                            const profitPerItem = result['Profit Per Unit'] || 0;
+                                            const roi = result['Profit Percentage'] || 0;
+                                            const totalVolume = result['Total Volume (m3)'] || 0;
+
+                                            const originSecurity = fromStation.security;
+                                            const destinationSecurity = toStation.security;
+
+                                            const formatNum = (v, d = 2) => utils.formatNumber(v, d);
+
+                                            return (
+                                                <tr key={startIndex + index}>
+                                                    <td style={cellStyle('Item')} title={item}>{item}</td>
+                                                    <td
+                                                        style={cellStyle('From')}
+                                                        className="clickable-location"
+                                                        onClick={() => copyToClipboard(fromStation.name)}
+                                                        title={`Copy: ${fromStation.name}`}
+                                                    >
+                                                        <span style={{ color: getSecurityColor(originSecurity) }}>
+                                                            {fromStation.name}
+                                                        </span>
+                                                    </td>
+                                                    <td style={cellStyle('Quantity')}>{formatNum(quantity, 0)}</td>
+                                                    <td style={cellStyle('Buy Price')}>{formatNum(buyPrice, 2)}</td>
+                                                    <td style={cellStyle('Total Buy Price')}>{formatNum(totalBuyPrice, 2)}</td>
+                                                    <td
+                                                        style={cellStyle('To')}
+                                                        className="clickable-location"
+                                                        onClick={() => copyToClipboard(toStation.name)}
+                                                        title={`Copy: ${toStation.name}`}
+                                                    >
+                                                        <span style={{ color: getSecurityColor(destinationSecurity) }}>
+                                                            {toStation.name}
+                                                        </span>
+                                                    </td>
+                                                    <td style={cellStyle('Sell Price')}>{formatNum(sellPrice, 2)}</td>
+                                                    <td style={cellStyle('Net Profit')}>{formatNum(totalProfit, 2)}</td>
+                                                    <td style={cellStyle('Jumps')}>{jumps}</td>
+                                                    <td style={cellStyle('Profit per Jump')}>
+                                                        {profitPerJump != null ? formatNum(profitPerJump, 2) : '—'}
+                                                    </td>
+                                                    <td style={cellStyle('Profit Per Item')}>{formatNum(profitPerItem, 2)}</td>
+                                                    <td style={cellStyle('ROI')}>{formatNum(roi, 2)}%</td>
+                                                    <td style={cellStyle('Total Volume (m³)')}>{formatNum(totalVolume, 0)}</td>
+                                                </tr>
+                                            );
+                                        });
+                                    })()}
+                                </tbody>
+                            </table>
+                            {usingFallback && (
+                                <div className="fallback-banner" title="Routes derived from raw snapshots (no precomputed hauling cache)">
+                                    Using snapshot-derived fallback routing data.
+                                </div>
+                            )}
+                        </div>
+                        {/* Pagination */}
+                        {sortedResults.length > itemsPerPage && (
+                            <div className="pagination-container">
+                                <div className="pagination">
+                                    <button
+                                        className="pagination-btn"
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        type="button"
+                                    >
+                                        Previous
+                                    </button>
+                                    <div className="pagination-info">
+                                        Page {currentPage} of {Math.ceil(sortedResults.length / itemsPerPage)}
+                                    </div>
+                                    <button
+                                        className="pagination-btn"
+                                        onClick={() => setCurrentPage(p => Math.min(Math.ceil(sortedResults.length / itemsPerPage), p + 1))}
+                                        disabled={currentPage === Math.ceil(sortedResults.length / itemsPerPage)}
+                                        type="button"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Return to Top */}
+                <button
+                    type="button"
+                    className="eve-button return-to-top-btn no-notch"
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    aria-label="Return to top"
+                >
+                    Top
+                </button>
+            </div>
+        </div>
+    );
+}

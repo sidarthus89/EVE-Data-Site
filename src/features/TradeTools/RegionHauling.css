@@ -317,6 +317,94 @@ select.form-control {
 
 /* Use global .eve-button styles from index.css for the submit button */
 
+/* Enlarged primary search button */
+.primary-search-btn {
+    font-size: 1.05rem;
+    padding: 10px 26px;
+    font-weight: 600;
+}
+
+/* Refresh button when new data available */
+.refresh-btn {
+    background-color: #264b15;
+    border-color: #3a7a1d;
+    color: #d8ffd1;
+    font-weight: 600;
+    padding: 10px 20px;
+    animation: pulse-newdata 2s infinite;
+}
+
+.refresh-btn:hover:not(:disabled) {
+    background-color: #31601b;
+    color: #fff;
+}
+
+@keyframes pulse-newdata {
+    0% {
+        box-shadow: 0 0 0 0 rgba(88, 200, 88, 0.6);
+    }
+
+    70% {
+        box-shadow: 0 0 0 12px rgba(88, 200, 88, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(88, 200, 88, 0);
+    }
+}
+
+.buttons-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.update-timer-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #b8b8b8;
+}
+
+.update-timer-value {
+    color: #e0e0e0;
+    font-weight: 600;
+}
+
+/* Return to top button restyle (match primary but without notch) */
+.return-to-top-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 50;
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.return-to-top-btn.no-notch {
+    clip-path: none;
+}
+
+.return-to-top-btn.no-notch::before {
+    display: none;
+}
+
+/* Fallback data banner */
+.fallback-banner {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: linear-gradient(90deg, rgba(120, 60, 0, 0.7), rgba(180, 110, 20, 0.35));
+    border: 1px solid #aa6a14;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #ffd9a6;
+    text-align: center;
+}
+
 .update-timer {
     display: inline-block;
 }
