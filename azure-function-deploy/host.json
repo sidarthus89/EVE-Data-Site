@@ -7,7 +7,8 @@
     "region_orders_hubs",
     "region_orders_others",
     "request_log",
-    "structures_update"
+    "structures_update",
+    "region_orders_health"
   ],
   "logging": {
     "applicationInsights": {
