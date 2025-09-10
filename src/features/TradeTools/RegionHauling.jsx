@@ -55,6 +55,8 @@ export default function RegionHauling() {
     // Track commit time at last successful search and whether newer data exists
     const [searchCommitAt, setSearchCommitAt] = useState(null);
     const [refreshAvailable, setRefreshAvailable] = useState(false);
+    // Track unknown structure IDs encountered (for potential enrichment trigger)
+    const unknownStructureIds = React.useRef(new Set());
     // Column widths for resizable headers (px)
     const [colWidths, setColWidths] = useState({
         'Item': 140,
@@ -314,11 +316,13 @@ export default function RegionHauling() {
                 destInfo = stationMap.get(destId) || structMap.get(destId) || {};
 
                 // Log missing structure IDs for debugging
-                if (!originInfo.name) {
+                if (!originInfo.name && originId && originId > 1000000000000) {
                     console.warn(`Missing origin structure ID: ${originId}`);
+                    unknownStructureIds.current.add(originId);
                 }
-                if (!destInfo.name) {
+                if (!destInfo.name && destId && destId > 1000000000000) {
                     console.warn(`Missing destination structure ID: ${destId}`);
+                    unknownStructureIds.current.add(destId);
                 }
 
                 originStationName = originInfo.name || `Unknown Station (ID: ${originId})`;
@@ -338,6 +342,12 @@ export default function RegionHauling() {
                     if (originInfo?.security_status != null) systemSecurityCache.current.set(fromSystemId, Number(originInfo.security_status));
                     if (destInfo?.security_status != null) systemSecurityCache.current.set(toSystemId, Number(destInfo.security_status));
                     jumps = await calculateJumps(fromSystemId, toSystemId);
+                    // Fallback: try basic shortest route if safest failed
+                    if (jumps == null && formData.routePreference === 'safest') {
+                        jumpCache.current.delete(`${fromSystemId}->${toSystemId}:safest`);
+                        const systems = await fetchRouteSystems(fromSystemId, toSystemId, 'shortest').catch(() => null);
+                        if (systems) jumps = Math.max(0, systems.length - 1);
+                    }
                 }
             }
 

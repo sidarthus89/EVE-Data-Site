@@ -100,11 +100,13 @@ async function fetchStructureDetail(structureId, bearer) {
     };
 }
 
-// Previously we merged with existing structures to accumulate. Requirement change:
-// replace the file each run with ONLY the freshly discovered structures.
-function dedupeStructures(list) {
+// Merge new records with existing file (append/update), preserving prior enriched entries.
+function mergeStructures(existing, incoming) {
     const map = new Map();
-    for (const rec of list || []) {
+    for (const rec of existing || []) {
+        if (rec && rec.stationID) map.set(String(rec.stationID), rec);
+    }
+    for (const rec of incoming || []) {
         if (rec && rec.stationID) map.set(String(rec.stationID), rec);
     }
     return Array.from(map.values());
@@ -131,7 +133,7 @@ async function readExistingStructures() {
 async function upsertStructures(list) {
     const body = JSON.stringify(list);
     const relPath = 'structures.json';
-    const message = `chore(structures): update from region orders (${list.length} structures)`;
+    const message = `chore(structures): merge update from region orders (${list.length} structures)`;
     return upsertDataToAll(relPath, body, message);
 }
 
@@ -160,9 +162,11 @@ async function updateStructuresFromIds(structureIds, context) {
     }
     await Promise.all(Array.from({ length: CONC }, () => worker()));
 
-    const replaced = dedupeStructures(results);
-    const targets = await upsertStructures(replaced);
-    return { ok: true, updated: results.length, total: replaced.length, targets, mode: 'replace' };
+    // Read existing, merge, then write
+    const existing = await readExistingStructures().catch(() => []);
+    const merged = mergeStructures(existing, results);
+    const targets = await upsertStructures(merged);
+    return { ok: true, updated: results.length, total: merged.length, targets, mode: 'merge' };
 }
 
 module.exports = {

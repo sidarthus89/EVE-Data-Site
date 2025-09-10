@@ -299,10 +299,10 @@ select.form-control {
     height: 44px;
     /* consistent with other controls */
     line-height: 1.2;
-    width: 155px;
+    /*width: 155px;*/
     /* align with common select widths (Route/Sales Tax) */
-    min-width: 155px;
-    max-width: 175px;
+    /*min-width: 155px;*/
+    /* max-width: 175px;*/
     display: block;
 }
 
