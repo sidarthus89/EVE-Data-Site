@@ -163,22 +163,35 @@ export default function Market() {
     }, []);
 
     // Handle ?item= selection in URL
+    // On first load, if ?item= is present, select it but keep the query so share links still work on refresh.
+    // After the user manually selects another item, we can clear the query.
+    const [initialQueryHandled, setInitialQueryHandled] = useState(false);
     useEffect(() => {
-        if (!flattenedMarketTree?.items?.length) return;
-
+        if (!flattenedMarketTree?.items?.length || initialQueryHandled) return;
         if (selectedItemID) {
             const item = flattenedMarketTree.items.find(entry => entry.typeID === selectedItemID);
             if (item) {
                 setSelectedItem(item);
                 setBreadcrumbPath(flattenedMarketTree.pathMap[selectedItemID]);
                 setActiveTab('orders');
-                // Clean URL
-                const currentUrl = new URL(window.location.href);
-                currentUrl.search = '';
-                window.history.replaceState({}, '', currentUrl.toString());
+                setInitialQueryHandled(true);
             }
+        } else {
+            setInitialQueryHandled(true);
         }
-    }, [flattenedMarketTree, selectedItemID]);
+    }, [flattenedMarketTree, selectedItemID, initialQueryHandled]);
+
+    // Clear the query param when user selects a different item (not the initial deep-link one)
+    useEffect(() => {
+        if (!initialQueryHandled) return;
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('item')) {
+            // Remove only after initial handling is done and selection changed
+            params.delete('item');
+            const url = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+            window.history.replaceState({}, '', url);
+        }
+    }, [selectedItem, initialQueryHandled]);
 
     // Helper: find item by id in raw or normalized tree
     const findItemById = (typeID, tree) => {

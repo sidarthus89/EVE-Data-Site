@@ -44,35 +44,19 @@
 }
 
 .quickbar-remove-btn {
-    background: transparent;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 4px 8px;
-    visibility: hidden;
-    opacity: 0;
-    transition: visibility 0s, opacity 0.2s, color 0.2s;
-}
-
-.quickbar-item:hover .quickbar-remove-btn {
-    visibility: visible;
-    opacity: 1;
-}
-
-.quickbar-remove-btn {
     margin-left: auto;
-    /* forces button to far right */
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid #333;
-    color: #bbb;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid #444;
+    color: #ccc;
     cursor: pointer;
-    font-size: 14px;
-    padding: 2px 6px;
+    font-size: 20px;
+    /* bigger X */
+    line-height: 1;
+    padding: 2px 8px 4px 8px;
     border-radius: 4px;
     opacity: 0;
-    transform: translateX(4px);
-    transition: opacity 0.2s, background 0.2s, color 0.2s, transform 0.2s;
+    transform: translateX(6px);
+    transition: opacity 0.18s, background 0.18s, color 0.18s, transform 0.18s;
 }
 
 .quickbar-item:hover .quickbar-remove-btn {
@@ -81,6 +65,6 @@
 }
 
 .quickbar-remove-btn:hover {
-    background: #2b0d0d;
-    color: #ff5d5d;
+    background: #3a1212;
+    color: #ff6b6b;
 }

@@ -107,7 +107,7 @@ function MarketTreeNode({
     );
 }
 
-export default function MarketTree({ marketTree, onItemSelect, breadcrumbPath }) {
+export default function MarketTree({ marketTree, onItemSelect, breadcrumbPath, collapseVersion }) {
     const [expandedNodes, setExpandedNodes] = useState(new Set());
 
     useEffect(() => {
@@ -120,6 +120,14 @@ export default function MarketTree({ marketTree, onItemSelect, breadcrumbPath })
             }
         }
     }, []);
+
+    // Reset expansion state when collapseVersion changes
+    useEffect(() => {
+        if (collapseVersion !== undefined) {
+            setExpandedNodes(new Set());
+            localStorage.setItem(TREE_STATE_KEY, JSON.stringify([]));
+        }
+    }, [collapseVersion]);
 
     useEffect(() => {
         localStorage.setItem(TREE_STATE_KEY, JSON.stringify([...expandedNodes]));

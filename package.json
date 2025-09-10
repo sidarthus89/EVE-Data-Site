@@ -6,7 +6,7 @@
   "homepage": "https://sidarthus89.github.io/EVE-Data-Site",
   "scripts": {
     "clean": "node -e \"try{require('fs').rmSync('dist',{recursive:true,force:true})}catch(e){}\"",
-    "publish:dev": "npm run build:dev && node redirect.js dev && gh-pages -d dist -b gh-pages -r https://github.com/sidarthus89/EVE-Data-Site-Dev.git",
+    "publish:dev": "npm run build:dev && node redirect.js dev && node -e \"try{require('fs').rmSync('.publish',{recursive:true,force:true});require('fs').rmSync('.cache/gh-pages',{recursive:true,force:true})}catch(e){}\" && gh-pages -d dist -b gh-pages -r https://github.com/sidarthus89/EVE-Data-Site-Dev.git -f",
     "build:dev": "npm run clean && cross-env VITE_REQUIRE_PRECOMPUTED_ROUTES=false VITE_DATA_BASE=https://sidarthus89.github.io/EVE-Data-Site/data vite build --mode development --sourcemap",
     "build:prod": "npm run clean && cross-env VITE_REQUIRE_PRECOMPUTED_ROUTES=true vite build",
     "publish:prod": "npm run build:prod && node redirect.js && node -e \"try{require('fs').rmSync('dist/data/region_hauling',{recursive:true,force:true})}catch(e){}\" && gh-pages -d dist -b gh-pages -r https://github.com/sidarthus89/EVE-Data-Site.git",

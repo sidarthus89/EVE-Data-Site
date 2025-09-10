@@ -41,12 +41,12 @@ export default function MarketSidebar({
         };
     }, [activeTab]);
 
-    const [treeCollapsed, setTreeCollapsed] = useState(false);
+    // Collapse version counter to signal MarketTree to collapse all expanded groups
+    const [collapseVersion, setCollapseVersion] = useState(0);
     const collapseAll = () => {
         setExpandedNodes(new Set());
-        setTreeCollapsed(true);
+        setCollapseVersion(v => v + 1); // signal child tree to reset its internal expansion state
     };
-    const toggleCollapseVisibility = () => setTreeCollapsed(prev => !prev);
     const handleTabClick = (tabName) => setActiveTab(tabName);
 
     return (
@@ -70,16 +70,10 @@ export default function MarketSidebar({
                     />
                     <button
                         className="collapse-button"
-                        title={treeCollapsed ? 'Expand tree' : 'Collapse all groups'}
-                        onClick={() => {
-                            if (treeCollapsed) {
-                                setTreeCollapsed(false);
-                            } else {
-                                collapseAll();
-                            }
-                        }}
+                        title={'Collapse all groups'}
+                        onClick={collapseAll}
                     >
-                        <img src={`${import.meta.env.BASE_URL}assets/collapse.png`} alt="Collapse" style={{ transform: treeCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                        <img src={`${import.meta.env.BASE_URL}assets/collapse.png`} alt="Collapse" />
                     </button>
                 </div>
 
@@ -105,11 +99,12 @@ export default function MarketSidebar({
 
             {/* Scrollable content */}
             <div className="sidebar-scrollable">
-                {activeTab === 'market' && marketTree && !treeCollapsed && (
+                {activeTab === 'market' && marketTree && (
                     <MarketTree
                         marketTree={marketTree}
                         onItemSelect={onItemSelect}
                         breadcrumbPath={breadcrumbPath}
+                        collapseVersion={collapseVersion}
                     />
                 )}
                 {activeTab === 'quickbar' && <MarketQuickbar onItemSelect={onItemSelect} />}

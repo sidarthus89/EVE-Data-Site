@@ -71,8 +71,6 @@ export default function ItemViewer({ selectedItem, marketTree, onBreadcrumbClick
                     <div style={{ position: 'relative' }}>
                         <button
                             onClick={async () => {
-                                // Get base URL accounting for both dev and prod environments
-                                // Determine base market route for current environment
                                 const baseUrl = `${window.location.origin}${import.meta.env.BASE_URL || ''}market`;
                                 const link = `${baseUrl}?item=${selectedItem.typeID}`;
                                 try {
@@ -84,7 +82,7 @@ export default function ItemViewer({ selectedItem, marketTree, onBreadcrumbClick
                                 }
                             }}
                             className="item-link"
-                            title="Copy market link"
+                            title="Copy market link (opens item on load)"
                         >
                             {isCopied ? <FiCheck className="icon" /> : <FiLink className="icon" />}
                         </button>
