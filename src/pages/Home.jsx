@@ -40,8 +40,7 @@ export default function Home() {
             <h1>Known Issues (As of: 8/29/2025)</h1>
             <ul>
                 <li>I need to adjust some of the spacing and fit for the region to region trade page. You may need to pan to the right to get the last few bits of informaiton.</li>
-                <li>Shareable ink to item on market not working</li>
-                <li>Appraisal page is blank</li>
+                <li>Shareable link to item on market not working</li>
                 <li>Player structure names might be incorrect or missing in areas.</li>
             </ul>
 
