@@ -52,6 +52,9 @@ export default function RegionHauling() {
     // Timer state for "Time Since Last Update" based on GitHub data commits
     const [lastResultsAt, setLastResultsAt] = useState(null);
     const [nowTick, setNowTick] = useState(Date.now());
+    // Track commit time at last successful search and whether newer data exists
+    const [searchCommitAt, setSearchCommitAt] = useState(null);
+    const [refreshAvailable, setRefreshAvailable] = useState(false);
     // Column widths for resizable headers (px)
     const [colWidths, setColWidths] = useState({
         'Item': 140,
@@ -541,11 +544,35 @@ export default function RegionHauling() {
                 // Show banner only when routes were derived from snapshots (not precomputed)
                 setUsingFallback(transformedData.some(r => r._rawData && r._rawData._fallback));
                 setShowResults(true);
+                if (lastResultsAt) setSearchCommitAt(lastResultsAt);
             } else {
                 setError('No profitable trades found for the selected criteria.');
             }
         } catch (error) {
             setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRefresh = async () => {
+        if (loading || !formData.fromRegion?.regionID || !formData.toRegion?.regionID) return;
+        setLoading(true);
+        setError(null);
+        try {
+            const fromRegionId = Number(formData.fromRegion.regionID);
+            const toRegionId = Number(formData.toRegion.regionID);
+            const transformedData = await fetchAndProcessMarketOrders(fromRegionId, toRegionId, formData);
+            if (transformedData.length > 0) {
+                setResults(transformedData);
+                setUsingFallback(transformedData.some(r => r._rawData && r._rawData._fallback));
+                setShowResults(true);
+                if (lastResultsAt) setSearchCommitAt(lastResultsAt);
+            } else {
+                setError('No profitable trades found for the refreshed data.');
+            }
+        } catch (err) {
+            setError(err.message || 'Failed to refresh results');
         } finally {
             setLoading(false);
         }
@@ -623,6 +650,15 @@ export default function RegionHauling() {
         return () => { mounted = false; clearInterval(refreshId); clearInterval(uiTickId); };
     }, []);
 
+    // Detect new data availability
+    useEffect(() => {
+        if (searchCommitAt && lastResultsAt && lastResultsAt > searchCommitAt) {
+            setRefreshAvailable(true);
+        } else {
+            setRefreshAvailable(false);
+        }
+    }, [lastResultsAt, searchCommitAt]);
+
     const renderSinceLastUpdate = () => {
         if (!lastResultsAt) return '—';
         const diffMs = Math.max(0, nowTick - lastResultsAt);
@@ -656,18 +692,7 @@ export default function RegionHauling() {
                 <div className="hauling-form">
                     <form onSubmit={handleSubmit}>
                         <div className="form-container">
-                            <div
-                                className="form-row form-row-main"
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    flexWrap: 'nowrap',
-                                    gap: '20px',
-                                    overflowX: 'auto',
-                                    margin: '0 auto 10px auto',
-                                }}
-                            >
+                            <div className="form-row form-row-main responsive-row">
                                 <div className="form-group region-group">
                                     <label>Starting Region</label>
                                     <RegionSelector
@@ -815,20 +840,35 @@ export default function RegionHauling() {
                         )}
 
                         <div className="form-actions">
-                            <button
-                                type="submit"
-                                disabled={loading || !formData.fromRegion || !formData.toRegion}
-                                className="eve-button"
-                            >
-                                {loading ? 'Searching...' : 'Find Trade Routes'}
-                            </button>
-                            <span
-                                className="update-timer"
-                                title={lastResultsAt ? new Date(lastResultsAt).toLocaleString() : ''}
-                                style={{ marginLeft: '16px', color: '#ccc', fontSize: '0.95rem', whiteSpace: 'nowrap' }}
-                            >
-                                Time Since Last Update: {renderSinceLastUpdate()}
-                            </span>
+                            <div className="primary-actions">
+                                <div className="buttons-row">
+                                    <button
+                                        type="submit"
+                                        disabled={loading || !formData.fromRegion || !formData.toRegion}
+                                        className="eve-button primary-search-btn"
+                                    >
+                                        {loading ? 'Searching...' : 'Find Trade Routes'}
+                                    </button>
+                                    {refreshAvailable && showResults && (
+                                        <button
+                                            type="button"
+                                            onClick={handleRefresh}
+                                            disabled={loading}
+                                            className="eve-button refresh-btn"
+                                            title="New data is available. Click to refresh results."
+                                        >
+                                            {loading ? 'Refreshing…' : 'New Data Available – Refresh'}
+                                        </button>
+                                    )}
+                                </div>
+                                <div
+                                    className="update-timer-container"
+                                    title={lastResultsAt ? new Date(lastResultsAt).toLocaleString() : ''}
+                                >
+                                    <span className="update-timer-label">Time Since Last Update:</span>
+                                    <span className="update-timer-value">{renderSinceLastUpdate()}</span>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -876,124 +916,4 @@ export default function RegionHauling() {
                                             const item = result.Item || 'Unknown Item';
                                             const fromStation = result.From || {};
                                             const toStation = result['To'] || result['Take To'] || {};
-                                            const buyPrice = result['Buy Price'] || 0;
-                                            const sellPrice = result['Sell Price'] || 0;
-                                            const profitPerUnit = result['Profit Per Unit'] || 0;
-                                            const profitPercentage = result['Profit Percentage'] || 0;
-                                            const totalProfit = result['Total Profit'] || 0;
-                                            const quantity = result['Quantity'] || 0;
-                                            const totalVolume = result['Total Volume (m3)'] || 0;
-                                            const jumps = result.Jumps || 'N/A';
-                                            // Calculate total buy price and profit per jump
-                                            const totalBuyPrice = buyPrice * quantity;
-                                            const profitPerJump = (typeof jumps === 'number' && jumps > 0)
-                                                ? totalProfit / jumps
-                                                : null;
-
-                                            // Render station names with security coloring and click-to-copy
-                                            const renderStationName = (station) => {
-                                                if (typeof station === 'string') {
-                                                    return (
-                                                        <span
-                                                            className="clickable-location"
-                                                            onClick={() => copyToClipboard(station)}
-                                                            title="Click to copy to clipboard"
-                                                        >
-                                                            {station}
-                                                        </span>
-                                                    );
-                                                }
-
-                                                const stationName = station.name || 'Unknown Station';
-                                                const security = station.security;
-                                                const isNPC = station.isNPC;
-
-                                                let color = '#ffffff'; // Default color
-                                                if (security !== null && security !== undefined) {
-                                                    color = getSecurityColor(security);
-                                                }
-
-                                                return (
-                                                    <span
-                                                        className="clickable-location"
-                                                        style={{ color }}
-                                                        onClick={() => copyToClipboard(stationName)}
-                                                        title={`Security: ${security !== null && security !== undefined ? security.toFixed(1) : 'Unknown'} | ${isNPC ? 'NPC Station' : 'Player Structure'} | Click to copy`}
-                                                    >
-                                                        {stationName}
-                                                    </span>
-                                                );
-                                            };
-
-                                            return (
-                                                <tr key={startIndex + index}>
-                                                    <td style={cellStyle('Item')}>
-                                                        <span
-                                                            className="clickable-location"
-                                                            onClick={() => copyToClipboard(item)}
-                                                            title="Click to copy item name"
-                                                        >
-                                                            {item}
-                                                        </span>
-                                                    </td>
-                                                    <td style={cellStyle('From')}>{renderStationName(fromStation)}</td>
-                                                    <td style={cellStyle('Quantity')}>{utils.formatNumber(quantity, 0)}</td>
-                                                    <td style={cellStyle('Buy Price')}>{utils.formatNumber(buyPrice)}</td>
-                                                    <td style={cellStyle('Total Buy Price')}>{utils.formatNumber(totalBuyPrice)}</td>
-                                                    <td style={cellStyle('To')}>{renderStationName(toStation)}</td>
-                                                    <td style={cellStyle('Sell Price')}>{utils.formatNumber(sellPrice)}</td>
-                                                    <td style={cellStyle('Net Profit')}>{utils.formatNumber(totalProfit)}</td>
-                                                    <td style={cellStyle('Jumps')}>{(typeof jumps === 'number') ? jumps : 'N/A'}</td>
-                                                    <td style={cellStyle('Profit per Jump')}>{profitPerJump != null ? utils.formatNumber(profitPerJump) : '-'}</td>
-                                                    <td style={cellStyle('Profit Per Item')}>{utils.formatNumber(profitPerUnit)}</td>
-                                                    <td style={cellStyle('ROI')}>{utils.formatNumber(profitPercentage, 1)}%</td>
-                                                    <td style={cellStyle('Total Volume (m³)')}>{utils.formatNumber(totalVolume, 0)}</td>
-                                                </tr>
-                                            );
-                                        });
-                                    })()}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination */}
-                        {sortedResults.length > itemsPerPage && (
-                            <div className="pagination-container">
-                                <div className="pagination">
-                                    <button
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1}
-                                        className="pagination-btn"
-                                    >
-                                        Previous
-                                    </button>
-
-                                    <span className="pagination-info">
-                                        Page {currentPage} of {Math.ceil(sortedResults.length / itemsPerPage)}
-                                        ({sortedResults.length} total results)
-                                    </span>
-
-                                    <button
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(sortedResults.length / itemsPerPage)))}
-                                        disabled={currentPage >= Math.ceil(sortedResults.length / itemsPerPage)}
-                                        className="pagination-btn"
-                                    >
-                                        Next
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            <div
-                className="return-to-top"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                title="Return to Top"
-            >
-                ↑
-            </div>
-        </div>
-    );
-}
+                                            const buyPrice = result['Buy Price'

@@ -125,6 +125,69 @@
     align-items: center;
 }
 
+/* New: allow the first two (region) selectors to grow more while keeping others compact */
+.responsive-row .region-group {
+    min-width: 180px;
+}
+
+.responsive-row .region-group .region-selector-container,
+.responsive-row .region-group .region-selector {
+    width: 100% !important;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Make all select/input controls flexible instead of fixed pixel widths */
+.responsive-row .form-group select.form-control,
+.responsive-row .form-group input.form-control {
+    width: 100% !important;
+    min-width: 120px;
+}
+
+/* Tighten gaps on extreme zoom to prevent horizontal scroll */
+@media (max-width: 1700px) {
+    .responsive-row {
+        gap: 16px;
+    }
+}
+
+@media (max-width: 1500px) {
+    .responsive-row {
+        gap: 14px;
+    }
+}
+
+@media (max-width: 1300px) {
+    .responsive-row {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .responsive-row {
+        gap: 10px;
+    }
+}
+
+/* When zoomed in (detected by narrower effective width), allow wrapping to additional rows */
+@media (max-width: 1400px) {
+    .responsive-row {
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    }
+}
+
+@media (max-width: 1000px) {
+    .responsive-row {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 800px) {
+    .responsive-row {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+}
+
 .form-row-secondary {
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr 1fr;
