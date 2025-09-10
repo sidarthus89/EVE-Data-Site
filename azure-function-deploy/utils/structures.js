@@ -100,12 +100,11 @@ async function fetchStructureDetail(structureId, bearer) {
     };
 }
 
-function mergeStructures(existingList, newList) {
+// Previously we merged with existing structures to accumulate. Requirement change:
+// replace the file each run with ONLY the freshly discovered structures.
+function dedupeStructures(list) {
     const map = new Map();
-    for (const rec of existingList || []) {
-        if (rec && rec.stationID) map.set(String(rec.stationID), rec);
-    }
-    for (const rec of newList || []) {
+    for (const rec of list || []) {
         if (rec && rec.stationID) map.set(String(rec.stationID), rec);
     }
     return Array.from(map.values());
@@ -161,10 +160,9 @@ async function updateStructuresFromIds(structureIds, context) {
     }
     await Promise.all(Array.from({ length: CONC }, () => worker()));
 
-    const existing = await readExistingStructures().catch(() => []);
-    const merged = mergeStructures(existing, results);
-    const targets = await upsertStructures(merged);
-    return { ok: true, updated: results.length, total: merged.length, targets };
+    const replaced = dedupeStructures(results);
+    const targets = await upsertStructures(replaced);
+    return { ok: true, updated: results.length, total: replaced.length, targets, mode: 'replace' };
 }
 
 module.exports = {
