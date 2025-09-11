@@ -76,6 +76,23 @@ export default function RegionHauling() {
         'Total Capacity (m³)': 120,
     });
 
+    // Explicit header order so <colgroup> widths match headers exactly
+    const HEADER_ORDER = [
+        'Item',
+        'From',
+        'Quantity',
+        'Buy Price',
+        'Total Buy Price',
+        'To',
+        'Sell Price',
+        'Net Profit',
+        'Jumps',
+        'Profit per Jump',
+        'Profit Per Item',
+        'ROI',
+        'Total Capacity (m³)'
+    ];
+
     const startResize = (key, startX, startWidth) => {
         const onMove = (e) => {
             const dx = (e.clientX || 0) - startX;
@@ -933,7 +950,7 @@ export default function RegionHauling() {
                             <table className="results-table wide-table" style={{ tableLayout: 'fixed' }}>
                                 {/* generate cols from colWidths so default widths apply */}
                                 <colgroup>
-                                    {Object.keys(colWidths).map(key => (
+                                    {HEADER_ORDER.map(key => (
                                         <col key={key} style={{ width: `${colWidths[key]}px`, minWidth: `${colWidths[key]}px` }} />
                                     ))}
                                 </colgroup>
@@ -1000,7 +1017,7 @@ export default function RegionHauling() {
                                                             {fromStation.name}
                                                         </span>
                                                     </td>
-                                                    <td style={{ ...cellStyle('Quantity'), textAlign: 'left' }}>{formatNum(quantity, 0)}</td>
+                                                    <td style={{ ...cellStyle('Quantity') }}>{formatNum(quantity, 0)}</td>
                                                     <td style={cellStyle('Buy Price')}>{formatNum(buyPrice, 2)}</td>
                                                     <td style={cellStyle('Total Buy Price')}>{formatNum(totalBuyPrice, 2)}</td>
                                                     <td
@@ -1015,7 +1032,7 @@ export default function RegionHauling() {
                                                     </td>
                                                     <td style={cellStyle('Sell Price')}>{formatNum(sellPrice, 2)}</td>
                                                     <td style={cellStyle('Net Profit')}>{formatNum(totalProfit, 2)}</td>
-                                                    <td style={{ ...cellStyle('Jumps'), textAlign: 'left' }}>{jumps}</td>
+                                                    <td style={{ ...cellStyle('Jumps') }}>{jumps}</td>
                                                     <td style={cellStyle('Profit per Jump')}>
                                                         {profitPerJump != null ? formatNum(profitPerJump, 2) : '—'}
                                                     </td>

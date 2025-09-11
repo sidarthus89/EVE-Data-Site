@@ -528,7 +528,7 @@ select.form-control {
     background: rgba(50, 50, 60, 0.9);
     color: #e8e8e8;
     padding: 15px 12px;
-    text-align: left;
+    text-align: center;
     font-weight: 600;
     font-size: 0.95rem;
     border-bottom: 2px solid #555;
@@ -573,25 +573,16 @@ select.form-control {
 /* Numeric alignment per current column order:
    1 Item, 2 From, 3 Quantity, 4 Buy, 5 Total Buy, 6 To, 7 Sell, 8 Net Profit,
    9 Jumps, 10 Profit/Jump, 11 Profit/Unit, 12 ROI, 13 Volume */
+/* Center align all numeric columns (3,4,5,7,8,10,11,13) */
 .results-table td:nth-child(3),
-/* Quantity */
 .results-table td:nth-child(4),
-/* Buy Price */
 .results-table td:nth-child(5),
-/* Total Buy Price */
 .results-table td:nth-child(7),
-/* Sell Price */
 .results-table td:nth-child(8),
-/* Net Profit */
 .results-table td:nth-child(10),
-/* Profit per Jump */
 .results-table td:nth-child(11),
-/* Profit Per Item */
-.results-table td:nth-child(13)
-
-/* Total Volume */
-    {
-    text-align: right;
+.results-table td:nth-child(13) {
+    text-align: center;
     font-family: 'Courier New', monospace;
 }
 
