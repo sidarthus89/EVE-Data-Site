@@ -14,11 +14,14 @@ import {
 import { fetchMarketHistory, fetchUniverseMarketHistory } from '../../utils/market.js';
 
 export default function MarketHistory({ selectedItem, selectedRegion, setActiveTab }) {
-    const [historyData, setHistoryData] = useState([]);
+    // Raw daily history (never mutated) and derived aggregated view
+    const [historyDataRaw, setHistoryDataRaw] = useState([]);
+    const [historyData, setHistoryData] = useState([]); // aggregated according to granularity
     const [startIndex, setStartIndex] = useState(0);
     const [endIndex, setEndIndex] = useState(30);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [granularity, setGranularity] = useState('day'); // 'day' | 'week' | 'month'
 
     const sliderRef = useRef(null);
     const viewportRef = useRef(null);
@@ -41,6 +44,12 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
         setLoading(true);
         setError(null);
 
+        function windowSizeForGranularity(g) {
+            if (g === 'week') return 1; // 1 week bucket
+            if (g === 'month') return 3; // 3 month buckets
+            return 30; // 30 days
+        }
+
         async function loadMarketHistory() {
             try {
                 let data;
@@ -58,16 +67,19 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
 
                 if (cancelled) return;
 
-                setHistoryData(data || []);
+                setHistoryDataRaw(data || []);
+                // Aggregate with current granularity
+                setHistoryData(aggregateHistory(data || [], granularity));
                 console.log('📊 Market history loaded:', {
                     dataLength: data?.length || 0,
                     isAllRegions,
                     region: selectedRegion?.regionName || 'All Regions'
                 });
 
-                // Default to last 30 days if available
-                const total = data?.length || 0;
-                const window = Math.min(30, total || 0);
+                // Default window based on granularity
+                const total = (data?.length) || 0;
+                const desired = windowSizeForGranularity(granularity);
+                const window = Math.min(desired, total || 0);
                 const defaultStart = Math.max(0, total - window);
                 const defaultEnd = total;
                 setStartIndex(defaultStart);
@@ -88,7 +100,72 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
         return () => {
             cancelled = true;
         };
-    }, [selectedItem, selectedRegion]);
+    }, [selectedItem, selectedRegion, granularity]);
+
+    // Re-aggregate when granularity changes without refetching data
+    useEffect(() => {
+        if (historyDataRaw.length) {
+            const aggregated = aggregateHistory(historyDataRaw, granularity);
+            setHistoryData(aggregated);
+            const total = aggregated.length;
+            const desired = granularity === 'week' ? 1 : (granularity === 'month' ? 3 : 30);
+            const window = Math.min(desired, total || 0);
+            const defaultStart = Math.max(0, total - window);
+            const defaultEnd = total;
+            setStartIndex(defaultStart);
+            setEndIndex(defaultEnd);
+        }
+    }, [granularity]);
+
+    function aggregateHistory(data, mode) {
+        if (!Array.isArray(data) || !data.length || mode === 'day') return data;
+        const map = new Map();
+        for (const row of data) {
+            if (!row || !row.date) continue;
+            const d = new Date(row.date + 'T00:00:00Z');
+            if (isNaN(d)) continue;
+            let key;
+            if (mode === 'month') {
+                key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`; // YYYY-MM
+            } else if (mode === 'week') {
+                // Compute Monday as week start
+                const day = d.getUTCDay(); // 0..6 (Sun..Sat)
+                const diff = (day === 0 ? -6 : 1 - day); // shift to Monday
+                const monday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + diff));
+                key = monday.toISOString().slice(0, 10); // YYYY-MM-DD of Monday
+            } else {
+                key = row.date; // fallback
+            }
+            if (!map.has(key)) {
+                map.set(key, {
+                    date: key,
+                    totalVolume: 0,
+                    _totalValue: 0,
+                    highest: 0,
+                    lowest: Number.POSITIVE_INFINITY,
+                    order_count: 0,
+                });
+            }
+            const bucket = map.get(key);
+            const vol = Number(row.totalVolume || row.volume || 0) || 0;
+            const avg = Number(row.average || 0) || 0;
+            bucket.totalVolume += vol;
+            bucket._totalValue += vol * avg;
+            bucket.highest = Math.max(bucket.highest, Number(row.highest || avg || 0));
+            const low = Number(row.lowest || avg || 0);
+            if (low > 0) bucket.lowest = Math.min(bucket.lowest, low);
+            bucket.order_count += Number(row.order_count || 0) || 0;
+        }
+        const out = Array.from(map.values()).map(b => ({
+            date: b.date,
+            average: b.totalVolume > 0 ? b._totalValue / b.totalVolume : 0,
+            totalVolume: b.totalVolume,
+            highest: b.highest,
+            lowest: b.lowest === Number.POSITIVE_INFINITY ? 0 : b.lowest,
+            order_count: b.order_count,
+        })).sort((a, b) => new Date(a.date) - new Date(b.date));
+        return out;
+    }
 
     function handleDragStart(e, type) {
         e.preventDefault(); // Added: Prevent default behavior
@@ -275,13 +352,33 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
             border: '1px solid #333',
             padding: '10px'
         }}>
+            {/* Granularity Selection */}
+            <div style={{ display: 'flex', gap: 16, marginBottom: 8, alignItems: 'center', color: '#ccc', fontSize: 12 }}>
+                <span style={{ fontWeight: 600 }}>Interval:</span>
+                {['day', 'week', 'month'].map(g => (
+                    <label key={g} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                        <input
+                            type="radio"
+                            name="granularity"
+                            value={g}
+                            checked={granularity === g}
+                            onChange={() => setGranularity(g)}
+                            style={{ cursor: 'pointer' }}
+                        />
+                        {g.charAt(0).toUpperCase() + g.slice(1)}
+                    </label>
+                ))}
+                <span style={{ opacity: 0.6 }}>
+                    {granularity === 'day' ? 'Daily data' : granularity === 'week' ? 'Monday-based weeks' : 'Calendar months'}
+                </span>
+            </div>
             <div style={{ color: '#fff', marginBottom: '10px', fontSize: '12px' }}>
                 Market History: {selectedItem?.typeName} - {regionDisplayName} |
-                Showing {visibleData.length} of {historyData.length} days |
+                Showing {visibleData.length} of {historyData.length} {granularity}{historyData.length === 1 ? '' : 's'} |
                 Range: {safeStartIndex}-{safeEndIndex}
                 {historyData.length < 7 && historyData.length > 0 && (
                     <span style={{ color: '#ffa500', marginLeft: '10px' }}>
-                        ⚠️ Limited market data available ({historyData.length} day{historyData.length === 1 ? '' : 's'})
+                        ⚠️ Limited market data available ({historyData.length} {granularity}{historyData.length === 1 ? '' : 's'})
                     </span>
                 )}
                 {historyData.length === 0 && (
@@ -408,6 +505,20 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                     }}
                     onMouseDown={(e) => handleDragStart(e, 'move')}
                 >
+                    {/* Scope Counter (dynamic units) */}
+                    <div style={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 8,
+                        background: 'rgba(0,0,0,0.8)',
+                        color: '#fff',
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                        fontSize: 12,
+                        pointerEvents: 'none'
+                    }}>
+                        {(safeEndIndex - safeStartIndex)}{granularity === 'day' ? 'd' : granularity === 'week' ? 'w' : 'm'}
+                    </div>
                     {/* Left Resize Handle */}
                     <div
                         style={{
@@ -423,20 +534,7 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                         onMouseLeave={(e) => e.target.style.backgroundColor = '#6495ED'}
                     />
 
-                    {/* Scope Counter */}
-                    <div style={{
-                        position: 'absolute',
-                        top: 4,
-                        right: 8,
-                        background: 'rgba(0,0,0,0.8)',
-                        color: '#fff',
-                        padding: '2px 6px',
-                        borderRadius: 4,
-                        fontSize: 12,
-                        pointerEvents: 'none'
-                    }}>
-                        {safeEndIndex - safeStartIndex}d
-                    </div>
+                    {/* (Removed duplicate old counter) */}
 
                     {/* Right Resize Handle */}
                     <div

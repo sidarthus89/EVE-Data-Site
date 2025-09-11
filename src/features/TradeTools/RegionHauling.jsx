@@ -39,9 +39,8 @@ export default function RegionHauling() {
     const [regionsData, setRegionsData] = useState(null);
     const [marketTree, setMarketTree] = useState(null);
     const [loading, setLoading] = useState(false);
-    // Simulated search progress percentage (0-100) for UX feedback
+    // Real progress percentage (0-100) tied to actual transformation work
     const [searchProgress, setSearchProgress] = useState(0);
-    const progressTimerRef = React.useRef(null);
     const [results, setResults] = useState([]);
     const [error, setError] = useState(null);
     const [usingFallback, setUsingFallback] = useState(false);
@@ -258,7 +257,7 @@ export default function RegionHauling() {
     }, [formData.nearbyOnly, nearbyRegions]);
 
     // Data transformation function to convert API/market data to display format
-    const transformApiResponseToDisplayFormat = async (apiData, formData) => {
+    const transformApiResponseToDisplayFormat = async (apiData, formData, onProgress) => {
         // Load static structure and station data for mapping (from /public/data)
         const [structures, stations] = await Promise.all([
             fetchStructures(),
@@ -276,6 +275,8 @@ export default function RegionHauling() {
 
         const transformedTrades = [];
 
+        const total = apiData.length || 0;
+        let indexCounter = 0;
         for (const trade of apiData) {
 
             // Get item details (volume and name) from ESI
@@ -392,6 +393,14 @@ export default function RegionHauling() {
                 'ROI': trade.profit_margin,
                 '_rawData': trade
             });
+
+            indexCounter++;
+            if (onProgress && total > 0) {
+                // Trade processing weight handled externally; here we emit fractional completion of transform phase
+                if (indexCounter === total || indexCounter % 5 === 0) {
+                    onProgress(indexCounter / total);
+                }
+            }
         }
 
         // Apply post-transform filters
@@ -519,6 +528,8 @@ export default function RegionHauling() {
         try {
             // Use only GitHub snapshots: derive from region_orders (no region_hauling artifacts)
             const regionHaulingData = await fetchRegionHaulingSnapshotsOnly(fromRegionId, toRegionId);
+            // Progress: snapshots fetched (~10%)
+            setSearchProgress(10);
 
             // Filter and process orders to find profitable trades
             const profitableTrades = regionHaulingData.filter(route => {
@@ -540,8 +551,15 @@ export default function RegionHauling() {
                 return meetsProfit && (roi >= parseFloat(formData.minROI || 0)) && meetsBudget;
             });
 
-            // Transform data for display
-            return await transformApiResponseToDisplayFormat(profitableTrades, formData);
+            // Transform data for display with progress updates (remaining 90%)
+            const totalTransformWeight = 90; // percent
+            const data = await transformApiResponseToDisplayFormat(profitableTrades, formData, (fraction) => {
+                // fraction 0..1 of transform portion
+                const pct = 10 + Math.min(1, Math.max(0, fraction)) * totalTransformWeight;
+                setSearchProgress(prev => (pct > prev ? Math.round(pct) : prev));
+            });
+            setSearchProgress(100);
+            return data;
         } catch (error) {
             console.error('Error fetching or processing market orders:', error);
             throw new Error('Failed to fetch market orders.');
@@ -701,34 +719,13 @@ export default function RegionHauling() {
         return `${minutes}m ${seconds}s`;
     };
 
-    // Simulated progress animation while loading
+    // Reset progress to 0 when not loading and finished (optional: keep at 100 until next search)
     useEffect(() => {
-        if (loading) {
-            const start = Date.now();
-            const EST_MS = 4000; // heuristic duration
-            if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-            progressTimerRef.current = setInterval(() => {
-                const elapsed = Date.now() - start;
-                const f = Math.min(0.999, elapsed / EST_MS);
-                // Ease-out curve for nicer feel
-                const eased = 1 - Math.pow(1 - f, 1.8);
-                const pct = Math.min(99, Math.max(0, Math.round(eased * 100)));
-                setSearchProgress(p => (pct > p ? pct : p));
-            }, 120);
-        } else {
-            if (progressTimerRef.current) {
-                clearInterval(progressTimerRef.current);
-                progressTimerRef.current = null;
-            }
-            // Snap to 100% shortly after completion if any progress occurred
-            setSearchProgress(p => (p > 0 && p < 100 ? 100 : p));
-            // Reset back to 0 after a short delay to clean the button label
-            if (searchProgress > 0) {
-                const t = setTimeout(() => setSearchProgress(0), 1200);
-                return () => clearTimeout(t);
-            }
+        if (!loading && searchProgress === 100) {
+            const t = setTimeout(() => setSearchProgress(0), 1500);
+            return () => clearTimeout(t);
         }
-    }, [loading]);
+    }, [loading, searchProgress]);
 
     if (!regionsData) {
         return (
