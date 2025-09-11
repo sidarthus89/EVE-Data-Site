@@ -21,7 +21,6 @@
 /* src/features/TradeTools/RegionHauling.css */
 
 .region-hauling {
-    max-width: 95%;
     margin: 0 auto;
     padding: 20px;
     color: #ffffff;
@@ -457,10 +456,6 @@ select.form-control {
 
 /* Results Styles */
 .results-container {
-    background: rgba(20, 20, 30, 0.9);
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 25px;
     margin-top: 30px;
 }
 
