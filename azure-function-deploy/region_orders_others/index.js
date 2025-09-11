@@ -7,6 +7,7 @@ const {
     sleep,
     shouldGenerateRegionSnapshot,
 } = require('../utils/regionOrders');
+const { bulkReplaceDataFiles } = require('../utils/github');
 
 function getHubRegions() {
     const env = process.env.HUB_REGIONS;
@@ -16,6 +17,7 @@ function getHubRegions() {
 
 module.exports = async function (context, myTimer) {
     telemetry.init();
+    const BULK = process.env.GITHUB_DATA_BULK_SQUASH === '1';
     const hubs = new Set(getHubRegions());
     let all = [];
     try {
@@ -26,11 +28,12 @@ module.exports = async function (context, myTimer) {
         return;
     }
     const others = all.filter((id) => !hubs.has(Number(id)));
-    context.log(`region_orders_others tick: processing ${others.length} regions with concurrency ${REGION_CONCURRENCY}`);
-    telemetry.trackEvent('REGION_ORDERS_OTHERS_TICK', { count: String(others.length) });
+    context.log(`region_orders_others tick: processing ${others.length} regions with concurrency ${REGION_CONCURRENCY} (bulk=${BULK})`);
+    telemetry.trackEvent('REGION_ORDERS_OTHERS_TICK', { count: String(others.length), bulk: String(BULK) });
 
     const queue = others.slice();
     let success = 0, failed = 0;
+    const bulkFiles = [];
 
     async function worker(id) {
         while (queue.length) {
@@ -43,8 +46,13 @@ module.exports = async function (context, myTimer) {
                 } else {
                     context.log(`[W${id}] Generating region ${regionId} (${decision.reason})`);
                     const snapshot = await generateBestQuotesForRegion(regionId, (msg) => context.log(`[W${id}] ${msg}`));
-                    const res = await upsertRegionSnapshot(regionId, snapshot, `chore(region-orders): region ${regionId} (${decision.reason})`);
-                    context.log(`[W${id}] Committed ${regionId}: ${JSON.stringify(res)}`);
+                    const content = JSON.stringify(snapshot);
+                    if (BULK) {
+                        bulkFiles.push({ path: `region_orders/${regionId}.json`, content });
+                    } else {
+                        const res = await upsertRegionSnapshot(regionId, snapshot, `chore(region-orders): region ${regionId} (${decision.reason})`);
+                        context.log(`[W${id}] Committed ${regionId}: ${JSON.stringify(res)}`);
+                    }
                     success++;
                 }
             } catch (e) {
@@ -59,6 +67,22 @@ module.exports = async function (context, myTimer) {
     const workers = Array.from({ length: Math.min(REGION_CONCURRENCY, others.length) }, (_, i) => worker(i + 1));
     await Promise.all(workers);
 
-    context.log(`region_orders_others done. success=${success} failed=${failed}`);
-    telemetry.trackEvent('REGION_ORDERS_OTHERS_DONE', { success: String(success), failed: String(failed) });
+    if (BULK) {
+        try {
+            if (bulkFiles.length === 0) {
+                context.log('Bulk mode: nothing to write (no regions regenerated)');
+            } else {
+                context.log(`Bulk mode: replacing ${bulkFiles.length} snapshot files with single squash commit`);
+                const res = await bulkReplaceDataFiles(bulkFiles, 'data(region-orders): bulk squash snapshots');
+                context.log('Bulk replace result:', JSON.stringify(res));
+                telemetry.trackEvent('REGION_ORDERS_BULK_SQUASH', { files: String(bulkFiles.length) });
+            }
+        } catch (e) {
+            context.log.error('Bulk squash failed:', e.message);
+            telemetry.trackException(e, { area: 'region_orders_others', step: 'bulkReplace' });
+        }
+    }
+
+    context.log(`region_orders_others done. success=${success} failed=${failed} bulk=${BULK}`);
+    telemetry.trackEvent('REGION_ORDERS_OTHERS_DONE', { success: String(success), failed: String(failed), bulk: String(BULK) });
 };

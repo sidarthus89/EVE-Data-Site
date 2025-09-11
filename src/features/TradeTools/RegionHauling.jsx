@@ -39,6 +39,9 @@ export default function RegionHauling() {
     const [regionsData, setRegionsData] = useState(null);
     const [marketTree, setMarketTree] = useState(null);
     const [loading, setLoading] = useState(false);
+    // Simulated search progress percentage (0-100) for UX feedback
+    const [searchProgress, setSearchProgress] = useState(0);
+    const progressTimerRef = React.useRef(null);
     const [results, setResults] = useState([]);
     const [error, setError] = useState(null);
     const [usingFallback, setUsingFallback] = useState(false);
@@ -550,6 +553,7 @@ export default function RegionHauling() {
         setResults([]);
         setCurrentPage(1);
         setLoading(true);
+        setSearchProgress(0);
         setError(null);
         setShowResults(false);
 
@@ -587,6 +591,7 @@ export default function RegionHauling() {
     const handleRefresh = async () => {
         if (loading || !formData.fromRegion?.regionID || !formData.toRegion?.regionID) return;
         setLoading(true);
+        setSearchProgress(0);
         setError(null);
         try {
             const fromRegionId = Number(formData.fromRegion.regionID);
@@ -695,6 +700,35 @@ export default function RegionHauling() {
         const seconds = Math.floor((diffMs % 60000) / 1000);
         return `${minutes}m ${seconds}s`;
     };
+
+    // Simulated progress animation while loading
+    useEffect(() => {
+        if (loading) {
+            const start = Date.now();
+            const EST_MS = 4000; // heuristic duration
+            if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+            progressTimerRef.current = setInterval(() => {
+                const elapsed = Date.now() - start;
+                const f = Math.min(0.999, elapsed / EST_MS);
+                // Ease-out curve for nicer feel
+                const eased = 1 - Math.pow(1 - f, 1.8);
+                const pct = Math.min(99, Math.max(0, Math.round(eased * 100)));
+                setSearchProgress(p => (pct > p ? pct : p));
+            }, 120);
+        } else {
+            if (progressTimerRef.current) {
+                clearInterval(progressTimerRef.current);
+                progressTimerRef.current = null;
+            }
+            // Snap to 100% shortly after completion if any progress occurred
+            setSearchProgress(p => (p > 0 && p < 100 ? 100 : p));
+            // Reset back to 0 after a short delay to clean the button label
+            if (searchProgress > 0) {
+                const t = setTimeout(() => setSearchProgress(0), 1200);
+                return () => clearTimeout(t);
+            }
+        }
+    }, [loading]);
 
     if (!regionsData) {
         return (
@@ -834,7 +868,7 @@ export default function RegionHauling() {
                                         disabled={loading || !formData.fromRegion || !formData.toRegion}
                                         className="eve-button primary-search-btn"
                                     >
-                                        {loading ? 'Searching...' : 'Find Trade Routes'}
+                                        {loading ? `Searching...${searchProgress}%` : 'Find Trade Routes'}
                                     </button>
                                     {refreshAvailable && showResults && (
                                         <button
@@ -844,7 +878,7 @@ export default function RegionHauling() {
                                             className="eve-button refresh-btn"
                                             title="New data is available. Click to refresh results."
                                         >
-                                            {loading ? 'Refreshing…' : 'New Data Available – Refresh'}
+                                            {loading ? `Refreshing…${searchProgress}%` : 'New Data Available – Refresh'}
                                         </button>
                                     )}
                                 </div>
@@ -921,7 +955,12 @@ export default function RegionHauling() {
 
                                             return (
                                                 <tr key={startIndex + index}>
-                                                    <td style={cellStyle('Item')} title={item}>{item}</td>
+                                                    <td
+                                                        style={cellStyle('Item')}
+                                                        className="clickable-location"
+                                                        title={`Copy: ${item}`}
+                                                        onClick={() => copyToClipboard(item)}
+                                                    >{item}</td>
                                                     <td
                                                         style={cellStyle('From')}
                                                         className="clickable-location"
@@ -932,7 +971,7 @@ export default function RegionHauling() {
                                                             {fromStation.name}
                                                         </span>
                                                     </td>
-                                                    <td style={cellStyle('Quantity')}>{formatNum(quantity, 0)}</td>
+                                                    <td style={{ ...cellStyle('Quantity'), textAlign: 'left' }}>{formatNum(quantity, 0)}</td>
                                                     <td style={cellStyle('Buy Price')}>{formatNum(buyPrice, 2)}</td>
                                                     <td style={cellStyle('Total Buy Price')}>{formatNum(totalBuyPrice, 2)}</td>
                                                     <td
@@ -947,7 +986,7 @@ export default function RegionHauling() {
                                                     </td>
                                                     <td style={cellStyle('Sell Price')}>{formatNum(sellPrice, 2)}</td>
                                                     <td style={cellStyle('Net Profit')}>{formatNum(totalProfit, 2)}</td>
-                                                    <td style={cellStyle('Jumps')}>{jumps}</td>
+                                                    <td style={{ ...cellStyle('Jumps'), textAlign: 'left' }}>{jumps}</td>
                                                     <td style={cellStyle('Profit per Jump')}>
                                                         {profitPerJump != null ? formatNum(profitPerJump, 2) : '—'}
                                                     </td>
@@ -999,7 +1038,14 @@ export default function RegionHauling() {
                 <button
                     type="button"
                     className="eve-button return-to-top-btn no-notch"
-                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    onClick={() => {
+                        const container = document.querySelector('.region-hauling');
+                        if (container) {
+                            container.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    }}
                     aria-label="Return to top"
                 >
                     Top

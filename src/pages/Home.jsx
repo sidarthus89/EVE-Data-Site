@@ -13,23 +13,23 @@ export default function Home() {
         <section className="home" style={scrollAreaStyle}>
             <h1>Full Market</h1>
             <p>
-                This featue is just like the in game market feature, but with some perks. Like:
+                This feature is just like the in game market feature, but with some perks. Like:
             </p>
             <ul>
-                <li>The ability to serach all regions at once.</li>
+                <li>The ability to search all regions at once.</li>
                 <li>Markt distribution charts (supply and demand).</li>
-                <li>Average prciing for items.</li>
-                <li>Outlifer filtering via Interquartile Ranges.</li>
-                <li>You can click on a station locaiton and it will copy it to your clipload.</li>
+                <li>Average pricing for items.</li>
+                <li>Outlier filtering via Interquartile Ranges.</li>
+                <li>You can click on a station location and it will copy it to your clipboard.</li>
                 <li>Savable/Shareable Link to items.</li>
-                <li>Add to quickbar from the item marekt view.</li>
+                <li>Add to quickbar from the item market view.</li>
                 <li>PLEX ticker for universe wide market high, low and average.</li>
                 <li>Sort and filter by Security Level, Region, NPC/Player locations.</li>
             </ul>
 
             <h1>Region to Region Trading</h1>
             <p>
-                This has been my attempt at recreating EveTrade's setup. It allows you to set critera fr a trade route between two regions and helps you figure out the best trade combos to make to make a profit.
+                This has been my attempt at recreating EveTrade's setup. It allows you to set criteria for a trade route between two regions and helps you figure out the best trade combos to make to make a profit.
             </p>
             <ul>
                 <li>Orders update every 10 minutes</li>
@@ -39,13 +39,12 @@ export default function Home() {
 
             <h1>Known Issues (As of: 9/10/2025)</h1>
             <ul>
-                <li>Region hualing has some jump range calculation bugs right now.</li>
+                <li>Region hauling has some jump range calculation bugs right now.</li>
                 <li>Shareable link to item on market not working</li>
                 <li>Player structure names might be incorrect or missing in areas.</li>
             </ul>
 
         </section>
-
 
     );
 }

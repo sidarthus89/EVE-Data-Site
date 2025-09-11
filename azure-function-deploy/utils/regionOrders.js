@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const { upsertDataToAll } = require('./github');
+const { upsertDataToAll, bulkReplaceDataFiles } = require('./github');
 
 const ESI_BASE = process.env.ESI_BASE || 'https://esi.evetech.net/latest';
 const REGION_CONCURRENCY = Math.max(1, Number(process.env.REGION_CONCURRENCY || 2));

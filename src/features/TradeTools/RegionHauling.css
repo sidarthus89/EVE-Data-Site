@@ -593,20 +593,26 @@ select.form-control {
     background: transparent;
 }
 
-.col-resizer:hover {
-    background: rgba(255, 255, 255, 0.1);
+/* Center ROI only; left-align quantity & jumps handled inline */
+.results-table td:nth-child(9),
+/* Jumps */
+.results-table td:nth-child(12) {
+    /* ROI */
+    text-align: center;
+    font-weight: 500;
 }
 
-/* Allow wrapping for Item, From and To columns */
-.results-table td:nth-child(1),
-/* Item */
-.results-table td:nth-child(2),
-/* From */
 .results-table td:nth-child(6)
 
 /* To */
     {
     white-space: normal;
+
+    /* Item clickable inherits clickable-location */
+    .results-table td:nth-child(1).clickable-location {
+        cursor: pointer;
+    }
+
     overflow: visible;
     text-overflow: clip;
     line-height: 1.2;

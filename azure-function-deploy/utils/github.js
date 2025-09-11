@@ -2,7 +2,10 @@ const fetch = require('node-fetch');
 
 const OWNER = process.env.GITHUB_OWNER || 'sidarthus89';
 const REPO = process.env.GITHUB_REPO || 'EVE-Data-Site';
+// Primary code branch
 const BRANCH = process.env.GITHUB_BRANCH || 'main';
+// Data (Pages) branch – we ensure it's always targeted in parseTargets so snapshots are published.
+const BRANCH_DATA = process.env.GITHUB_BRANCH_DATA || 'gh-pages';
 const TOKEN = process.env.GITHUB_TOKEN;
 const API_BASE = process.env.GITHUB_API_BASE || 'https://api.github.com';
 const GLOBAL_DATA_PREFIX = (process.env.GITHUB_DATA_PREFIX || '').replace(/\/$/, '');
@@ -89,20 +92,27 @@ async function upsertFileIfChanged(path, content, message, { owner = OWNER, repo
 function parseTargets() {
   const list = (process.env.GITHUB_REPOS || '').split(',').map(s => s.trim()).filter(Boolean);
   const branches = (process.env.GITHUB_BRANCHES || '').split(',').map(s => s.trim()).filter(Boolean);
+  let targets;
   if (!list.length) {
-    return [{ owner: OWNER, repo: REPO, branch: BRANCH }];
+    targets = [{ owner: OWNER, repo: REPO, branch: BRANCH }];
+  } else {
+    targets = list.map((entry, idx) => {
+      let owner = OWNER;
+      let repo = entry;
+      if (entry.includes('/')) {
+        const [o, r] = entry.split('/');
+        owner = o || OWNER;
+        repo = r;
+      }
+      const branch = branches[idx] || BRANCH;
+      return { owner, repo, branch };
+    });
   }
-  return list.map((entry, idx) => {
-    let owner = OWNER;
-    let repo = entry;
-    if (entry.includes('/')) {
-      const [o, r] = entry.split('/');
-      owner = o || OWNER;
-      repo = r;
-    }
-    const branch = branches[idx] || BRANCH;
-    return { owner, repo, branch };
-  });
+  // Always include data branch if distinct and not already present
+  if (BRANCH_DATA && !targets.some(t => t.branch === BRANCH_DATA)) {
+    targets.push({ owner: OWNER, repo: REPO, branch: BRANCH_DATA });
+  }
+  return targets;
 }
 
 async function upsertToAll(path, content, message) {
@@ -143,4 +153,83 @@ async function upsertDataToAll(relativePath, content, message) {
   return results;
 }
 
-module.exports = { upsertFile, upsertToAll, upsertDataToAll };
+// -------------------------
+// Bulk squash replacement (force keeps branch at single commit)
+// Controlled via env GITHUB_DATA_BULK_SQUASH=1 (callers decide to use bulkReplaceDataFiles)
+// -------------------------
+
+async function ghRequest(method, url, body) {
+  if (!TOKEN) throw new Error('missing-token');
+  const res = await fetch(url, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${TOKEN}`,
+      'Accept': 'application/vnd.github+json',
+      'User-Agent': 'EVE-Data-Site-AzureFunction',
+      'Content-Type': 'application/json'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`${method} ${url} failed: ${res.status} ${res.statusText} ${txt}`);
+  }
+  return res.json();
+}
+
+async function createBlob(owner, repo, content) {
+  const url = `${API_BASE}/repos/${owner}/${repo}/git/blobs`;
+  return ghRequest('POST', url, { content, encoding: 'utf-8' });
+}
+
+async function createTree(owner, repo, entries) {
+  const url = `${API_BASE}/repos/${owner}/${repo}/git/trees`;
+  return ghRequest('POST', url, { tree: entries });
+}
+
+async function createCommit(owner, repo, message, treeSha) {
+  const url = `${API_BASE}/repos/${owner}/${repo}/git/commits`;
+  // Root commit (no parents) so we can force reset branch each time
+  return ghRequest('POST', url, { message, tree: treeSha, parents: [] });
+}
+
+async function updateRefForce(owner, repo, branch, sha) {
+  const url = `${API_BASE}/repos/${owner}/${repo}/git/refs/heads/${encodeURIComponent(branch)}`;
+  return ghRequest('PATCH', url, { sha, force: true });
+}
+
+async function bulkReplaceDataFiles(relativeFiles, message) {
+  const targets = parseTargets();
+  const results = [];
+  for (const t of targets) {
+    try {
+      if (!TOKEN) {
+        results.push({ ...t, ok: false, error: 'missing-token' });
+        continue;
+      }
+      const prefix = dataPrefixForTarget(t);
+      // Create blobs
+      const treeEntries = [];
+      for (const f of relativeFiles) {
+        // eslint-disable-next-line no-await-in-loop
+        const blob = await createBlob(t.owner, t.repo, f.content);
+        treeEntries.push({ path: `${prefix}/${f.path}`.replace(/\\/g, '/'), mode: '100644', type: 'blob', sha: blob.sha });
+      }
+      // Create tree
+      // eslint-disable-next-line no-await-in-loop
+      const tree = await createTree(t.owner, t.repo, treeEntries);
+      // Create commit (root, no parents)
+      // eslint-disable-next-line no-await-in-loop
+      const commit = await createCommit(t.owner, t.repo, message || 'bulk(data): replace snapshots', tree.sha);
+      // Force update ref
+      // eslint-disable-next-line no-await-in-loop
+      await updateRefForce(t.owner, t.repo, t.branch, commit.sha);
+      results.push({ ...t, ok: true, commit: commit.sha, files: relativeFiles.length, mode: 'squash' });
+    } catch (e) {
+      results.push({ ...t, ok: false, error: e.message, mode: 'squash' });
+    }
+  }
+  return results;
+}
+
+module.exports = { upsertFile, upsertToAll, upsertDataToAll, bulkReplaceDataFiles };

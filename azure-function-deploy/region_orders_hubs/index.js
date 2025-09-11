@@ -16,6 +16,12 @@ function getHubRegions() {
 
 module.exports = async function (context, myTimer) {
     telemetry.init();
+    const BULK = process.env.GITHUB_DATA_BULK_SQUASH === '1';
+    if (BULK) {
+        context.log('region_orders_hubs: bulk squash mode active; skipping (handled by others function)');
+        telemetry.trackEvent('REGION_ORDERS_HUBS_SKIPPED_BULK');
+        return;
+    }
     const hubs = getHubRegions();
     context.log(`region_orders_hubs tick: processing ${hubs.length} hubs with concurrency ${REGION_CONCURRENCY}`);
     telemetry.trackEvent('REGION_ORDERS_HUBS_TICK', { count: String(hubs.length) });
