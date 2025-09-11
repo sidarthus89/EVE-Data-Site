@@ -51,6 +51,9 @@ export default function RegionHauling() {
     const [formCollapsed, setFormCollapsed] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: 'Net Profit', direction: 'desc' });
     const [showResults, setShowResults] = useState(false);
+    // Dev-only toggle to allow global region scan
+    const SHOW_SEARCH_ALL_REGIONS = import.meta.env?.DEV === true;
+    const [searchAllRegions, setSearchAllRegions] = useState(false);
     // Timer state for "Time Since Last Update" based on GitHub data commits
     const [lastResultsAt, setLastResultsAt] = useState(null);
     const [nowTick, setNowTick] = useState(Date.now());
@@ -92,6 +95,15 @@ export default function RegionHauling() {
         'ROI',
         'Total Capacity (m³)'
     ];
+
+    // Compute total table width so resizing one column doesn't compress others
+    const totalTableWidth = useMemo(() => {
+        try {
+            return HEADER_ORDER.reduce((sum, key) => sum + (Number(colWidths[key]) || 120), 0);
+        } catch {
+            return 1400; // fallback
+        }
+    }, [colWidths]);
 
     const startResize = (key, startX, startWidth) => {
         const onMove = (e) => {
@@ -609,6 +621,43 @@ export default function RegionHauling() {
         }
     };
 
+    // Helper: Scan all region pairs for best routes when no specific regions are selected
+    // NOTE: This can be heavy. It is dev-only by default. Adjust MAX_PAIRS to cap workload.
+    const fetchBestRoutesAcrossAllRegions = async (formData) => {
+        if (!regions || regions.length === 0) throw new Error('Regions not loaded');
+
+        // Build pairs list (from != to)
+        const ids = regions.map(r => Number(r.regionID)).filter(n => Number.isFinite(n));
+        const pairs = [];
+        for (let i = 0; i < ids.length; i++) {
+            for (let j = 0; j < ids.length; j++) {
+                if (i === j) continue;
+                pairs.push([ids[i], ids[j]]);
+            }
+        }
+
+        // Safety cap to avoid overwhelming client/network; increase if needed in dev
+        const MAX_PAIRS = 200; // tweak for heavier scans
+        const work = pairs.slice(0, MAX_PAIRS);
+
+        const allResults = [];
+        const total = work.length;
+        for (let idx = 0; idx < work.length; idx++) {
+            const [fromId, toId] = work[idx];
+            try {
+                // Reuse the same pipeline
+                const data = await fetchAndProcessMarketOrders(fromId, toId, formData);
+                if (Array.isArray(data) && data.length > 0) allResults.push(...data);
+            } catch {
+                // continue on errors
+            }
+            // Overall progress for multi-region scan
+            const pct = Math.round(((idx + 1) / total) * 100);
+            setSearchProgress(pct);
+        }
+        return allResults;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setResults([]);
@@ -618,6 +667,27 @@ export default function RegionHauling() {
         setError(null);
         setShowResults(false);
 
+        // Branch: Dev-only global scan when both regions are unselected and toggle is on
+        if (SHOW_SEARCH_ALL_REGIONS && searchAllRegions && !formData.fromRegion?.regionID && !formData.toRegion?.regionID) {
+            try {
+                const transformedData = await fetchBestRoutesAcrossAllRegions(formData);
+                if (transformedData.length > 0) {
+                    setResults(transformedData);
+                    setUsingFallback(transformedData.some(r => r._rawData && r._rawData._fallback));
+                    setShowResults(true);
+                    if (lastResultsAt) setSearchCommitAt(lastResultsAt);
+                } else {
+                    setError('No profitable trades found across regions for the selected criteria.');
+                }
+            } catch (err) {
+                setError(err.message || 'Failed to scan across regions.');
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
+
+        // Normal validation path
         if (!formData.fromRegion?.regionID || !formData.toRegion?.regionID) {
             setError('Please select both source and destination regions');
             setLoading(false);
@@ -903,9 +973,26 @@ export default function RegionHauling() {
                         <div className="form-actions">
                             <div className="primary-actions">
                                 <div className="buttons-row">
+                                    {SHOW_SEARCH_ALL_REGIONS && (
+                                        // Dev-only UI: toggle for scanning all regions when both are unselected
+                                        <label className="form-check" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={searchAllRegions}
+                                                onChange={(e) => setSearchAllRegions(e.target.checked)}
+                                                title="Scan all regions for best routes when no regions are selected"
+                                            />
+                                            <span>Search All Regions</span>
+                                        </label>
+                                    )}
                                     <button
                                         type="submit"
-                                        disabled={loading || !formData.fromRegion || !formData.toRegion}
+                                        disabled={
+                                            loading || (
+                                                // In dev with Search All Regions enabled, allow submit with no regions selected
+                                                !(SHOW_SEARCH_ALL_REGIONS && searchAllRegions) && (!formData.fromRegion || !formData.toRegion)
+                                            )
+                                        }
                                         className="eve-button primary-search-btn"
                                     >
                                         {loading ? `Searching...${searchProgress}%` : 'Find Trade Routes'}
@@ -947,7 +1034,7 @@ export default function RegionHauling() {
                             </button>
                         </div>
                         <div className="results-table-container">
-                            <table className="results-table wide-table" style={{ tableLayout: 'fixed' }}>
+                            <table className="results-table wide-table" style={{ tableLayout: 'fixed', width: totalTableWidth + 'px', minWidth: totalTableWidth + 'px' }}>
                                 {/* generate cols from colWidths so default widths apply */}
                                 <colgroup>
                                     {HEADER_ORDER.map(key => (
@@ -1045,11 +1132,6 @@ export default function RegionHauling() {
                                     })()}
                                 </tbody>
                             </table>
-                            {usingFallback && (
-                                <div className="fallback-banner" title="Routes derived from raw snapshots (no precomputed hauling cache)">
-                                    Using snapshot-derived fallback routing data.
-                                </div>
-                            )}
                         </div>
                         {/* Pagination */}
                         {sortedResults.length > itemsPerPage && (
@@ -1094,7 +1176,7 @@ export default function RegionHauling() {
                     }}
                     aria-label="Return to top"
                 >
-                    Top
+                    ^
                 </button>
             </div>
         </div>

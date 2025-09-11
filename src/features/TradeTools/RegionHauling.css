@@ -514,6 +514,17 @@ select.form-control {
     border-right: none;
 }
 
+/* Add outer left/right borders to match inner grid lines */
+.results-table thead tr th:first-child,
+.results-table tbody tr td:first-child {
+    border-left: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.results-table thead tr th:last-child,
+.results-table tbody tr td:last-child {
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+}
+
 /* adjust clickable item cursor */
 .clickable-location {
     cursor: pointer;
@@ -610,6 +621,11 @@ select.form-control {
     height: 100%;
     cursor: col-resize;
     background: transparent;
+}
+
+.col-resizer:hover,
+.col-resizer:active {
+    background: rgba(255, 255, 255, 0.12);
 }
 
 /* Center ROI only; left-align quantity & jumps handled inline */
