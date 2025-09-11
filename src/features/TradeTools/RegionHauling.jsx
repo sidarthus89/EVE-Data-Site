@@ -409,6 +409,23 @@ export default function RegionHauling() {
         // Drop rows that end up with zero quantity after budget/capacity limits
         finalTrades = finalTrades.filter(t => (Number(t['Quantity']) || 0) > 0);
 
+        // Apply sales tax to profits (default 7.5% if not set)
+        const salesTax = typeof formData.salesTax === 'number' ? formData.salesTax : 7.5;
+        finalTrades = finalTrades.map(t => {
+            // Sales tax is applied to the sell price (revenue), not buy price
+            // Net profit after tax: profit - (salesTax% * sellPrice * quantity / 100)
+            const qty = Number(t['Quantity']) || 0;
+            const sellPrice = Number(t['Sell Price']) || 0;
+            const grossProfit = Number(t['Total Profit']) || 0;
+            const taxAmount = (salesTax / 100) * sellPrice * qty;
+            const netProfit = grossProfit - taxAmount;
+            return {
+                ...t,
+                'Total Profit': netProfit,
+                'Net Profit': netProfit // for sorting
+            };
+        });
+
         // Re-apply Budget / Min Profit / ROI filters using computed quantities
         const minProfitFilter = parseFloat(formData.minProfit || '0');
         const minRoiFilter = parseFloat(formData.minROI || '0');
@@ -426,6 +443,7 @@ export default function RegionHauling() {
             const meetsRoi = roiPct >= minRoiFilter;
             return meetsBudget && meetsProfit && meetsRoi;
         });
+
         // Security filter
         if (formData.securityStatus && formData.securityStatus !== 'any') {
             const isHigh = s => typeof s === 'number' && s >= 0.5;
@@ -441,16 +459,24 @@ export default function RegionHauling() {
                 return true;
             });
         }
+
         // Structure type filter (NPC vs Player)
         if (formData.structureType && formData.structureType !== 'all') {
             finalTrades = finalTrades.filter(t => {
                 const oNpc = t.From?.isNPC === true;
                 const dNpc = t.To?.isNPC === true;
-                if (formData.structureType === 'avoid-player') return oNpc && dNpc; // keep only NPC
-                if (formData.structureType === 'avoid-npc') return !oNpc && !dNpc; // keep only player
+                if (formData.structureType === 'avoid-player') {
+                    // Only NPC stations: at least one endpoint must be NPC
+                    return oNpc || dNpc;
+                }
+                if (formData.structureType === 'avoid-npc') {
+                    // Only player structures: both endpoints must be player
+                    return !oNpc && !dNpc;
+                }
                 return true;
             });
         }
+
         // Max jumps filter
         if (formData.maxJumps) {
             const maxJumps = Number(formData.maxJumps);
@@ -904,7 +930,13 @@ export default function RegionHauling() {
                             </button>
                         </div>
                         <div className="results-table-container">
-                            <table className="results-table wide-table">
+                            <table className="results-table wide-table" style={{ tableLayout: 'fixed' }}>
+                                {/* generate cols from colWidths so default widths apply */}
+                                <colgroup>
+                                    {Object.keys(colWidths).map(key => (
+                                        <col key={key} style={{ width: `${colWidths[key]}px`, minWidth: `${colWidths[key]}px` }} />
+                                    ))}
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <HeaderCell label="Item" />

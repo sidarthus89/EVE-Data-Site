@@ -485,12 +485,38 @@ select.form-control {
 }
 
 .results-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: rgba(30, 30, 40, 0.8);
-    border-radius: 4px;
-    overflow: hidden;
     table-layout: fixed;
+    /* required for col/colgroup widths to be honored */
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* wrap long text inside cells */
+.wrap-cell,
+.results-table td,
+.results-table th {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+/* vertical cell outlines to match horizontal lines */
+.results-table th,
+.results-table td {
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 8px 10px;
+}
+
+/* optionally remove right border from last cell for cleaner look */
+.results-table tr th:last-child,
+.results-table tr td:last-child {
+    border-right: none;
+}
+
+/* adjust clickable item cursor */
+.clickable-location {
+    cursor: pointer;
 }
 
 .results-table.wide-table {
