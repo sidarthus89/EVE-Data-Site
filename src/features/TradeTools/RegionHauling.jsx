@@ -73,7 +73,7 @@ export default function RegionHauling() {
         'Profit per Jump': 150,
         'Profit Per Item': 130,
         'ROI': 100,
-        'Total Volume (m³)': 120,
+        'Total Capacity (m³)': 120,
     });
 
     const startResize = (key, startX, startWidth) => {
@@ -296,8 +296,8 @@ export default function RegionHauling() {
                     maxUnits = Math.min(maxUnits, budgetLimitedUnits);
                 }
             }
-            // Compute total volume
-            const totalVolume = Math.floor((maxUnits || 0) * (itemDetails.volume || 0));
+            // Compute total capacity utilized (was Total Volume): quantity * item volume
+            const totalCapacity = Math.floor((maxUnits || 0) * (itemDetails.volume || 0));
 
             // Use enhanced data directly from the API if available
             // If not, fall back to local lookup methods
@@ -385,7 +385,7 @@ export default function RegionHauling() {
                 'Profit Per Unit': trade.profit_per_unit || 0,
                 'Profit Percentage': trade.profit_margin || 0,
                 'Quantity': maxUnits,
-                'Total Volume (m3)': totalVolume,
+                'Total Capacity (m3)': totalCapacity,
                 'Item Volume': trade.volume || itemDetails.volume,
                 'Jumps': jumps,
                 'Profit per Jump': profitPerJump,
@@ -659,7 +659,7 @@ export default function RegionHauling() {
                     case 'Profit per Jump': return typeof item.Jumps === 'number' && item['Total Profit'] ? item['Total Profit'] / item.Jumps : 0;
                     case 'Profit Per Item': return item['Profit Per Unit'] || 0;
                     case 'ROI': return item['Profit Percentage'] || 0;
-                    case 'Total Volume (m³)': return item['Total Volume (m3)'] || 0;
+                    case 'Total Capacity (m³)': return item['Total Capacity (m3)'] || 0;
                     default: return item[key] || '';
                 }
             };
@@ -919,7 +919,7 @@ export default function RegionHauling() {
                                         <HeaderCell label="Profit per Jump" />
                                         <HeaderCell label="Profit Per Item" />
                                         <HeaderCell label="ROI" />
-                                        <HeaderCell label="Total Volume (m³)" />
+                                        <HeaderCell label="Total Capacity (m³)" />
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -943,7 +943,7 @@ export default function RegionHauling() {
                                             const profitPerJump = result['Profit per Jump'];
                                             const profitPerItem = result['Profit Per Unit'] || 0;
                                             const roi = result['Profit Percentage'] || 0;
-                                            const totalVolume = result['Total Volume (m3)'] || 0;
+                                            const totalCapacity = result['Total Capacity (m3)'] || 0;
 
                                             const originSecurity = fromStation.security;
                                             const destinationSecurity = toStation.security;
@@ -953,14 +953,14 @@ export default function RegionHauling() {
                                             return (
                                                 <tr key={startIndex + index}>
                                                     <td
-                                                        style={cellStyle('Item')}
-                                                        className="clickable-location"
+                                                        style={{ ...cellStyle('Item'), whiteSpace: 'normal', overflow: 'visible' }}
+                                                        className="clickable-location wrap-cell"
                                                         title={`Copy: ${item}`}
                                                         onClick={() => copyToClipboard(item)}
                                                     >{item}</td>
                                                     <td
-                                                        style={cellStyle('From')}
-                                                        className="clickable-location"
+                                                        style={{ ...cellStyle('From'), whiteSpace: 'normal', overflow: 'visible' }}
+                                                        className="clickable-location wrap-cell"
                                                         onClick={() => copyToClipboard(fromStation.name)}
                                                         title={`Copy: ${fromStation.name}`}
                                                     >
@@ -972,8 +972,8 @@ export default function RegionHauling() {
                                                     <td style={cellStyle('Buy Price')}>{formatNum(buyPrice, 2)}</td>
                                                     <td style={cellStyle('Total Buy Price')}>{formatNum(totalBuyPrice, 2)}</td>
                                                     <td
-                                                        style={cellStyle('To')}
-                                                        className="clickable-location"
+                                                        style={{ ...cellStyle('To'), whiteSpace: 'normal', overflow: 'visible' }}
+                                                        className="clickable-location wrap-cell"
                                                         onClick={() => copyToClipboard(toStation.name)}
                                                         title={`Copy: ${toStation.name}`}
                                                     >
@@ -989,7 +989,7 @@ export default function RegionHauling() {
                                                     </td>
                                                     <td style={cellStyle('Profit Per Item')}>{formatNum(profitPerItem, 2)}</td>
                                                     <td style={cellStyle('ROI')}>{formatNum(roi, 2)}%</td>
-                                                    <td style={cellStyle('Total Volume (m³)')}>{formatNum(totalVolume, 0)}</td>
+                                                    <td style={cellStyle('Total Capacity (m³)')}>{formatNum(totalCapacity, 0)}</td>
                                                 </tr>
                                             );
                                         });

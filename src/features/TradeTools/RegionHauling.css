@@ -522,6 +522,13 @@ select.form-control {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    border-right: 1px solid #333;
+    /* vertical grid lines */
+}
+
+/* Remove right border on last cell */
+.results-table tr td:last-child {
+    border-right: none;
 }
 
 .results-table tbody tr:hover {
@@ -602,20 +609,19 @@ select.form-control {
     font-weight: 500;
 }
 
-.results-table td:nth-child(6)
-
-/* To */
-    {
+/* Allow wrapping for Item, From, To columns (1,2,6) */
+.results-table td:nth-child(1),
+.results-table td:nth-child(2),
+.results-table td:nth-child(6) {
     white-space: normal;
-
-    /* Item clickable inherits clickable-location */
-    .results-table td:nth-child(1).clickable-location {
-        cursor: pointer;
-    }
-
     overflow: visible;
     text-overflow: clip;
     line-height: 1.2;
+}
+
+/* Add a subtle fade removal for wrapped clickable cells */
+.results-table td.wrap-cell {
+    text-overflow: unset;
 }
 
 /* Return to Top Button */
