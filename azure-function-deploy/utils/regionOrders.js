@@ -4,6 +4,9 @@ const { upsertDataToAll, bulkReplaceDataFiles } = require('./github');
 const ESI_BASE = process.env.ESI_BASE || 'https://esi.evetech.net/latest';
 const REGION_CONCURRENCY = Math.max(1, Number(process.env.REGION_CONCURRENCY || 2));
 const PAGE_CONCURRENCY = Math.max(1, Number(process.env.PAGE_CONCURRENCY || 2));
+const ITEM_UPSERT_CONCURRENCY = Math.max(1, Number(process.env.ITEM_UPSERT_CONCURRENCY || 4));
+const ITEM_UPSERT_THROTTLE_MS = Math.max(0, Number(process.env.ITEM_UPSERT_THROTTLE_MS || 20));
+const ENABLE_REGION_ITEM_SPLIT = String(process.env.ENABLE_REGION_ITEM_SPLIT || '1') === '1';
 const GH_RAW_OWNER = process.env.GITHUB_OWNER || 'sidarthus89';
 const GH_RAW_REPO = process.env.GITHUB_REPO || 'EVE-Data-Site';
 const GH_DATA_BRANCH = process.env.GITHUB_BRANCH_DATA || 'gh-pages';
@@ -129,6 +132,44 @@ async function upsertRegionSnapshot(regionId, snapshot, message) {
     return upsertDataToAll(path, content, message || `chore(region-orders): update ${regionId}.json`);
 }
 
+// Emit per-(region,type) minimal JSON files alongside the region snapshot.
+// Writes to data/region_item/{regionId}_{typeId}.json
+async function upsertRegionItems(regionId, snapshot, baseMessage) {
+    if (!ENABLE_REGION_ITEM_SPLIT) return { skipped: true, reason: 'disabled' };
+    const best = snapshot && snapshot.best_quotes ? snapshot.best_quotes : {};
+    const typeIds = Object.keys(best);
+    if (!typeIds.length) return { written: 0 };
+
+    let idx = 0, written = 0, skipped = 0, failed = 0;
+    async function worker() {
+        while (idx < typeIds.length) {
+            const i = idx++;
+            const t = typeIds[i];
+            try {
+                const entry = best[t] || {};
+                const payload = {
+                    region_id: Number(regionId),
+                    type_id: Number(t),
+                    last_updated: snapshot.last_updated,
+                    best_buy: entry.best_buy || null,
+                    best_sell: entry.best_sell || null,
+                };
+                const path = `region_item/${regionId}_${t}.json`;
+                // Use upsertDataToAll with change detection via upsertFileIfChanged under the hood
+                // Commit message is concise to avoid hitting limits
+                const res = await upsertDataToAll(path, JSON.stringify(payload), baseMessage || `data(region-item): ${regionId}_${t}.json`);
+                // Mark written if at least one target wasn't skipped
+                if (Array.isArray(res) && res.some(r => !(r.res && r.res.skipped))) written++;
+                else skipped++;
+            } catch (_) { failed++; }
+            if (ITEM_UPSERT_THROTTLE_MS) await sleep(ITEM_UPSERT_THROTTLE_MS);
+        }
+    }
+    const workers = Array.from({ length: Math.min(ITEM_UPSERT_CONCURRENCY, typeIds.length) }, () => worker());
+    await Promise.all(workers);
+    return { written, skipped, failed, total: typeIds.length };
+}
+
 async function listAllRegionIds() {
     const url = buildUrl('/universe/regions/');
     const res = await fetchJson(url);
@@ -168,6 +209,7 @@ module.exports = {
     PAGE_CONCURRENCY,
     generateBestQuotesForRegion,
     upsertRegionSnapshot,
+    upsertRegionItems,
     listAllRegionIds,
     getRegionSnapshotInfo,
     shouldGenerateRegionSnapshot,

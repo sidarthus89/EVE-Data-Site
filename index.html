@@ -39,9 +39,43 @@
       var repo = parts.length ? parts[0] : '';
       // Only proceed if we're at the repo root (e.g., /<repo>/)
       var atRepoRoot = path === '/' + repo + '/' || path === '/' + repo;
-      if (repo && atRepoRoot && !window.location.search) {
-        history.replaceState(null, null, '/' + repo + redirectPath);
+      if (repo && atRepoRoot) {
+        // Preserve existing query string (e.g., ?v=version) to avoid losing cache-busting
+        var qs = window.location.search || '';
+        history.replaceState(null, null, '/' + repo + redirectPath + qs);
       }
+    })();
+  </script>
+  <!-- Cache-busting: if a new build is deployed (version.txt changes), reload with ?v=version -->
+  <script>
+    (function () {
+      function getRepoBase() {
+        var parts = window.location.pathname.split('/').filter(Boolean);
+        var repo = parts.length ? parts[0] : '';
+        return repo ? ('/' + repo + '/') : '/';
+      }
+      try {
+        // If we just came from 404.html redirect, skip one-time version reload to avoid flicker
+        var from404 = sessionStorage.getItem('spa:from404');
+        if (from404) {
+          try { sessionStorage.removeItem('spa:from404'); } catch { }
+          return;
+        }
+        var url = new URL(window.location.href);
+        var current = url.searchParams.get('v') || '';
+        // Always bypass cache for version file; ensure we hit repo root in deep links
+        var verUrl = getRepoBase() + 'version.txt?ts=' + Date.now();
+        fetch(verUrl, { cache: 'no-store' })
+          .then(function (r) { if (!r.ok) throw new Error('no version'); return r.text(); })
+          .then(function (t) {
+            var latest = (t || '').trim();
+            if (latest && latest !== current) {
+              url.searchParams.set('v', latest);
+              window.location.replace(url.toString());
+            }
+          })
+          .catch(function () { /* ignore in dev/first load */ });
+      } catch (e) { /* noop */ }
     })();
   </script>
   <!-- If a dynamic import fails due to stale chunk (HTML served as JS), do a one-time hard reload to bust cache -->

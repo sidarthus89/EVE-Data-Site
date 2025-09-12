@@ -33,7 +33,7 @@
 
 /* Provide a scroll area inside the page that accounts for the fixed footer */
 .scrollable-content {
-    padding-bottom: 72px;
+    padding-bottom: 128px;
     /* footer (32px) + breathing room for pagination */
 }
 
@@ -480,7 +480,7 @@ select.form-control {
 
 /* Results Table - Wide Layout */
 .results-table-container {
-    overflow-x: auto;
+    overflow-x: hidden;
     margin-top: 20px;
 }
 
@@ -531,12 +531,11 @@ select.form-control {
 }
 
 .results-table.wide-table {
-    min-width: 1400px;
-    /* Ensure horizontal spread */
+    width: 100%;
 }
 
 .results-table th {
-    background: rgba(50, 50, 60, 0.9);
+    background: rgba(50, 50, 60, 0.95);
     color: #e8e8e8;
     padding: 15px 12px;
     text-align: center;
@@ -544,6 +543,13 @@ select.form-control {
     font-size: 0.95rem;
     border-bottom: 2px solid #555;
     white-space: nowrap;
+    /* Sticky header row */
+    position: sticky;
+    top: 0;
+    /* stick to top of the scroll container (.region-hauling) */
+    z-index: 5;
+    /* stay above table body */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .results-table td {

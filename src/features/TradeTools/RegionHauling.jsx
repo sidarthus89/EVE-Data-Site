@@ -29,6 +29,8 @@ const INITIAL_FORM = {
     maxBudget: '',
     salesTax: 7.5, // Default to "No Skill"
     securityStatus: 'any',
+    // Multi-select security allowlist (defaults to allow all)
+    securityAllow: { high: true, low: true, nullsec: true },
     structureType: 'all',
     routePreference: 'safest',
     hideOutOfStock: false
@@ -51,9 +53,17 @@ export default function RegionHauling() {
     const [formCollapsed, setFormCollapsed] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: 'Net Profit', direction: 'desc' });
     const [showResults, setShowResults] = useState(false);
-    // Dev-only toggle to allow global region scan
-    const SHOW_SEARCH_ALL_REGIONS = import.meta.env?.DEV === true;
+    // Global scan mode flag to control progress behavior and expensive computations
+    const globalScanActive = React.useRef(false);
+    // Table container width to clamp total table width during resizing
+    const tableContainerRef = React.useRef(null);
+    const containerWidthRef = React.useRef(0);
+
+    // Experimental: Search All Regions feature
+    // Toggle this flag to show/hide the checkbox in UI (no env var required)
+    const SHOW_SEARCH_ALL_REGIONS = true;
     const [searchAllRegions, setSearchAllRegions] = useState(false);
+
     // Timer state for "Time Since Last Update" based on GitHub data commits
     const [lastResultsAt, setLastResultsAt] = useState(null);
     const [nowTick, setNowTick] = useState(Date.now());
@@ -64,18 +74,18 @@ export default function RegionHauling() {
     const unknownStructureIds = React.useRef(new Set());
     // Column widths for resizable headers (px)
     const [colWidths, setColWidths] = useState({
-        'Item': 140,
-        'From': 240,
+        'Item': 94,
+        'From': 130,
         'Quantity': 110,
         'Buy Price': 130,
         'Total Buy Price': 140,
-        'To': 240,
+        'To': 130,
         'Sell Price': 140,
         'Net Profit': 140,
-        'Jumps': 90,
-        'Profit per Jump': 150,
+        'Jumps': 60,
+        'Profit per Jump': 114,
         'Profit Per Item': 130,
-        'ROI': 100,
+        'ROI': 68,
         'Total Capacity (m³)': 120,
     });
 
@@ -108,7 +118,26 @@ export default function RegionHauling() {
     const startResize = (key, startX, startWidth) => {
         const onMove = (e) => {
             const dx = (e.clientX || 0) - startX;
-            setColWidths(prev => ({ ...prev, [key]: Math.max(60, Math.min(800, Math.round(startWidth + dx))) }));
+            setColWidths(prev => {
+                const minW = 60;
+                const maxW = 800;
+                const proposed = Math.round(startWidth + dx);
+                // Compute current total and current width of this column
+                const keys = Object.keys(prev);
+                let total = 0;
+                for (const k of keys) total += Number(prev[k]) || 0;
+                const currentWidth = Number(prev[key]) || 0;
+                // Available growth without exceeding container width
+                const containerW = containerWidthRef.current || 0;
+                const availableGrow = Math.max(0, containerW - total);
+                // Cap growth so new total <= container width
+                let capped = proposed;
+                if (proposed > currentWidth) {
+                    capped = Math.min(proposed, currentWidth + availableGrow);
+                }
+                const nextWidth = Math.max(minW, Math.min(maxW, capped));
+                return { ...prev, [key]: nextWidth };
+            });
         };
         const onUp = () => {
             window.removeEventListener('mousemove', onMove);
@@ -267,24 +296,6 @@ export default function RegionHauling() {
         }
     }, [formData.fromRegion, regions]);
 
-    // Auto-set toRegion when nearbyOnly is checked (only if nearby regions available)
-    useEffect(() => {
-        if (formData.nearbyOnly && nearbyRegions.length > 0) {
-            setFormData(prev => ({
-                ...prev,
-                toRegion: {
-                    regionID: 'nearby',
-                    regionName: `${nearbyRegions.length} Nearby Regions`
-                }
-            }));
-        } else if (!formData.nearbyOnly && formData.toRegion?.regionID === 'nearby') {
-            setFormData(prev => ({
-                ...prev,
-                toRegion: null
-            }));
-        }
-    }, [formData.nearbyOnly, nearbyRegions]);
-
     // Data transformation function to convert API/market data to display format
     const transformApiResponseToDisplayFormat = async (apiData, formData, onProgress) => {
         // Load static structure and station data for mapping (from /public/data)
@@ -333,53 +344,94 @@ export default function RegionHauling() {
             let originStationName, destinationStationName, originIsNPC, destinationIsNPC, jumps;
             // Ensure info objects are declared in outer scope for later use
             let originInfo = null, destInfo = null;
+            const originId = trade.origin_id ?? trade.from_location ?? trade.source_station_id;
+            const destId = trade.destination_id ?? trade.to_location ?? trade.destination_station_id;
+            const normalizeIsNpc = (val, id) => {
+                if (val === 1 || val === true) return true;
+                if (val === 0 || val === false) return false;
+                // Fallback by ID heuristic: Upwell structures have very large IDs (>= 1e12)
+                if (Number.isFinite(Number(id))) return Number(id) < 1_000_000_000_000;
+                return null;
+            };
+            const resolveIsNPCFromInfo = (info, id, isStationEntry) => {
+                if (isStationEntry) return true; // stations.json => NPC
+                if (info && typeof info === 'object') {
+                    if (info.type === 'station') return true;
+                    if (info.type === 'structure') return false;
+                    if (info.isNPC === true || info.is_npc === 1 || info.is_npc === true) return true;
+                    if (info.isNPC === false || info.is_npc === 0) return false;
+                }
+                // Fallback to ID heuristic when unknown
+                const byId = normalizeIsNpc(undefined, id);
+                return byId;
+            };
 
             // Use the enhanced data from our API if available
             if (trade.origin_name && trade.destination_name) {
                 originStationName = trade.origin_name;
                 destinationStationName = trade.destination_name;
-                originIsNPC = (trade.origin_is_npc ?? true) === true;
-                destinationIsNPC = (trade.destination_is_npc ?? true) === true;
+                // Use explicit location types if provided
+                const oType = (trade.origin_location_type || trade.origin_type || '').toString().toLowerCase();
+                const dType = (trade.destination_location_type || trade.destination_type || '').toString().toLowerCase();
+                if (oType === 'station') originIsNPC = true; else if (oType === 'structure') originIsNPC = false;
+                if (dType === 'station') destinationIsNPC = true; else if (dType === 'structure') destinationIsNPC = false;
+                // Parse is_npc flags robustly
+                const parseBoolish = (v) => {
+                    if (v === true || v === false) return v;
+                    if (v === 1 || v === 0) return Boolean(v);
+                    if (typeof v === 'string') {
+                        const s = v.trim().toLowerCase();
+                        if (s === 'true' || s === '1') return true;
+                        if (s === 'false' || s === '0') return false;
+                    }
+                    return null;
+                };
+                if (originIsNPC == null) originIsNPC = parseBoolish(trade.origin_is_npc);
+                if (destinationIsNPC == null) destinationIsNPC = parseBoolish(trade.destination_is_npc);
+                if (originIsNPC == null) originIsNPC = normalizeIsNpc(undefined, originId) ?? true;
+                if (destinationIsNPC == null) destinationIsNPC = normalizeIsNpc(undefined, destId) ?? true;
                 jumps = trade.jumps ?? 'N/A';
             } else {
                 // Fall back to local lookup for older API responses
-                const originId = trade.origin_id ?? trade.from_location ?? trade.source_station_id;
-                const destId = trade.destination_id ?? trade.to_location ?? trade.destination_station_id;
-                originInfo = stationMap.get(originId) || structMap.get(originId) || {};
-                destInfo = stationMap.get(destId) || structMap.get(destId) || {};
+                originInfo = stationMap.get(originId) || structMap.get(originId) || null;
+                destInfo = stationMap.get(destId) || structMap.get(destId) || null;
 
                 // Log missing structure IDs for debugging
-                if (!originInfo.name && originId && originId > 1000000000000) {
+                if (!(originInfo && originInfo.name) && originId && originId > 1000000000000) {
                     console.warn(`Missing origin structure ID: ${originId}`);
                     unknownStructureIds.current.add(originId);
                 }
-                if (!destInfo.name && destId && destId > 1000000000000) {
+                if (!(destInfo && destInfo.name) && destId && destId > 1000000000000) {
                     console.warn(`Missing destination structure ID: ${destId}`);
                     unknownStructureIds.current.add(destId);
                 }
 
-                originStationName = originInfo.name || `Unknown Station (ID: ${originId})`;
-                destinationStationName = destInfo.name || `Unknown Station (ID: ${destId})`;
+                const originLooksStructure = Number(originId) >= 1_000_000_000_000;
+                const destLooksStructure = Number(destId) >= 1_000_000_000_000;
+                originStationName = (originInfo && originInfo.name) || (originLooksStructure ? `Unknown Structure (ID: ${originId})` : `Unknown Station (ID: ${originId})`);
+                destinationStationName = (destInfo && destInfo.name) || (destLooksStructure ? `Unknown Structure (ID: ${destId})` : `Unknown Station (ID: ${destId})`);
 
-                // Ensure player structures are displayed correctly; default unknown to NPC (true)
-                const originIsNpcComputed = originInfo && (originInfo.type === 'station' || originInfo.is_npc === 1 || originInfo.is_npc === true);
-                const destIsNpcComputed = destInfo && (destInfo.type === 'station' || destInfo.is_npc === 1 || destInfo.is_npc === true);
-                originIsNPC = originIsNpcComputed === undefined ? true : !!originIsNpcComputed;
-                destinationIsNPC = destIsNpcComputed === undefined ? true : !!destIsNpcComputed;
+                // Determine NPC vs Player using info, station list membership, and fallback heuristic
+                const originIsStationEntry = stationMap.has(originId);
+                const destIsStationEntry = stationMap.has(destId);
+                originIsNPC = resolveIsNPCFromInfo(originInfo, originId, originIsStationEntry);
+                destinationIsNPC = resolveIsNPCFromInfo(destInfo, destId, destIsStationEntry);
 
-                // Calculate jumps between systems
+                // Calculate jumps between systems (skip in global scan for speed)
                 jumps = null;
-                const fromSystemId = trade.origin_system_id || originInfo?.system_id || originInfo?.systemID || originInfo?.solarSystemID;
-                const toSystemId = trade.destination_system_id || destInfo?.system_id || destInfo?.systemID || destInfo?.solarSystemID;
-                if (fromSystemId && toSystemId) {
-                    if (originInfo?.security_status != null) systemSecurityCache.current.set(fromSystemId, Number(originInfo.security_status));
-                    if (destInfo?.security_status != null) systemSecurityCache.current.set(toSystemId, Number(destInfo.security_status));
-                    jumps = await calculateJumps(fromSystemId, toSystemId);
-                    // Fallback: try basic shortest route if safest failed
-                    if (jumps == null && formData.routePreference === 'safest') {
-                        jumpCache.current.delete(`${fromSystemId}->${toSystemId}:safest`);
-                        const systems = await fetchRouteSystems(fromSystemId, toSystemId, 'shortest').catch(() => null);
-                        if (systems) jumps = Math.max(0, systems.length - 1);
+                if (!globalScanActive.current) {
+                    const fromSystemId = trade.origin_system_id || originInfo?.system_id || originInfo?.systemID || originInfo?.solarSystemID;
+                    const toSystemId = trade.destination_system_id || destInfo?.system_id || destInfo?.systemID || destInfo?.solarSystemID;
+                    if (fromSystemId && toSystemId) {
+                        if (originInfo?.security_status != null) systemSecurityCache.current.set(fromSystemId, Number(originInfo.security_status));
+                        if (destInfo?.security_status != null) systemSecurityCache.current.set(toSystemId, Number(destInfo.security_status));
+                        jumps = await calculateJumps(fromSystemId, toSystemId);
+                        // Fallback: try basic shortest route if safest failed
+                        if (jumps == null && formData.routePreference === 'safest') {
+                            jumpCache.current.delete(`${fromSystemId}->${toSystemId}:safest`);
+                            const systems = await fetchRouteSystems(fromSystemId, toSystemId, 'shortest').catch(() => null);
+                            if (systems) jumps = Math.max(0, systems.length - 1);
+                        }
                     }
                 }
             }
@@ -473,20 +525,24 @@ export default function RegionHauling() {
             return meetsBudget && meetsProfit && meetsRoi;
         });
 
-        // Security filter
-        if (formData.securityStatus && formData.securityStatus !== 'any') {
-            const isHigh = s => typeof s === 'number' && s >= 0.5;
-            const isLow = s => typeof s === 'number' && s > 0 && s < 0.5;
-            const isNull = s => typeof s === 'number' && s <= 0;
-            finalTrades = finalTrades.filter(t => {
-                const os = t.From?.security;
-                const ds = t.To?.security;
-                if (os == null || ds == null) return false;
-                if (formData.securityStatus === 'highsec') return isHigh(os) && isHigh(ds);
-                if (formData.securityStatus === 'lowsec') return isLow(os) && isLow(ds);
-                if (formData.securityStatus === 'nullsec') return isNull(os) && isNull(ds);
-                return true;
-            });
+        // Security filter (multi-select). When all selected, skip filtering.
+        if (formData.securityAllow) {
+            const allow = formData.securityAllow;
+            const allSelected = !!allow.high && !!allow.low && !!allow.nullsec;
+            if (!allSelected) {
+                const isHigh = s => typeof s === 'number' && s >= 0.5;
+                const isLow = s => typeof s === 'number' && s > 0 && s < 0.5;
+                const isNull = s => typeof s === 'number' && s <= 0;
+                const inAllowed = (s) => (
+                    (allow.high && isHigh(s)) || (allow.low && isLow(s)) || (allow.nullsec && isNull(s))
+                );
+                finalTrades = finalTrades.filter(t => {
+                    const os = t.From?.security;
+                    const ds = t.To?.security;
+                    if (os == null || ds == null) return false;
+                    return inAllowed(os) && inAllowed(ds);
+                });
+            }
         }
 
         // Structure type filter (NPC vs Player)
@@ -495,8 +551,8 @@ export default function RegionHauling() {
                 const oNpc = t.From?.isNPC === true;
                 const dNpc = t.To?.isNPC === true;
                 if (formData.structureType === 'avoid-player') {
-                    // Only NPC stations: at least one endpoint must be NPC
-                    return oNpc || dNpc;
+                    // Only NPC stations: both endpoints must be NPC
+                    return oNpc && dNpc;
                 }
                 if (formData.structureType === 'avoid-npc') {
                     // Only player structures: both endpoints must be player
@@ -579,31 +635,24 @@ export default function RegionHauling() {
     };
 
     // New function to fetch and process market orders (snapshots only)
-    const fetchAndProcessMarketOrders = async (fromRegionId, toRegionId, formData) => {
+    const fetchAndProcessMarketOrders = async (fromRegionId, toRegionId, formData, onPairProgress) => {
         try {
             // Use only GitHub snapshots: derive from region_orders (no region_hauling artifacts)
             const regionHaulingData = await fetchRegionHaulingSnapshotsOnly(fromRegionId, toRegionId);
             // Progress: snapshots fetched (~10%)
-            setSearchProgress(10);
+            if (typeof onPairProgress === 'function') {
+                onPairProgress(0.1);
+            } else if (!globalScanActive.current) {
+                setSearchProgress(10);
+            }
 
-            // Filter and process orders to find profitable trades
+            // Pre-filter only by ROI and sign. Do NOT pre-filter by budget or min profit here,
+            // because quantity can be reduced later (partial orders) to fit budget/capacity.
             const profitableTrades = regionHaulingData.filter(route => {
-                // Prefer total profit when available; fall back to unit profit * quantity
                 const unitProfit = (route.profit_per_unit ?? (route.buy_price - route.sell_price) ?? 0);
-                const quantity = (route.max_volume ?? 0);
-                const totalProfit = (route.total_profit ?? (unitProfit * quantity));
-
-                const roi = (route.profit_margin ?? (
-                    route.sell_price ? ((unitProfit / route.sell_price) * 100) : 0
-                ));
-
-                const meetsProfit = totalProfit >= parseFloat(formData.minProfit || 0);
-
-                // If budget is provided, approximate total buy cost as unit price * quantity
-                const totalBuyCost = (route.sell_price ?? 0) * quantity;
-                const meetsBudget = !formData.maxBudget || totalBuyCost <= parseFloat(formData.maxBudget);
-
-                return meetsProfit && (roi >= parseFloat(formData.minROI || 0)) && meetsBudget;
+                const roi = (route.profit_margin ?? (route.sell_price ? ((unitProfit / route.sell_price) * 100) : 0));
+                // Keep only positive unit profit and ROI threshold; remaining checks happen post-quantity capping
+                return unitProfit > 0 && (roi >= parseFloat(formData.minROI || 0));
             });
 
             // Transform data for display with progress updates (remaining 90%)
@@ -611,9 +660,18 @@ export default function RegionHauling() {
             const data = await transformApiResponseToDisplayFormat(profitableTrades, formData, (fraction) => {
                 // fraction 0..1 of transform portion
                 const pct = 10 + Math.min(1, Math.max(0, fraction)) * totalTransformWeight;
-                setSearchProgress(prev => (pct > prev ? Math.round(pct) : prev));
+                if (typeof onPairProgress === 'function') {
+                    const pairProgress = 0.1 + Math.min(1, Math.max(0, fraction)) * 0.9;
+                    onPairProgress(pairProgress);
+                } else if (!globalScanActive.current) {
+                    setSearchProgress(prev => (pct > prev ? Math.round(pct) : prev));
+                }
             });
-            setSearchProgress(100);
+            if (typeof onPairProgress === 'function') {
+                onPairProgress(1);
+            } else if (!globalScanActive.current) {
+                setSearchProgress(100);
+            }
             return data;
         } catch (error) {
             console.error('Error fetching or processing market orders:', error);
@@ -637,24 +695,29 @@ export default function RegionHauling() {
         }
 
         // Safety cap to avoid overwhelming client/network; increase if needed in dev
-        const MAX_PAIRS = 200; // tweak for heavier scans
+        const MAX_PAIRS = null; // lower default for responsiveness (null=disabled ie: no limit)
         const work = pairs.slice(0, MAX_PAIRS);
 
         const allResults = [];
         const total = work.length;
+        globalScanActive.current = true;
         for (let idx = 0; idx < work.length; idx++) {
             const [fromId, toId] = work[idx];
             try {
-                // Reuse the same pipeline
-                const data = await fetchAndProcessMarketOrders(fromId, toId, formData);
+                // Reuse the same pipeline, reporting per-pair progress 0..1
+                const data = await fetchAndProcessMarketOrders(fromId, toId, formData, (pairProgress) => {
+                    const clamped = Math.max(0, Math.min(1, pairProgress || 0));
+                    const overall = ((idx + clamped) / total) * 100;
+                    const pct = Math.round(overall);
+                    setSearchProgress(prev => (pct > prev ? pct : prev));
+                });
                 if (Array.isArray(data) && data.length > 0) allResults.push(...data);
             } catch {
                 // continue on errors
             }
-            // Overall progress for multi-region scan
-            const pct = Math.round(((idx + 1) / total) * 100);
-            setSearchProgress(pct);
         }
+        globalScanActive.current = false;
+        setSearchProgress(100);
         return allResults;
     };
 
@@ -667,7 +730,8 @@ export default function RegionHauling() {
         setError(null);
         setShowResults(false);
 
-        // Branch: Dev-only global scan when both regions are unselected and toggle is on
+
+        // Experimental: Branch for global scan when both regions are unselected and toggle is on
         if (SHOW_SEARCH_ALL_REGIONS && searchAllRegions && !formData.fromRegion?.regionID && !formData.toRegion?.regionID) {
             try {
                 const transformedData = await fetchBestRoutesAcrossAllRegions(formData);
@@ -686,6 +750,7 @@ export default function RegionHauling() {
             }
             return;
         }
+
 
         // Normal validation path
         if (!formData.fromRegion?.regionID || !formData.toRegion?.regionID) {
@@ -840,6 +905,19 @@ export default function RegionHauling() {
         }
     }, [loading, searchProgress]);
 
+    // Measure and track table container width to constrain resizing within viewport
+    useEffect(() => {
+        const measure = () => {
+            const el = tableContainerRef.current;
+            if (el) {
+                containerWidthRef.current = el.clientWidth;
+            }
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        return () => window.removeEventListener('resize', measure);
+    }, [showResults]);
+
     if (!regionsData) {
         return (
             <div className="region-hauling">
@@ -856,7 +934,13 @@ export default function RegionHauling() {
                 {/* Pink area: Static header */}
                 <div className="page-header">
                     <h1>Region to Region Trading</h1>
-                    <p className="disclaimer">This feature is still a WIP and may have issues.</p>
+                    <p
+                        className="disclaimer"
+                        title={lastResultsAt ? new Date(lastResultsAt).toLocaleString() : ''}
+                        style={{ marginTop: 6 }}
+                    >
+                        Last Data Update: {renderSinceLastUpdate()} ago
+                    </p>
                 </div>
             </div>
 
@@ -890,15 +974,32 @@ export default function RegionHauling() {
 
                                 <div className="form-group">
                                     <label>Security</label>
-                                    <select
-                                        value={formData.securityStatus}
-                                        onChange={e => handleInputChange('securityStatus', e.target.value)}
-                                        className="form-control"
-                                    >
-                                        {securityStatusOptions.map(o => (
-                                            <option key={o.value} value={o.value}>{o.label}</option>
-                                        ))}
-                                    </select>
+                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={!!(formData.securityAllow?.high)}
+                                                onChange={(e) => handleInputChange('securityAllow', { ...(formData.securityAllow || {}), high: e.target.checked })}
+                                            />
+                                            High-sec
+                                        </label>
+                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={!!(formData.securityAllow?.low)}
+                                                onChange={(e) => handleInputChange('securityAllow', { ...(formData.securityAllow || {}), low: e.target.checked })}
+                                            />
+                                            Low-sec
+                                        </label>
+                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={!!(formData.securityAllow?.nullsec)}
+                                                onChange={(e) => handleInputChange('securityAllow', { ...(formData.securityAllow || {}), nullsec: e.target.checked })}
+                                            />
+                                            Null-sec
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div className="form-group">
@@ -973,23 +1074,11 @@ export default function RegionHauling() {
                         <div className="form-actions">
                             <div className="primary-actions">
                                 <div className="buttons-row">
-                                    {SHOW_SEARCH_ALL_REGIONS && (
-                                        // Dev-only UI: toggle for scanning all regions when both are unselected
-                                        <label className="form-check" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={searchAllRegions}
-                                                onChange={(e) => setSearchAllRegions(e.target.checked)}
-                                                title="Scan all regions for best routes when no regions are selected"
-                                            />
-                                            <span>Search All Regions</span>
-                                        </label>
-                                    )}
+                                    {/* Experimental: Search All Regions toggle UI */}
                                     <button
                                         type="submit"
                                         disabled={
                                             loading || (
-                                                // In dev with Search All Regions enabled, allow submit with no regions selected
                                                 !(SHOW_SEARCH_ALL_REGIONS && searchAllRegions) && (!formData.fromRegion || !formData.toRegion)
                                             )
                                         }
@@ -997,25 +1086,28 @@ export default function RegionHauling() {
                                     >
                                         {loading ? `Searching...${searchProgress}%` : 'Find Trade Routes'}
                                     </button>
-                                    {refreshAvailable && showResults && (
-                                        <button
-                                            type="button"
-                                            onClick={handleRefresh}
-                                            disabled={loading}
-                                            className="eve-button refresh-btn"
-                                            title="New data is available. Click to refresh results."
+                                </div>
+                                {SHOW_SEARCH_ALL_REGIONS && (
+                                    <div style={{ marginTop: 10 }}>
+                                        <label
+                                            className="form-check"
+                                            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
                                         >
-                                            {loading ? `Refreshing…${searchProgress}%` : 'New Data Available – Refresh'}
-                                        </button>
-                                    )}
-                                </div>
-                                <div
-                                    className="update-timer-container"
-                                    title={lastResultsAt ? new Date(lastResultsAt).toLocaleString() : ''}
-                                >
-                                    <span className="update-timer-label">Time Since Last Update:</span>
-                                    <span className="update-timer-value">{renderSinceLastUpdate()}</span>
-                                </div>
+                                            <input
+                                                type="checkbox"
+                                                checked={searchAllRegions}
+                                                onChange={(e) => setSearchAllRegions(e.target.checked)}
+                                                title="Scan all regions for best routes when no regions are selected"
+                                            />
+                                            <span>
+                                                Search All Regions (Longer)
+                                                <span style={{ display: 'block', fontSize: '0.85em', color: '#666' }}>
+                                                    Leave both regions unselected to scan all.
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </form>
@@ -1025,16 +1117,20 @@ export default function RegionHauling() {
                     <div className="results-container">
                         <div className="results-header">
                             <h2>Trade Route Results ({sortedResults.length} found)</h2>
-                            <button
-                                onClick={clearResults}
-                                className="eve-button clear-results-btn"
-                                type="button"
-                            >
-                                Clear Results
-                            </button>
+                            {refreshAvailable && (
+                                <button
+                                    type="button"
+                                    onClick={handleRefresh}
+                                    disabled={loading}
+                                    className="eve-button refresh-btn"
+                                    title="New data is available. Click to refresh results."
+                                >
+                                    {loading ? `Refreshing…${searchProgress}%` : 'New Data Available – Refresh'}
+                                </button>
+                            )}
                         </div>
-                        <div className="results-table-container">
-                            <table className="results-table wide-table" style={{ tableLayout: 'fixed', width: totalTableWidth + 'px', minWidth: totalTableWidth + 'px' }}>
+                        <div className="results-table-container" ref={tableContainerRef}>
+                            <table className="results-table wide-table" style={{ tableLayout: 'fixed', width: '100%', maxWidth: '100%' }}>
                                 {/* generate cols from colWidths so default widths apply */}
                                 <colgroup>
                                     {HEADER_ORDER.map(key => (

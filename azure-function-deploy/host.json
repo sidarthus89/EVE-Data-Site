@@ -8,7 +8,8 @@
     "region_orders_others",
     "request_log",
     "structures_update",
-    "region_orders_health"
+    "region_orders_health",
+    "region_region_precompute"
   ],
   "logging": {
     "applicationInsights": {

@@ -8,6 +8,7 @@ import Privacy from './pages/Privacy';
 const Market = lazy(() => import('./features/Market/Market.jsx'));
 const Appraisal = lazy(() => import('./features/Appraisal/Appraisal.jsx'));
 const RegionHauling = lazy(() => import('./features/TradeTools/RegionHauling.jsx'));
+const StationFlip = lazy(() => import('./features/TradeTools/StaitonFlip.jsx'));
 
 // Loading component
 const PageLoader = () => (
@@ -41,6 +42,11 @@ function App() {
         <Route path="region-hauling" element={
           <Suspense fallback={<PageLoader />}>
             <RegionHauling />
+          </Suspense>
+        } />
+        <Route path="station-trading" element={
+          <Suspense fallback={<PageLoader />}>
+            <StationFlip />
           </Suspense>
         } />
         <Route path="privacy" element={<Privacy />} />

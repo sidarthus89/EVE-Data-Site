@@ -47,7 +47,6 @@ export default function Market() {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const selectedItemID = parseInt(queryParams.get('item') || '0', 10);
-    const [initialItemID] = useState(selectedItemID || 0);
 
     // Error state
     const [marketTreeError, setMarketTreeError] = useState(null);
@@ -195,21 +194,22 @@ export default function Market() {
         setInitialQueryHandled(true);
     }, [marketTree, flattenedMarketTree, selectedItemID, initialQueryHandled]);
 
-    // Clear the query param only if user navigates to a different item than the deep-linked one
+    // Keep the URL's ?item= in sync with the current selection (permalink behavior)
     useEffect(() => {
-        if (!initialQueryHandled) return;
-        const params = new URLSearchParams(window.location.search);
-        if (params.has('item')) {
-            if (selectedItem && initialItemID && selectedItem.typeID === initialItemID) {
-                // Keep deep-link param while viewing the same item
-                return;
+        if (!selectedItem) return;
+        try {
+            const currentUrl = new URL(window.location.href);
+            const params = currentUrl.searchParams;
+            const nextId = String(selectedItem.typeID);
+            if (params.get('item') !== nextId) {
+                params.set('item', nextId);
+                currentUrl.search = params.toString();
+                window.history.replaceState({}, '', currentUrl.toString());
             }
-            // User navigated away: remove the param
-            params.delete('item');
-            const url = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
-            window.history.replaceState({}, '', url);
+        } catch (e) {
+            // no-op
         }
-    }, [selectedItem, initialQueryHandled, initialItemID]);
+    }, [selectedItem]);
 
     // Helper: find item by id in raw or normalized tree
     const findItemById = (typeID, tree) => {
@@ -430,25 +430,7 @@ export default function Market() {
 
     const handleItemSelect = (item) => {
         setSelectedItem(item);
-        // If selection matches deep-link ID, ensure param present; else strip it.
-        if (initialItemID && item?.typeID === initialItemID) {
-            const params = new URLSearchParams(window.location.search);
-            if (!params.has('item')) {
-                params.set('item', String(initialItemID));
-                const url = `${window.location.pathname}?${params.toString()}`;
-                window.history.replaceState({}, '', url);
-            }
-        } else {
-            if (window.location.search) {
-                const currentUrl = new URL(window.location.href);
-                const params = new URLSearchParams(currentUrl.search);
-                if (params.has('item')) {
-                    params.delete('item');
-                    currentUrl.search = params.toString();
-                    window.history.replaceState({}, '', currentUrl.toString());
-                }
-            }
-        }
+        // URL sync happens in the selectedItem effect above
         setActiveTab('orders');
     };
 

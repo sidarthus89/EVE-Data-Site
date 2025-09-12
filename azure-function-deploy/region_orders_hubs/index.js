@@ -3,6 +3,7 @@ const {
     REGION_CONCURRENCY,
     generateBestQuotesForRegion,
     upsertRegionSnapshot,
+    upsertRegionItems,
     sleep,
     shouldGenerateRegionSnapshot,
 } = require('../utils/regionOrders');
@@ -42,6 +43,14 @@ module.exports = async function (context, myTimer) {
                     const snapshot = await generateBestQuotesForRegion(regionId, (msg) => context.log(`[H${id}] ${msg}`));
                     const res = await upsertRegionSnapshot(regionId, snapshot, `chore(region-orders): hub ${regionId} (${decision.reason})`);
                     context.log(`[H${id}] Committed ${regionId}: ${JSON.stringify(res)}`);
+                    try {
+                        const itemsRes = await upsertRegionItems(regionId, snapshot, `data(region-item): hub ${regionId}`);
+                        context.log(`[H${id}] region_item writes for ${regionId}: ${JSON.stringify(itemsRes)}`);
+                        telemetry.trackEvent('REGION_ITEM_EMIT', { regionId: String(regionId), written: String(itemsRes.written || 0), failed: String(itemsRes.failed || 0) });
+                    } catch (e) {
+                        context.log.error(`[H${id}] region_item emit failed for ${regionId}: ${e.message}`);
+                        telemetry.trackException(e, { area: 'region_orders_hubs', step: 'region_item_emit', regionId: String(regionId) });
+                    }
                     success++;
                 }
             } catch (e) {

@@ -129,8 +129,8 @@ export default function Layout() {
                     <div className="nav-dropdown">
                         <span className="eve-button">Trade Tools▾</span>
                         <div className="nav-dropdown-menu">
-                            {/*<Link to="/station-trading" className="eve-button">Station Trading</Link>
-                            <Link to="/station-hauling" className="eve-button">Station to Station</Link>*/}
+                            <Link to="/station-trading" className="eve-button">Single Station</Link>
+                            {/* <Link to="/station-hauling" className="eve-button">Station to Station</Link> */}
                             <Link to="/region-hauling" className="eve-button">Region to Region</Link>
                         </div>
                     </div>
@@ -148,7 +148,7 @@ export default function Layout() {
                                 Report Issue
                             </a>
                             <a
-                                href="https://paypal.me/pologoalie8908"
+                                href="https://cash.app/$sidarthus89"
                                 target="_blank"
                                 rel="noreferrer"
                                 className="eve-button"
