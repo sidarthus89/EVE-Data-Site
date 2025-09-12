@@ -140,17 +140,29 @@ async function upsertStructures(list) {
 async function updateStructuresFromIds(structureIds, context) {
     const ids = Array.from(structureIds || []).filter((n) => Number(n) > 1000000000000);
     if (ids.length === 0) return { ok: true, updated: 0, skipped: 'no-ids' };
+
+    // Read existing first to only enrich missing IDs
+    const existing = await readExistingStructures().catch(() => []);
+    const existingSet = new Set(existing.map((r) => String(r.stationID)));
+    const missingIds = ids.filter((id) => !existingSet.has(String(id)));
+
+    if (missingIds.length === 0) {
+        context && context.log && context.log(`structures: nothing to add (existing=${existing.length})`);
+        return { ok: true, updated: 0, total: existing.length, skipped: 'no-missing' };
+    }
+
     const bearer = await getAccessTokenIfAvailable();
     if (!bearer) {
-        context && context.log && context.log('No ESI access token; skipping structures enrichment');
-        return { ok: false, updated: 0, skipped: 'no-token' };
+        context && context.log && context.log(`No ESI access token; cannot enrich ${missingIds.length} missing structures`);
+        return { ok: false, updated: 0, total: existing.length, skipped: 'no-token', missing: missingIds.length };
     }
+
     const results = [];
     let idx = 0;
     const CONC = Math.max(1, Number(process.env.STRUCTURES_ENRICH_CONCURRENCY || 6));
     async function worker() {
-        while (idx < ids.length) {
-            const id = ids[idx++];
+        while (idx < missingIds.length) {
+            const id = missingIds[idx++];
             try {
                 const rec = await fetchStructureDetail(id, bearer);
                 if (rec) results.push(rec);
@@ -162,8 +174,11 @@ async function updateStructuresFromIds(structureIds, context) {
     }
     await Promise.all(Array.from({ length: CONC }, () => worker()));
 
-    // Read existing, merge, then write
-    const existing = await readExistingStructures().catch(() => []);
+    if (results.length === 0) {
+        return { ok: true, updated: 0, total: existing.length, skipped: 'no-new-records' };
+    }
+
+    // Merge with existing (preserve all prior entries)
     const merged = mergeStructures(existing, results);
     const targets = await upsertStructures(merged);
     return { ok: true, updated: results.length, total: merged.length, targets, mode: 'merge' };
