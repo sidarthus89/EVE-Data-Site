@@ -137,32 +137,36 @@ async function upsertStructures(list) {
     return upsertDataToAll(relPath, body, message);
 }
 
+// Append structure IDs (without enrichment) into structures.json by reading current file, merging, and upserting.
+async function appendStructureIds(structureIds) {
+    const ids = Array.from(new Set((structureIds || []).map((x) => String(x))))
+        .filter((s) => {
+            const n = Number(s);
+            // Structures are large (> 1 trillion)
+            return Number.isFinite(n) && n > 1000000000000;
+        });
+    if (!ids.length) return { ok: true, updated: 0, total: null, skipped: 'no-ids' };
+    const existing = await readExistingStructures().catch(() => []);
+    const incoming = ids.map((id) => ({ stationID: id, type: 'player' }));
+    const merged = mergeStructures(existing, incoming);
+    const res = await upsertStructures(merged);
+    return { ok: true, updated: incoming.length, total: merged.length, targets: res };
+}
+
 async function updateStructuresFromIds(structureIds, context) {
     const ids = Array.from(structureIds || []).filter((n) => Number(n) > 1000000000000);
     if (ids.length === 0) return { ok: true, updated: 0, skipped: 'no-ids' };
-
-    // Read existing first to only enrich missing IDs
-    const existing = await readExistingStructures().catch(() => []);
-    const existingSet = new Set(existing.map((r) => String(r.stationID)));
-    const missingIds = ids.filter((id) => !existingSet.has(String(id)));
-
-    if (missingIds.length === 0) {
-        context && context.log && context.log(`structures: nothing to add (existing=${existing.length})`);
-        return { ok: true, updated: 0, total: existing.length, skipped: 'no-missing' };
-    }
-
     const bearer = await getAccessTokenIfAvailable();
     if (!bearer) {
-        context && context.log && context.log(`No ESI access token; cannot enrich ${missingIds.length} missing structures`);
-        return { ok: false, updated: 0, total: existing.length, skipped: 'no-token', missing: missingIds.length };
+        context && context.log && context.log('No ESI access token; skipping structures enrichment');
+        return { ok: false, updated: 0, skipped: 'no-token' };
     }
-
     const results = [];
     let idx = 0;
     const CONC = Math.max(1, Number(process.env.STRUCTURES_ENRICH_CONCURRENCY || 6));
     async function worker() {
-        while (idx < missingIds.length) {
-            const id = missingIds[idx++];
+        while (idx < ids.length) {
+            const id = ids[idx++];
             try {
                 const rec = await fetchStructureDetail(id, bearer);
                 if (rec) results.push(rec);
@@ -174,16 +178,19 @@ async function updateStructuresFromIds(structureIds, context) {
     }
     await Promise.all(Array.from({ length: CONC }, () => worker()));
 
-    if (results.length === 0) {
-        return { ok: true, updated: 0, total: existing.length, skipped: 'no-new-records' };
-    }
-
-    // Merge with existing (preserve all prior entries)
+    // Read existing, merge, then write
+    const existing = await readExistingStructures().catch(() => []);
     const merged = mergeStructures(existing, results);
     const targets = await upsertStructures(merged);
     return { ok: true, updated: results.length, total: merged.length, targets, mode: 'merge' };
 }
 
 module.exports = {
+    // High-level helpers
     updateStructuresFromIds,
+    appendStructureIds,
+    // Low-level utilities (exported for reuse/testing)
+    readExistingStructures,
+    upsertStructures,
+    mergeStructures,
 };

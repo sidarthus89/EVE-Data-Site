@@ -33,11 +33,24 @@ module.exports = async function (context, req) {
         const base = process.env.ESI_BASE || 'https://esi.evetech.net/latest';
         const url = `${base}/markets/${regionId}/orders/?type_id=${typeId}`;
         const headers = { 'User-Agent': 'EVE-Data-Site/1.0 (GitHub: sidarthus89)' };
-        const resp = await fetch(url, { headers });
-        if (!resp.ok) {
-            throw new Error(`ESI ${resp.status}`);
+        // Fetch first page to discover total pages, then fetch the rest
+        const first = await fetch(url, { headers });
+        if (!first.ok) throw new Error(`ESI ${first.status}`);
+        const pagesHeader = first.headers.get('X-Pages') || first.headers.get('x-pages');
+        const totalPages = Math.max(1, parseInt(pagesHeader || '1', 10) || 1);
+        let orders = await first.json();
+        if (totalPages > 1) {
+            const pageUrls = [];
+            for (let p = 2; p <= totalPages; p++) {
+                pageUrls.push(`${url}&page=${p}`);
+            }
+            const pageResults = await Promise.all(pageUrls.map(async (u) => {
+                const r = await fetch(u, { headers });
+                if (!r.ok) return [];
+                try { return await r.json(); } catch { return []; }
+            }));
+            orders = orders.concat(...pageResults);
         }
-        let orders = await resp.json();
         if (isBuy !== null) orders = orders.filter(o => !!o.is_buy_order === isBuy);
         if (locationId !== null) orders = orders.filter(o => Number(o.location_id) === Number(locationId));
         if (limit) orders = orders.slice(0, limit);

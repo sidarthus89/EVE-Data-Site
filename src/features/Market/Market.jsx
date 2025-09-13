@@ -320,14 +320,14 @@ export default function Market() {
             const isPLEX = selectedItem.typeID === PLEX_TYPE_ID;
 
             if (isPLEX) {
-                const result = await fetchMarketOrders(selectedItem.typeID, PLEX_REGION_ID);
+                const result = await fetchMarketOrders(selectedItem.typeID, PLEX_REGION_ID, null, null, { forceFull: true });
                 const orders = [...(result.sellOrders || []), ...(result.buyOrders || [])];
                 allOrders = orders.map(order => ({ ...order, region_id: PLEX_REGION_ID }));
             } else if (!regionID || regionID === 'all') {
                 // Query ALL regions concurrently
                 const orderPromises = regions.map(async (region) => {
                     try {
-                        const result = await fetchMarketOrders(selectedItem.typeID, region.regionID);
+                        const result = await fetchMarketOrders(selectedItem.typeID, region.regionID, null, null, { forceFull: true });
                         const orders = [...(result.sellOrders || []), ...(result.buyOrders || [])];
                         return orders.map(order => ({ ...order, region_id: region.regionID }));
                     } catch {
@@ -337,7 +337,7 @@ export default function Market() {
                 const orderResults = await Promise.all(orderPromises);
                 allOrders = orderResults.flat();
             } else {
-                const result = await fetchMarketOrders(selectedItem.typeID, regionID);
+                const result = await fetchMarketOrders(selectedItem.typeID, regionID, null, null, { forceFull: true });
                 const orders = [...(result.sellOrders || []), ...(result.buyOrders || [])];
                 allOrders = orders.map(order => ({ ...order, region_id: order.region_id || regionID }));
             }

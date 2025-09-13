@@ -23,7 +23,7 @@ function writeHistoryCache(cache) {
     }
 }
 
-export async function fetchMarketOrders(typeId, regionId = null, locationId = null, isBuyOrder = null) {
+export async function fetchMarketOrders(typeId, regionId = null, locationId = null, isBuyOrder = null, options = {}) {
     const params = new URLSearchParams({ type_id: typeId });
     if (regionId) params.append('region_id', regionId);
     if (locationId) params.append('location_id', locationId);
@@ -32,9 +32,10 @@ export async function fetchMarketOrders(typeId, regionId = null, locationId = nu
     console.log(`🎯 Fetching market orders for type_id: ${typeId}, region_id: ${regionId}`);
 
     try {
-        // 0) Try static region snapshot first (best quotes only), except PLEX region (19000001 has no snapshots)
+        // 0) Try static region snapshot first (best quotes only), except when forceFull is requested or PLEX region (19000001 has no snapshots)
         const PLEX_REGION_ID = 19000001;
-        if (regionId && Number(regionId) !== PLEX_REGION_ID) {
+        const forceFull = options && options.forceFull === true;
+        if (!forceFull && regionId && Number(regionId) !== PLEX_REGION_ID) {
             try {
                 const snap = await fetchRegionOrdersSnapshot(regionId);
                 if (snap && snap.best_quotes && snap.best_quotes[typeId]) {

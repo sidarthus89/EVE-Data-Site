@@ -695,8 +695,8 @@ export default function RegionHauling() {
         }
 
         // Safety cap to avoid overwhelming client/network; increase if needed in dev
-        const MAX_PAIRS = null; // lower default for responsiveness (null=disabled ie: no limit)
-        const work = pairs.slice(0, MAX_PAIRS);
+        const MAX_PAIRS = null; // null/undefined disables cap (use all pairs)
+        const work = (MAX_PAIRS == null) ? pairs : pairs.slice(0, MAX_PAIRS);
 
         const allResults = [];
         const total = work.length;
