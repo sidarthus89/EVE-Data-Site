@@ -16,6 +16,8 @@
             var remainingPath = l.pathname.substring(('/' + repoName + '/').length);
             if (remainingPath && remainingPath !== '/') {
                 sessionStorage.setItem('spa:path', '/' + remainingPath.replace(/^\/+/, ''));
+                // Mark that we're coming from 404 so index.html can avoid extra cache-bust reload once
+                try { sessionStorage.setItem('spa:from404', '1'); } catch (e) { }
             }
 
             // Redirect to repo root so index.html can boot and restore route
@@ -27,7 +29,18 @@
 
 <body>
     <h1>Redirecting...</h1>
-    <p>If you are not redirected automatically, <a href="/EVE-Data-Site/">click here</a>.</p>
+    <p>If you are not redirected automatically, <a id="repo-link" href="/">click here</a>.</p>
+    <script>
+        (function () {
+            var l = window.location;
+            var parts = l.pathname.split('/').filter(Boolean);
+            var repoName = parts.length ? parts[0] : '';
+            if (repoName) {
+                var a = document.getElementById('repo-link');
+                a.href = '/' + repoName + '/';
+            }
+        })();
+    </script>
 </body>
 
 </html>
