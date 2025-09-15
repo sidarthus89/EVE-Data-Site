@@ -515,7 +515,7 @@ export default function Market() {
                                 <div className="market-tabs-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }} />
                             </div>
 
-                            {activeTab === 'orders' && Object.keys(locationInfoMap).length > 0 && (
+                            {activeTab === 'orders' && (
                                 <MarketTables
                                     sellers={sellers}
                                     buyers={buyers}

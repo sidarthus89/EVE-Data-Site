@@ -4,6 +4,7 @@ import RegionSelector from '../../components/RegionSelector/RegionSelector.jsx';
 import { getSecurityColor } from '../../utils/common.js';
 import { fetchMarketOrders } from '../../utils/market.js';
 import { fetchMarketTree, fetchRegions, fetchStationsNPC, fetchStructures, fetchRegionOrdersSnapshot } from '../../utils/api.js';
+import { getForbiddenSetFor, isStructureForbiddenCached } from '../../utils/esi.js';
 import './RegionHauling.css';
 
 // Lightweight number formatter
@@ -169,6 +170,7 @@ export default function SingleStation() {
         if (Array.isArray(structures)) {
             for (const t of structures) {
                 if (rid && Number(t.regionID) !== rid) continue;
+                if (isStructureForbiddenCached(t.stationID) === true) continue;
                 all.push({
                     id: Number(t.stationID),
                     name: t.locationName,
@@ -243,10 +245,13 @@ export default function SingleStation() {
         try {
             const regionId = Number(form.region.regionID);
             const stationId = Number(form.stationId);
+            try { await getForbiddenSetFor([stationId]); } catch { }
             let seedTypeIds = [];
+            let snapshotTypeIds = [];
             try {
                 const snap = await fetchRegionOrdersSnapshot(regionId);
                 if (snap && snap.best_quotes) {
+                    snapshotTypeIds = Object.keys(snap.best_quotes).map(t => Number(t));
                     for (const [t, entry] of Object.entries(snap.best_quotes)) {
                         const bb = entry?.best_buy, bs = entry?.best_sell;
                         if ((bb && Number(bb.location_id) === stationId) || (bs && Number(bs.location_id) === stationId)) {
@@ -256,9 +261,13 @@ export default function SingleStation() {
                 }
             } catch { /* snapshot may be missing; continue with empty seed */ }
 
-            // If no seed types, we can stop early; scanning all items would be too heavy
+            // If no station-best types found, fall back to scanning snapshot type IDs (capped by maxTypes)
+            if (seedTypeIds.length === 0 && snapshotTypeIds.length > 0) {
+                seedTypeIds = snapshotTypeIds;
+            }
+            // If still empty (no snapshot), stop early
             if (seedTypeIds.length === 0) {
-                setError('No active orders detected for this station in the region snapshot. Try another station or region.');
+                setError('No snapshot data available to seed item types for this region. Please try again later.');
                 setLoading(false);
                 return;
             }
@@ -274,7 +283,7 @@ export default function SingleStation() {
             const worker = async (ids) => {
                 for (const typeId of ids) {
                     try {
-                        const { buyOrders = [], sellOrders = [] } = await fetchMarketOrders(typeId, regionId, stationId, null);
+                        const { buyOrders = [], sellOrders = [] } = await fetchMarketOrders(typeId, regionId, stationId, null, { forceFull: true });
                         if ((buyOrders.length + sellOrders.length) === 0) { completed++; setProgress(Math.round((completed / seedTypeIds.length) * 100)); continue; }
                         // Compute best at this station
                         const bestBuy = buyOrders.reduce((m, o) => o.price > (m?.price || -Infinity) ? o : m, null);

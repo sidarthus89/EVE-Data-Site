@@ -32,6 +32,43 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
         initialEndIndex: 0,
     });
 
+    // Ensure we always have a full 365-day daily series by padding missing days with zeros
+    function fillDailyGaps(data) {
+        if (!Array.isArray(data)) return [];
+        const today = new Date();
+        const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+        // Exclude the current day (not "history"): end range at yesterday UTC
+        const endUTC = new Date(todayUTC);
+        endUTC.setUTCDate(endUTC.getUTCDate() - 1);
+        // Keep a total of 365 days ending yesterday
+        const startUTC = new Date(endUTC);
+        startUTC.setUTCDate(startUTC.getUTCDate() - 364);
+
+        const byDate = new Map();
+        for (const e of data) {
+            if (!e || !e.date) continue;
+            byDate.set(e.date, e);
+        }
+
+        const out = [];
+        for (let d = new Date(startUTC); d <= endUTC; d.setUTCDate(d.getUTCDate() + 1)) {
+            const key = d.toISOString().slice(0, 10);
+            if (byDate.has(key)) {
+                out.push(byDate.get(key));
+            } else {
+                out.push({
+                    date: key,
+                    average: 0,
+                    totalVolume: 0,
+                    highest: 0,
+                    lowest: 0,
+                    order_count: 0,
+                });
+            }
+        }
+        return out;
+    }
+
     // Load market history when component mounts or item/region changes
     useEffect(() => {
         if (!selectedItem) {
@@ -67,9 +104,10 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
 
                 if (cancelled) return;
 
-                setHistoryDataRaw(data || []);
+                const padded = fillDailyGaps(data || []);
+                setHistoryDataRaw(padded);
                 // Aggregate with current granularity
-                setHistoryData(aggregateHistory(data || [], granularity));
+                setHistoryData(aggregateHistory(padded, granularity));
                 console.log('📊 Market history loaded:', {
                     dataLength: data?.length || 0,
                     isAllRegions,
@@ -77,7 +115,7 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                 });
 
                 // Default window based on granularity
-                const total = (data?.length) || 0;
+                const total = (padded?.length) || 0;
                 const desired = windowSizeForGranularity(granularity);
                 const window = Math.min(desired, total || 0);
                 const defaultStart = Math.max(0, total - window);
@@ -226,6 +264,23 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
         window.removeEventListener('mousemove', handleDragging);
         window.removeEventListener('mouseup', handleDragEnd);
         dragState.current = { type: null, startX: 0, initialStartIndex: 0, initialEndIndex: 0 };
+    }
+
+    // Allow click on the timeline background to reposition the selection window immediately
+    function handleSliderBackgroundMouseDown(e) {
+        if (!sliderRef.current || !historyData.length) return;
+        // Ignore clicks inside the viewport overlay; those are handled by drag logic
+        if (viewportRef.current && viewportRef.current.contains(e.target)) return;
+
+        const rect = sliderRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const ratio = Math.max(0, Math.min(1, x / rect.width));
+        const currentWindow = Math.max(1, endIndex - startIndex);
+        let newStart = Math.round(ratio * historyData.length - currentWindow / 2);
+        newStart = Math.max(0, Math.min(historyData.length - currentWindow, newStart));
+        const newEnd = newStart + currentWindow;
+        setStartIndex(newStart);
+        setEndIndex(newEnd);
     }
 
     // Loading state
@@ -404,12 +459,6 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                     />
                     <YAxis
                         yAxisId="left"
-                        label={{
-                            value: 'Avg Price (ISK)',
-                            angle: -90,
-                            position: 'insideLeft',
-                            style: { textAnchor: 'middle' }
-                        }}
                         tickFormatter={(value) => value ? value.toLocaleString() : ''}
                         domain={['auto', 'auto']}
                         stroke="#1f77b4"
@@ -418,12 +467,6 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                     <YAxis
                         yAxisId="right"
                         orientation="right"
-                        label={{
-                            value: 'Volume',
-                            angle: 90,
-                            position: 'insideRight',
-                            style: { textAnchor: 'middle' }
-                        }}
                         tickFormatter={(value) => value ? value.toLocaleString() : ''}
                         domain={[0, 'auto']}
                         stroke="#8884d8"
@@ -467,6 +510,7 @@ export default function MarketHistory({ selectedItem, selectedRegion, setActiveT
                     overflow: 'hidden',
                     userSelect: 'none',
                 }}
+                onMouseDown={handleSliderBackgroundMouseDown}
             >
                 {/* Mini Chart Layer */}
                 <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>

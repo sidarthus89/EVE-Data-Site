@@ -14,22 +14,28 @@
 }
 
 .search-bar input {
-    width: 256px;
-}
-
-.search-bar input {
     display: block;
     width: 100%;
-    height: 32px;
-    padding: 4px 8px;
+    height: 44px;
+    /* match Region Hauling control height */
+    padding: 10px 14px;
     font-size: 14px;
-    line-height: 1.4;
-    border: 1px solid #666;
-    border-radius: 4px;
-    background: #1c1c1c;
+    line-height: 1.2;
+    border: 2px solid #234e5b;
+    /* EVE-style border */
+    border-radius: 0;
+    /* no rounding */
+    background: #1b2024;
+    /* match Region Hauling */
     color: #eee;
     box-sizing: border-box;
     font-family: "EVE Sans Neue", "Eve Sans", "Segoe UI", Tahoma, sans-serif;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #2f6b7c;
+    box-shadow: 0 0 0 2px rgba(47, 107, 124, 0.25);
 }
 
 .search-bar input::placeholder {
@@ -47,7 +53,8 @@
     z-index: 10;
     max-height: 550px;
     background-color: #1c1c1c;
-    border: 1px solid #444;
+    border: 1px solid #666;
+    /* align to RegionSelector dropdown */
     border-radius: 4px;
     padding-left: 0;
     overflow-y: auto;

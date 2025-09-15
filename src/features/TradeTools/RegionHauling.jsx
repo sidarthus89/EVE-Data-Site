@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import RegionSelector from '../../components/RegionSelector/RegionSelector.jsx';
 import { getSecurityColor, getStationInfo, getRegionInfo } from '../../utils/common.js';
 import { fetchMarketOrders, fetchRegionHaulingSnapshotsOnly } from '../../utils/market.js';
-import { fetchRegions, fetchStructures, fetchStationsNPC, fetchMarketTree, fetchRouteJumps, fetchDataLastCommitTime, fetchRouteSystems } from '../../utils/api.js';
+import { fetchRegions, fetchStructures, fetchStationsNPC, fetchMarketTree, fetchRouteJumps, fetchDataLastCommitTime, fetchRouteSystems, fetchRegionOrdersSnapshot } from '../../utils/api.js';
 import './RegionHauling.css';
 
 // Utility functions for formatting (replaces eveTradeAPI utils)
@@ -53,16 +53,14 @@ export default function RegionHauling() {
     const [formCollapsed, setFormCollapsed] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: 'Net Profit', direction: 'desc' });
     const [showResults, setShowResults] = useState(false);
-    // Global scan mode flag to control progress behavior and expensive computations
-    const globalScanActive = React.useRef(false);
+    // Security dropdown popout state
+    const [securityOpen, setSecurityOpen] = useState(false);
+    // Removed global scan mode (Search All Regions)
     // Table container width to clamp total table width during resizing
     const tableContainerRef = React.useRef(null);
     const containerWidthRef = React.useRef(0);
 
-    // Experimental: Search All Regions feature
-    // Toggle this flag to show/hide the checkbox in UI (no env var required)
-    const SHOW_SEARCH_ALL_REGIONS = true;
-    const [searchAllRegions, setSearchAllRegions] = useState(false);
+    // Search All Regions feature removed
 
     // Timer state for "Time Since Last Update" based on GitHub data commits
     const [lastResultsAt, setLastResultsAt] = useState(null);
@@ -296,6 +294,38 @@ export default function RegionHauling() {
         }
     }, [formData.fromRegion, regions]);
 
+    // Security dropdown helpers
+    const securityDropdownRef = React.useRef(null);
+    const allSecuritySelected = !!(formData.securityAllow?.high) && !!(formData.securityAllow?.low) && !!(formData.securityAllow?.nullsec);
+    const securitySummary = useMemo(() => {
+        if (allSecuritySelected) return 'All';
+        const parts = [];
+        if (formData.securityAllow?.high) parts.push('High-Sec');
+        if (formData.securityAllow?.low) parts.push('Low-Sec');
+        if (formData.securityAllow?.nullsec) parts.push('Null-Sec');
+        if (parts.length === 0) return 'None';
+        return parts.join(', ');
+    }, [formData.securityAllow, allSecuritySelected]);
+
+    const toggleAllSecurity = (checked) => {
+        handleInputChange('securityAllow', { high: !!checked, low: !!checked, nullsec: !!checked });
+    };
+    const toggleSecurityOption = (key, checked) => {
+        const next = { ...(formData.securityAllow || { high: false, low: false, nullsec: false }), [key]: !!checked };
+        handleInputChange('securityAllow', next);
+    };
+
+    useEffect(() => {
+        const onDocClick = (e) => {
+            if (!securityOpen) return;
+            if (securityDropdownRef.current && !securityDropdownRef.current.contains(e.target)) {
+                setSecurityOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', onDocClick);
+        return () => document.removeEventListener('mousedown', onDocClick);
+    }, [securityOpen]);
+
     // Data transformation function to convert API/market data to display format
     const transformApiResponseToDisplayFormat = async (apiData, formData, onProgress) => {
         // Load static structure and station data for mapping (from /public/data)
@@ -419,7 +449,7 @@ export default function RegionHauling() {
 
                 // Calculate jumps between systems (skip in global scan for speed)
                 jumps = null;
-                if (!globalScanActive.current) {
+                {
                     const fromSystemId = trade.origin_system_id || originInfo?.system_id || originInfo?.systemID || originInfo?.solarSystemID;
                     const toSystemId = trade.destination_system_id || destInfo?.system_id || destInfo?.systemID || destInfo?.solarSystemID;
                     if (fromSystemId && toSystemId) {
@@ -634,6 +664,15 @@ export default function RegionHauling() {
         }));
     };
 
+    const handleSwapRegions = () => {
+        setFormData(prev => ({
+            ...prev,
+            fromRegion: prev.toRegion || null,
+            toRegion: prev.fromRegion || null,
+            nearbyOnly: false,
+        }));
+    };
+
     // New function to fetch and process market orders (snapshots only)
     const fetchAndProcessMarketOrders = async (fromRegionId, toRegionId, formData, onPairProgress) => {
         try {
@@ -642,7 +681,7 @@ export default function RegionHauling() {
             // Progress: snapshots fetched (~10%)
             if (typeof onPairProgress === 'function') {
                 onPairProgress(0.1);
-            } else if (!globalScanActive.current) {
+            } else {
                 setSearchProgress(10);
             }
 
@@ -663,13 +702,13 @@ export default function RegionHauling() {
                 if (typeof onPairProgress === 'function') {
                     const pairProgress = 0.1 + Math.min(1, Math.max(0, fraction)) * 0.9;
                     onPairProgress(pairProgress);
-                } else if (!globalScanActive.current) {
+                } else {
                     setSearchProgress(prev => (pct > prev ? Math.round(pct) : prev));
                 }
             });
             if (typeof onPairProgress === 'function') {
                 onPairProgress(1);
-            } else if (!globalScanActive.current) {
+            } else {
                 setSearchProgress(100);
             }
             return data;
@@ -679,47 +718,7 @@ export default function RegionHauling() {
         }
     };
 
-    // Helper: Scan all region pairs for best routes when no specific regions are selected
-    // NOTE: This can be heavy. It is dev-only by default. Adjust MAX_PAIRS to cap workload.
-    const fetchBestRoutesAcrossAllRegions = async (formData) => {
-        if (!regions || regions.length === 0) throw new Error('Regions not loaded');
-
-        // Build pairs list (from != to)
-        const ids = regions.map(r => Number(r.regionID)).filter(n => Number.isFinite(n));
-        const pairs = [];
-        for (let i = 0; i < ids.length; i++) {
-            for (let j = 0; j < ids.length; j++) {
-                if (i === j) continue;
-                pairs.push([ids[i], ids[j]]);
-            }
-        }
-
-        // Safety cap to avoid overwhelming client/network; increase if needed in dev
-        const MAX_PAIRS = null; // null/undefined disables cap (use all pairs)
-        const work = (MAX_PAIRS == null) ? pairs : pairs.slice(0, MAX_PAIRS);
-
-        const allResults = [];
-        const total = work.length;
-        globalScanActive.current = true;
-        for (let idx = 0; idx < work.length; idx++) {
-            const [fromId, toId] = work[idx];
-            try {
-                // Reuse the same pipeline, reporting per-pair progress 0..1
-                const data = await fetchAndProcessMarketOrders(fromId, toId, formData, (pairProgress) => {
-                    const clamped = Math.max(0, Math.min(1, pairProgress || 0));
-                    const overall = ((idx + clamped) / total) * 100;
-                    const pct = Math.round(overall);
-                    setSearchProgress(prev => (pct > prev ? pct : prev));
-                });
-                if (Array.isArray(data) && data.length > 0) allResults.push(...data);
-            } catch {
-                // continue on errors
-            }
-        }
-        globalScanActive.current = false;
-        setSearchProgress(100);
-        return allResults;
-    };
+    // Removed global all-regions scanning
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -731,25 +730,7 @@ export default function RegionHauling() {
         setShowResults(false);
 
 
-        // Experimental: Branch for global scan when both regions are unselected and toggle is on
-        if (SHOW_SEARCH_ALL_REGIONS && searchAllRegions && !formData.fromRegion?.regionID && !formData.toRegion?.regionID) {
-            try {
-                const transformedData = await fetchBestRoutesAcrossAllRegions(formData);
-                if (transformedData.length > 0) {
-                    setResults(transformedData);
-                    setUsingFallback(transformedData.some(r => r._rawData && r._rawData._fallback));
-                    setShowResults(true);
-                    if (lastResultsAt) setSearchCommitAt(lastResultsAt);
-                } else {
-                    setError('No profitable trades found across regions for the selected criteria.');
-                }
-            } catch (err) {
-                setError(err.message || 'Failed to scan across regions.');
-            } finally {
-                setLoading(false);
-            }
-            return;
-        }
+        // Removed global scan branch; require both regions
 
 
         // Normal validation path
@@ -775,7 +756,27 @@ export default function RegionHauling() {
                 setShowResults(true);
                 if (lastResultsAt) setSearchCommitAt(lastResultsAt);
             } else {
-                setError('No profitable trades found for the selected criteria.');
+                // Diagnose likely cause: missing region snapshot(s) vs filters too strict
+                let fromMissing = false, toMissing = false;
+                try {
+                    await fetchRegionOrdersSnapshot(fromRegionId);
+                } catch (e) {
+                    fromMissing = true;
+                }
+                try {
+                    await fetchRegionOrdersSnapshot(toRegionId);
+                } catch (e) {
+                    toMissing = true;
+                }
+                if (fromMissing || toMissing) {
+                    const parts = [];
+                    if (fromMissing) parts.push(`“${formData.fromRegion?.regionName || fromRegionId}”`);
+                    if (toMissing) parts.push(`“${formData.toRegion?.regionName || toRegionId}”`);
+                    const which = parts.join(' and ');
+                    setError(`No snapshot available for ${which}. Region-to-region routes require snapshots for both regions. Snapshots refresh periodically—please try again later or choose different regions.`);
+                } else {
+                    setError('No profitable trades found with the current filters. Try lowering Min Profit / ROI, increasing Max Budget/Capacity, allowing more security types, or raising Max Jumps.');
+                }
             }
         } catch (error) {
             setError(error.message);
@@ -799,7 +800,19 @@ export default function RegionHauling() {
                 setShowResults(true);
                 if (lastResultsAt) setSearchCommitAt(lastResultsAt);
             } else {
-                setError('No profitable trades found for the refreshed data.');
+                // Diagnose again on refresh
+                let fromMissing = false, toMissing = false;
+                try { await fetchRegionOrdersSnapshot(fromRegionId); } catch { fromMissing = true; }
+                try { await fetchRegionOrdersSnapshot(toRegionId); } catch { toMissing = true; }
+                if (fromMissing || toMissing) {
+                    const parts = [];
+                    if (fromMissing) parts.push(`“${formData.fromRegion?.regionName || fromRegionId}”`);
+                    if (toMissing) parts.push(`“${formData.toRegion?.regionName || toRegionId}”`);
+                    const which = parts.join(' and ');
+                    setError(`No snapshot available for ${which}. Region-to-region routes require snapshots for both regions. Please try again later.`);
+                } else {
+                    setError('No profitable trades found after refresh with the current filters. Consider loosening filters or changing regions.');
+                }
             }
         } catch (err) {
             setError(err.message || 'Failed to refresh results');
@@ -950,56 +963,90 @@ export default function RegionHauling() {
                     <form onSubmit={handleSubmit}>
                         <div className="form-container">
                             <div className="form-row top-row-fixed-6">
-                                <div className="form-group region-group">
-                                    <label>Starting Region</label>
-                                    <RegionSelector
-                                        selectedRegion={formData.fromRegion}
-                                        onRegionChange={handleFromRegionChange}
-                                        allowAllRegions={false}
-                                    />
-                                </div>
-
-                                <div className="form-group region-group">
-                                    <label>Ending Region</label>
-                                    {formData.nearbyOnly ? (
-                                        <div className="nearby-region-display">…</div>
-                                    ) : (
-                                        <RegionSelector
-                                            selectedRegion={formData.toRegion}
-                                            onRegionChange={handleToRegionChange}
-                                            allowAllRegions={false}
-                                        />
-                                    )}
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Security</label>
-                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={!!(formData.securityAllow?.high)}
-                                                onChange={(e) => handleInputChange('securityAllow', { ...(formData.securityAllow || {}), high: e.target.checked })}
+                                {/* Combined region selectors with swap in the middle; spans 2 columns */}
+                                <div className="form-group region-duo">
+                                    <div className="region-duo-row">
+                                        <div className="region-group">
+                                            <label>Starting Region</label>
+                                            <RegionSelector
+                                                selectedRegion={formData.fromRegion}
+                                                onRegionChange={handleFromRegionChange}
+                                                allowAllRegions={false}
                                             />
-                                            High-sec
-                                        </label>
-                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={!!(formData.securityAllow?.low)}
-                                                onChange={(e) => handleInputChange('securityAllow', { ...(formData.securityAllow || {}), low: e.target.checked })}
-                                            />
-                                            Low-sec
-                                        </label>
-                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={!!(formData.securityAllow?.nullsec)}
-                                                onChange={(e) => handleInputChange('securityAllow', { ...(formData.securityAllow || {}), nullsec: e.target.checked })}
-                                            />
-                                            Null-sec
-                                        </label>
+                                        </div>
+                                        <div className="swap-group" aria-hidden="false">
+                                            <button
+                                                type="button"
+                                                className="eve-button swap-btn no-notch"
+                                                onClick={handleSwapRegions}
+                                                title="Swap From/To regions"
+                                                aria-label="Swap From and To regions"
+                                            >
+                                                ⇄
+                                            </button>
+                                        </div>
+                                        <div className="region-group">
+                                            <label>Ending Region</label>
+                                            {formData.nearbyOnly ? (
+                                                <div className="nearby-region-display">…</div>
+                                            ) : (
+                                                <RegionSelector
+                                                    selectedRegion={formData.toRegion}
+                                                    onRegionChange={handleToRegionChange}
+                                                    allowAllRegions={false}
+                                                />
+                                            )}
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div className="form-group security-dropdown" ref={securityDropdownRef}>
+                                    <label>Security</label>
+                                    <button
+                                        type="button"
+                                        className="eve-button no-notch security-dropdown-trigger"
+                                        onClick={() => setSecurityOpen(o => !o)}
+                                        aria-haspopup="true"
+                                        aria-expanded={securityOpen}
+                                    >
+                                        {securitySummary}
+                                    </button>
+                                    {securityOpen && (
+                                        <div className="security-dropdown-menu" role="menu">
+                                            <label className="checkbox-row">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={allSecuritySelected}
+                                                    onChange={(e) => toggleAllSecurity(e.target.checked)}
+                                                />
+                                                All
+                                            </label>
+                                            <label className="checkbox-row">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!(formData.securityAllow?.high)}
+                                                    onChange={(e) => toggleSecurityOption('high', e.target.checked)}
+                                                />
+                                                High-Sec
+                                            </label>
+                                            <label className="checkbox-row">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!(formData.securityAllow?.low)}
+                                                    onChange={(e) => toggleSecurityOption('low', e.target.checked)}
+                                                />
+                                                Low-Sec
+                                            </label>
+                                            <label className="checkbox-row">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!(formData.securityAllow?.nullsec)}
+                                                    onChange={(e) => toggleSecurityOption('nullsec', e.target.checked)}
+                                                />
+                                                Null-Sec
+                                            </label>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="form-group">
@@ -1074,40 +1121,15 @@ export default function RegionHauling() {
                         <div className="form-actions">
                             <div className="primary-actions">
                                 <div className="buttons-row">
-                                    {/* Experimental: Search All Regions toggle UI */}
                                     <button
                                         type="submit"
-                                        disabled={
-                                            loading || (
-                                                !(SHOW_SEARCH_ALL_REGIONS && searchAllRegions) && (!formData.fromRegion || !formData.toRegion)
-                                            )
-                                        }
-                                        className="eve-button primary-search-btn"
+                                        disabled={loading || (!formData.fromRegion || !formData.toRegion)}
+                                        className="eve-button primary-search-btn no-notch"
                                     >
                                         {loading ? `Searching...${searchProgress}%` : 'Find Trade Routes'}
                                     </button>
                                 </div>
-                                {SHOW_SEARCH_ALL_REGIONS && (
-                                    <div style={{ marginTop: 10 }}>
-                                        <label
-                                            className="form-check"
-                                            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={searchAllRegions}
-                                                onChange={(e) => setSearchAllRegions(e.target.checked)}
-                                                title="Scan all regions for best routes when no regions are selected"
-                                            />
-                                            <span>
-                                                Search All Regions (Longer)
-                                                <span style={{ display: 'block', fontSize: '0.85em', color: '#666' }}>
-                                                    Leave both regions unselected to scan all.
-                                                </span>
-                                            </span>
-                                        </label>
-                                    </div>
-                                )}
+
                             </div>
                         </div>
                     </form>

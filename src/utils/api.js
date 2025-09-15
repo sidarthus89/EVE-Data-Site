@@ -15,6 +15,20 @@ export const ESI_BASE = 'https://esi.evetech.net/latest';
 // Build mode helpers
 export const IS_DEV_BUILD = (import.meta.env.MODE === 'development');
 
+// Cached data version for cache-busting static data fetches (e.g., structures.json)
+let __DATA_VERSION_CACHE = null;
+async function getDataVersion() {
+    if (__DATA_VERSION_CACHE) return __DATA_VERSION_CACHE;
+    try {
+        // Try to use the latest commit time of data/ on gh-pages as a stable version
+        const iso = await fetchDataLastCommitTime();
+        __DATA_VERSION_CACHE = iso || String(Math.floor(Date.now() / 1000));
+    } catch {
+        __DATA_VERSION_CACHE = String(Math.floor(Date.now() / 1000));
+    }
+    return __DATA_VERSION_CACHE;
+}
+
 /**
  * Fetch with retry logic and exponential backoff
  */
@@ -76,11 +90,50 @@ export function fetchRegions() {
     });
 }
 
-export function fetchStructures() {
-    return fetchAny([
-        `${DATA_BASE}/structures.json`,
-        `${DATA_BASE}/structures/structures.json`,
-    ]);
+export async function fetchStructures() {
+    // Build versioned URLs to force browsers/CDNs to fetch the latest file
+    const v = await getDataVersion();
+    const urls = [
+        `${DATA_BASE}/structures.json?v=${encodeURIComponent(v)}`,
+        `${DATA_BASE}/structures/structures.json?v=${encodeURIComponent(v)}`,
+    ];
+
+    // Try URLs in order with no-store to bypass caches
+    let data = null;
+    let lastErr = null;
+    for (const u of urls) {
+        try {
+            data = await fetchWithRetry(u, { cache: 'no-store' });
+            break;
+        } catch (e) {
+            lastErr = e;
+        }
+    }
+    if (data == null) throw lastErr || new Error('Failed to load structures.json');
+
+    // Normalize structure entries to a consistent shape
+    const arr = Array.isArray(data) ? data : (data && Array.isArray(data.structures) ? data.structures : []);
+    return arr.map((s) => {
+        const stationID = String(s.stationID ?? s.structureID ?? s.stationId ?? s.id ?? '').trim();
+        const locationName = s.locationName ?? s.name ?? s.location_name ?? s.station_name ?? null;
+        const regionID = (s.regionID ?? s.region_id ?? s.regionId) != null ? Number(s.regionID ?? s.region_id ?? s.regionId) : null;
+        const regionName = s.regionName ?? s.region_name ?? s.region ?? null;
+        const systemID = (s.systemID ?? s.system_id ?? s.solarSystemID ?? s.systemId) != null ? Number(s.systemID ?? s.system_id ?? s.solarSystemID ?? s.systemId) : null;
+        const systemName = s.systemName ?? s.system_name ?? s.solarSystemName ?? null;
+        const security = (typeof s.security === 'number') ? s.security : (typeof s.security_status === 'number' ? s.security_status : null);
+        const type = s.type ?? (s.isNPC ? 'station' : 'player');
+        return {
+            stationID: stationID || undefined,
+            structureID: stationID || undefined,
+            locationName,
+            regionID,
+            regionName,
+            systemID,
+            systemName,
+            security,
+            type,
+        };
+    });
 }
 
 export function fetchStationsNPC() {
@@ -134,7 +187,7 @@ export function fetchPrecomputedRegionHauling() {
 }
 
 // Precomputed per-region best quotes snapshot
-export function fetchRegionOrdersSnapshot(regionId) {
+export async function fetchRegionOrdersSnapshot(regionId) {
     const id = String(regionId);
     // Fire-and-forget log to Azure Function (silent)
     try {
@@ -147,8 +200,9 @@ export function fetchRegionOrdersSnapshot(regionId) {
         }
     } catch { }
     // Quiet fetch to avoid console noise on 404s (snapshots are optional)
-    const url = `${DATA_BASE}/region_orders/${id}.json`;
-    return fetch(url).then(async (res) => {
+    const v = await getDataVersion();
+    const url = `${DATA_BASE}/region_orders/${id}.json?v=${encodeURIComponent(v)}`;
+    return fetch(url, { cache: 'no-store' }).then(async (res) => {
         if (!res.ok) throw new Error(`snapshot-missing:${res.status}`);
         const ct = res.headers.get('content-type') || '';
         if (!ct.includes('application/json')) throw new Error('snapshot-not-json');

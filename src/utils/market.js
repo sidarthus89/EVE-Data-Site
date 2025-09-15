@@ -2,6 +2,7 @@
 // Market data functions (Azure first; no ESI fallbacks for orders)
 
 import { fetchWithRetry, AZURE_BASE, ESI_BASE, fetchMarketTree, fetchStationsNPC, fetchStructures, fetchRegionOrdersSnapshot } from './api.js';
+import { getForbiddenSetFor } from './esi.js';
 
 // Simple localStorage cache for market history keyed by typeId:regionId
 const HISTORY_CACHE_KEY = 'marketHistoryCache.v1';
@@ -286,8 +287,21 @@ export async function generateRegionRoutesFromSnapshots(originRegionId, destinat
                 _fallback: true
             });
         }
-        // Sort by profit per unit desc and cap to a reasonable size
-        return routes.sort((x, y) => (y.profit_per_unit || 0) - (x.profit_per_unit || 0)).slice(0, 5000);
+        // Exclude routes that involve forbidden structures (401/403/404 from ESI structure endpoint)
+        try {
+            const idsToCheck = new Set();
+            for (const r of routes) {
+                idsToCheck.add(Number(r.origin_id));
+                idsToCheck.add(Number(r.destination_id));
+            }
+            const forbidden = await getForbiddenSetFor(Array.from(idsToCheck));
+            const filtered = routes.filter(r => !forbidden.has(Number(r.origin_id)) && !forbidden.has(Number(r.destination_id)));
+            // Sort by profit per unit desc and cap to a reasonable size
+            return filtered.sort((x, y) => (y.profit_per_unit || 0) - (x.profit_per_unit || 0)).slice(0, 5000);
+        } catch {
+            // On any error, return unfiltered routes rather than fail the feature
+            return routes.sort((x, y) => (y.profit_per_unit || 0) - (x.profit_per_unit || 0)).slice(0, 5000);
+        }
     } catch {
         return [];
     }

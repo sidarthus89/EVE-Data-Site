@@ -46,7 +46,7 @@
       }
     })();
   </script>
-  <!-- Cache-busting: if a new build is deployed (version.txt changes), reload with ?v=version -->
+  <!-- Cache-busting: if a new build is deployed (version.txt changes), do a plain reload without changing the URL -->
   <script>
     (function () {
       function getRepoBase() {
@@ -61,24 +61,30 @@
           try { sessionStorage.removeItem('spa:from404'); } catch { }
           return;
         }
-        var url = new URL(window.location.href);
-        var current = url.searchParams.get('v') || '';
+        // Track last seen version in sessionStorage rather than URL params
+        var stored = sessionStorage.getItem('spa:version') || '';
         // Always bypass cache for version file; ensure we hit repo root in deep links
         var verUrl = getRepoBase() + 'version.txt?ts=' + Date.now();
         fetch(verUrl, { cache: 'no-store' })
           .then(function (r) { if (!r.ok) throw new Error('no version'); return r.text(); })
           .then(function (t) {
             var latest = (t || '').trim();
-            if (latest && latest !== current) {
-              url.searchParams.set('v', latest);
-              window.location.replace(url.toString());
+            // On first load in this session, store version and do nothing
+            if (!stored) {
+              try { sessionStorage.setItem('spa:version', latest); } catch { }
+              return;
+            }
+            // If a new deploy is detected during the session, update stored version and force a plain reload
+            if (latest && latest !== stored) {
+              try { sessionStorage.setItem('spa:version', latest); } catch { }
+              window.location.reload();
             }
           })
           .catch(function () { /* ignore in dev/first load */ });
       } catch (e) { /* noop */ }
     })();
   </script>
-  <!-- If a dynamic import fails due to stale chunk (HTML served as JS), do a one-time hard reload to bust cache -->
+  <!-- If a dynamic import fails due to stale chunk (HTML served as JS), do a one-time hard reload without changing URL -->
   <script>
     (function () {
       const orig = window.__vite_is_modern_browser; // harmless read to keep after Vite runtime
@@ -89,10 +95,8 @@
         const already = sessionStorage.getItem('spa:reloaded');
         if (!already && (msg.includes('dynamically imported module') || looksLikeChunk)) {
           try { sessionStorage.setItem('spa:reloaded', '1'); } catch { }
-          // append a cache-busting query
-          const url = new URL(window.location.href);
-          url.searchParams.set('v', Date.now().toString());
-          window.location.replace(url.toString());
+          // force a plain reload without modifying the URL
+          window.location.reload();
         }
       }, true);
     })();

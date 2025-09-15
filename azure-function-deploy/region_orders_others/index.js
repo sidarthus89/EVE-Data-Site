@@ -59,14 +59,21 @@ module.exports = async function (context, myTimer) {
                             const structureIds = Array.isArray(snapshot.structure_ids) ? snapshot.structure_ids : [];
                             if (structureIds.length) {
                                 const existing = await readExistingStructures().catch(() => []);
-                                const existingIds = new Set(existing.map(s => String(s.stationID)));
-                                const missing = structureIds.filter(id => !existingIds.has(String(id)));
-                                if (missing.length) {
-                                    const enrichRes = await updateStructuresFromIds(missing, context);
-                                    context.log(`[W${id}] structures.json enriched: +${missing.length} new, total ${enrichRes.total}`);
-                                    telemetry.trackEvent('STRUCTURES_ENRICH', { regionId: String(regionId), new: String(missing.length), total: String(enrichRes.total) });
+                                const byId = new Map(existing.map(s => [String(s.stationID), s]));
+                                const missing = structureIds.filter(id => !byId.has(String(id)));
+                                const incomplete = structureIds.filter(id => {
+                                    const rec = byId.get(String(id));
+                                    if (!rec) return false;
+                                    const hasDetails = !!(rec.locationName || rec.systemID || rec.regionID || rec.systemName || rec.regionName || (typeof rec.security === 'number'));
+                                    return !hasDetails;
+                                });
+                                const toEnrich = Array.from(new Set([...missing, ...incomplete]));
+                                if (toEnrich.length) {
+                                    const enrichRes = await updateStructuresFromIds(toEnrich, context);
+                                    context.log(`[W${id}] structures.json enriched (missing+incomplete): ${toEnrich.length} ids, total ${enrichRes.total}`);
+                                    telemetry.trackEvent('STRUCTURES_ENRICH', { regionId: String(regionId), new: String(toEnrich.length), total: String(enrichRes.total) });
                                 } else {
-                                    context.log(`[W${id}] structures.json: all ${structureIds.length} already present`);
+                                    context.log(`[W${id}] structures.json: all ${structureIds.length} present and enriched`);
                                 }
                             }
                         } catch (e) {

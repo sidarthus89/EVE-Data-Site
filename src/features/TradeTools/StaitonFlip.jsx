@@ -4,6 +4,7 @@ import RegionSelector from '../../components/RegionSelector/RegionSelector.jsx';
 import { getSecurityColor } from '../../utils/common.js';
 import { fetchMarketOrders } from '../../utils/market.js';
 import { fetchMarketTree, fetchRegions, fetchStationsNPC, fetchStructures, fetchRegionOrdersSnapshot } from '../../utils/api.js';
+import { getForbiddenSetFor, isStructureForbiddenCached } from '../../utils/esi.js';
 import './RegionHauling.css';
 
 const formatNumber = (value, decimals = 2) => {
@@ -196,10 +197,13 @@ export default function StationFlip() {
         for (const id of snapshotIds.values()) {
             const known = knownLocations.get(Number(id));
             if (known && Number(known.regionId) === rid) {
+                // Filter out forbidden structures from cache
+                if (known.kind === 'structure' && isStructureForbiddenCached(known.id) === true) continue;
                 list.push(known);
             } else {
                 // Unknown in our datasets, still offer it
                 const looksStructure = Number(id) >= 1_000_000_000_000;
+                if (looksStructure && isStructureForbiddenCached(id) === true) continue;
                 list.push({
                     id: Number(id),
                     name: looksStructure ? `Unknown Structure (${id})` : `Unknown Station (${id})`,
@@ -292,6 +296,8 @@ export default function StationFlip() {
             }
 
             const entries = Object.entries(snap.best_quotes);
+            // Pre-check forbidden status for selected station
+            try { await getForbiddenSetFor([stationId]); } catch { }
             const candidates = entries.filter(([, entry]) => {
                 const bb = entry?.best_buy; const bs = entry?.best_sell;
                 return bb && bs && Number(bb.location_id) === stationId && Number(bs.location_id) === stationId;
@@ -343,6 +349,9 @@ export default function StationFlip() {
                 }
             }
             setProgress(100);
+            if (found.length === 0) {
+                setError('No profitable flips found for this location with the current filters. Try lowering Min Profit / ROI or increasing Max Budget.');
+            }
             setResults(found);
         } catch (e) {
             setError(e?.message || 'Search failed');

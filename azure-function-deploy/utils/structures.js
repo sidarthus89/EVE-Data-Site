@@ -102,14 +102,52 @@ async function fetchStructureDetail(structureId, bearer) {
 
 // Merge new records with existing file (append/update), preserving prior enriched entries.
 function mergeStructures(existing, incoming) {
-    const map = new Map();
+    const byId = new Map();
+
+    const isEnriched = (rec) => {
+        if (!rec) return false;
+        // Consider enriched if it has any of the detail fields
+        return !!(rec.locationName || rec.systemID || rec.regionID || rec.systemName || rec.regionName || (typeof rec.security === 'number'));
+    };
+
+    const mergeTwo = (oldRec, newRec) => {
+        if (!oldRec) return newRec;
+        if (!newRec) return oldRec;
+        // If newRec is clearly enriched and old is bare, take new
+        const oldEnriched = isEnriched(oldRec);
+        const newEnriched = isEnriched(newRec);
+        if (newEnriched && !oldEnriched) return { ...oldRec, ...newRec };
+        if (!newEnriched && oldEnriched) return oldRec; // don't regress
+        // If both enriched or both bare, prefer non-null values from newRec
+        return {
+            ...oldRec,
+            // Always keep stationID/type from either
+            stationID: String(newRec.stationID || oldRec.stationID),
+            type: newRec.type || oldRec.type || 'player',
+            // Prefer defined fields from newRec, fallback to oldRec
+            locationName: newRec.locationName ?? oldRec.locationName ?? null,
+            regionID: (newRec.regionID != null ? newRec.regionID : (oldRec.regionID != null ? oldRec.regionID : null)),
+            regionName: newRec.regionName ?? oldRec.regionName ?? null,
+            systemID: (newRec.systemID != null ? newRec.systemID : (oldRec.systemID != null ? oldRec.systemID : null)),
+            systemName: newRec.systemName ?? oldRec.systemName ?? null,
+            security: (typeof newRec.security === 'number') ? newRec.security : ((typeof oldRec.security === 'number') ? oldRec.security : null),
+        };
+    };
+
     for (const rec of existing || []) {
-        if (rec && rec.stationID) map.set(String(rec.stationID), rec);
+        if (rec && rec.stationID) byId.set(String(rec.stationID), { ...rec });
     }
     for (const rec of incoming || []) {
-        if (rec && rec.stationID) map.set(String(rec.stationID), rec);
+        if (!rec || !rec.stationID) continue;
+        const key = String(rec.stationID);
+        const current = byId.get(key);
+        if (current) {
+            byId.set(key, mergeTwo(current, rec));
+        } else {
+            byId.set(key, { ...rec });
+        }
     }
-    return Array.from(map.values());
+    return Array.from(byId.values());
 }
 
 async function readExistingStructures() {

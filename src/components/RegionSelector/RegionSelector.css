@@ -13,14 +13,18 @@
 .region-selector {
     display: block;
     width: 100%;
-    height: 32px;
-    padding: 4px 8px;
+    height: 44px;
+    /* match Region Hauling control height */
+    padding: 10px 14px;
     font-size: 14px;
-    line-height: 1.4;
+    line-height: 1.2;
     font-family: "EVE Sans Neue", "Eve Sans", "Segoe UI", Tahoma, sans-serif;
-    border: 1px solid #666;
-    border-radius: 4px;
-    background: #1c1c1c;
+    border: 2px solid #234e5b;
+    /* EVE-style border */
+    border-radius: 0;
+    /* no rounding */
+    background: #1b2024;
+    /* match Region Hauling */
     color: #eee;
     box-sizing: border-box;
     appearance: none;
@@ -28,15 +32,17 @@
     -moz-appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 8px center;
+    background-position: right 12px center;
     background-size: 16px;
-    padding-right: 32px;
+    padding-right: 36px;
     cursor: pointer;
 }
 
 .region-selector:focus {
     outline: none;
-    border-color: #00bfff;
+    border-color: #2f6b7c;
+    /* subtle brighter focus */
+    box-shadow: 0 0 0 2px rgba(47, 107, 124, 0.2);
 }
 
 .region-selector optgroup {

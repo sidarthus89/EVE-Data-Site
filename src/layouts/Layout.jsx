@@ -129,7 +129,7 @@ export default function Layout() {
                     <div className="nav-dropdown">
                         <span className="eve-button">Trade Tools▾</span>
                         <div className="nav-dropdown-menu">
-                            <Link to="/station-trading" className="eve-button">Single Station</Link>
+                            <Link to="/station-flip" className="eve-button">Station Flip</Link>
                             {/* <Link to="/station-hauling" className="eve-button">Station to Station</Link> */}
                             <Link to="/region-hauling" className="eve-button">Region to Region</Link>
                         </div>
