@@ -969,6 +969,7 @@ export default function RegionHauling() {
                     >
                         Last Data Update: {renderSinceLastUpdate()} ago
                     </p>
+                    <p style={{color:'#f39c12',textAlign:'center',margin:'8px 0'}}>Notice: Azure function app disabled — data is not live. Results may be out-of-date.</p>
                 </div>
             </div>
 
